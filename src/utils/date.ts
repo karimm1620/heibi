@@ -121,10 +121,50 @@ export interface HeatmapDay {
 }
 
 /**
- * Grid mingguan buat heatmap: kolom = minggu (Senin-Minggu per kolom),
- * kolom PALING KANAN = minggu ini. Tanggal setelah `referenceDate` ditandai
- * `isFuture` (dirender kosong/transparan, bukan "belum selesai").
+ * Versi GABUNGAN dari `buildHeatmapWeeks` — ngitung rasio completion di
+ * SEMUA habit aktif per hari (bukan per-habit kayak `HabitHeatmap.tsx` yang
+ * dipakai di `habit/[id].tsx`, itu SENGAJA gak diubah/disentuh). Dipakai
+ * buat heatmap ringkasan konsistensi di atas tab History.
  */
+export function buildHabitConsistencyHeatmap(
+  habits: Pick<Habit, "id" | "frequencyType" | "weekdaysMask" | "archivedAt">[],
+  habitLogs: { habitId: string; date: string }[],
+  numberOfWeeks: number,
+  referenceDate: Date = new Date(),
+) {
+  const activeHabits = habits.filter((h) => !h.archivedAt);
+  const completedSetByHabit = new Map<string, Set<string>>();
+  for (const habit of activeHabits) {
+    completedSetByHabit.set(
+      habit.id,
+      new Set(
+        habitLogs.filter((l) => l.habitId === habit.id).map((l) => l.date),
+      ),
+    );
+  }
+
+  const { weeks, monthLabelByWeekIndex } = buildHeatmapWeeks(
+    numberOfWeeks,
+    referenceDate,
+  );
+
+  const weeksWithRatio = weeks.map((week) =>
+    week.map((day) => {
+      if (day.isFuture) return { ...day, ratio: 0 };
+      let due = 0;
+      let done = 0;
+      for (const habit of activeHabits) {
+        if (isHabitDueOnDate(habit, day.dateKey)) {
+          due++;
+          if (completedSetByHabit.get(habit.id)?.has(day.dateKey)) done++;
+        }
+      }
+      return { ...day, ratio: due > 0 ? done / due : 0 };
+    }),
+  );
+
+  return { weeks: weeksWithRatio, monthLabelByWeekIndex };
+}
 export function buildHeatmapWeeks(
   numberOfWeeks: number,
   referenceDate: Date = new Date(),

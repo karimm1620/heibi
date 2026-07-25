@@ -199,33 +199,41 @@ export default function TodayScreen() {
             {todayHabits.length > 0 && (
               <>
                 <Text style={styles.sectionTitle}>Habits</Text>
-                {orderedTodayHabits.map((habit) => (
-                  <HabitRow
-                    key={habit.id}
-                    habit={habit}
-                    done={completedHabitIdsToday.has(habit.id)}
-                    streak={streakByHabitId.get(habit.id) ?? 0}
-                    onPress={() => router.push(`/habit/${habit.id}`)}
-                    onToggle={() => handleToggleHabit(habit.id)}
-                    onLayout={(h) => setHabitRowHeight(h)}
-                    isDragging={draggingHabitKey === habit.id}
-                    dragY={habitDragY}
-                    dragHandlers={getHabitDragHandle(habit).panHandlers}
-                  />
-                ))}
+                <GlassCard elevationLevel="level1" style={styles.listCard}>
+                  {orderedTodayHabits.map((habit, index) => (
+                    <HabitRow
+                      key={habit.id}
+                      habit={habit}
+                      done={completedHabitIdsToday.has(habit.id)}
+                      streak={streakByHabitId.get(habit.id) ?? 0}
+                      isLast={index === orderedTodayHabits.length - 1}
+                      onPress={() => router.push(`/habit/${habit.id}`)}
+                      onToggle={() => handleToggleHabit(habit.id)}
+                      onLayout={(h) => setHabitRowHeight(h)}
+                      isDragging={draggingHabitKey === habit.id}
+                      dragY={habitDragY}
+                      dragHandlers={getHabitDragHandle(habit).panHandlers}
+                    />
+                  ))}
+                </GlassCard>
               </>
             )}
 
             <Text style={styles.sectionTitle}>Tugas hari ini</Text>
-            {todayTodos.map((todo) => (
-              <TodoRow
-                key={todo.id}
-                title={todo.title}
-                done={!!todo.completedAt}
-                onToggle={() => handleToggleTodo(todo.id)}
-                onDelete={() => void deleteTodo(todo.id)}
-              />
-            ))}
+            {todayTodos.length > 0 && (
+              <GlassCard elevationLevel="level1" style={styles.listCard}>
+                {todayTodos.map((todo, index) => (
+                  <TodoRow
+                    key={todo.id}
+                    title={todo.title}
+                    done={!!todo.completedAt}
+                    isLast={index === todayTodos.length - 1}
+                    onToggle={() => handleToggleTodo(todo.id)}
+                    onDelete={() => void deleteTodo(todo.id)}
+                  />
+                ))}
+              </GlassCard>
+            )}
 
             <View style={styles.addTodoRow}>
               <Text style={{ fontSize: 16, color: colors.textSecondary }}>
@@ -262,6 +270,7 @@ interface HabitRowProps {
   habit: Habit;
   done: boolean;
   streak: number;
+  isLast: boolean;
   onPress: () => void;
   onToggle: () => void;
   onLayout: (height: number) => void;
@@ -274,6 +283,7 @@ function HabitRow({
   habit,
   done,
   streak,
+  isLast,
   onPress,
   onToggle,
   onLayout,
@@ -347,7 +357,13 @@ function HabitRow({
           >
             <Pressable
               onPress={onPress}
-              style={[styles.row, { backgroundColor: colors.background }]}
+              style={[
+                styles.row,
+                !isLast && {
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.glassBorder,
+                },
+              ]}
               android_ripple={{ color: colors.glassBorder }}
             >
               <View style={[styles.iconCircle, { backgroundColor: `${habit.color}33` }]}>
@@ -416,11 +432,12 @@ function HabitRow({
 interface TodoRowProps {
   title: string;
   done: boolean;
+  isLast: boolean;
   onToggle: () => void;
   onDelete: () => void;
 }
 
-function TodoRow({ title, done, onToggle, onDelete }: TodoRowProps) {
+function TodoRow({ title, done, isLast, onToggle, onDelete }: TodoRowProps) {
   const { colors, typography, material3 } = useTheme();
   const styles = useMemo(() => createStyles(colors, typography, 0), [colors, typography]);
 
@@ -431,7 +448,12 @@ function TodoRow({ title, done, onToggle, onDelete }: TodoRowProps) {
         { label: "Hapus", icon: "delete-outline", color: colors.danger, onPress: onDelete },
       ]}
     >
-      <View style={[styles.row, { backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.row,
+          !isLast && { borderBottomWidth: 1, borderBottomColor: colors.glassBorder },
+        ]}
+      >
         <Pressable
           onPress={onToggle}
           hitSlop={10}
@@ -491,6 +513,10 @@ function createStyles(
       textTransform: "uppercase",
       marginTop: spacing.md,
       marginBottom: spacing.sm,
+    },
+    listCard: {
+      paddingHorizontal: spacing.md,
+      marginBottom: spacing.md,
     },
     row: {
       flexDirection: "row",

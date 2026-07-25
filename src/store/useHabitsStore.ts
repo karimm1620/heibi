@@ -51,7 +51,6 @@ export function rowToLog(row: HabitLogRow): HabitLog {
     completedAt: row.completed_at,
   };
 }
-  // reorderHabits: any;
 
 interface HabitsState {
   habits: Habit[];

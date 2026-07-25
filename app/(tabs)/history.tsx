@@ -7,8 +7,10 @@ import {
   FLOATING_TAB_BAR_MARGIN,
 } from "../../src/components/FloatingTabBar";
 import { GlassCard } from "../../src/components/GlassCard";
+import { HabitConsistencyHeatmap } from "../../src/components/HabitConsistencyHeatmap";
 import { TransactionRow } from "../../src/components/TransactionRow";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
+import { useHabitsStore } from "../../src/store/useHabitsStore";
 import { spacing } from "../../src/theme/colors";
 import { useTheme } from "../../src/theme/useTheme";
 import type { Transaction } from "../../src/types";
@@ -18,6 +20,8 @@ export default function HistoryScreen() {
   const { colors, typography, isDark } = useTheme();
   const transactions = useGoalsStore((state) => state.transactions);
   const goals = useGoalsStore((state) => state.goals);
+  const habits = useHabitsStore((state) => state.habits);
+  const habitLogs = useHabitsStore((state) => state.habitLogs);
 
   const sorted = useMemo(
     () => [...transactions].sort((a, b) => b.createdAt - a.createdAt),
@@ -57,6 +61,9 @@ export default function HistoryScreen() {
           paddingHorizontal: spacing.md,
           marginBottom: spacing.sm,
         },
+        heatmapWrapper: {
+          marginBottom: spacing.lg,
+        },
       }),
     [colors, typography, insets.bottom],
   );
@@ -76,6 +83,13 @@ export default function HistoryScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          habits.some((h) => !h.archivedAt) ? (
+            <View style={styles.heatmapWrapper}>
+              <HabitConsistencyHeatmap habits={habits} habitLogs={habitLogs} />
+            </View>
+          ) : null
+        }
         renderItem={({ item }) => (
           <GlassCard tintColor={colors.surface} style={styles.rowCard}>
             <TransactionRow
