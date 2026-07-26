@@ -1,8 +1,14 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useMemo, useRef } from "react";
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  PinchGestureHandler,
+  type PinchGestureHandlerGestureEvent,
+  type PinchGestureHandlerStateChangeEvent,
+  State,
+} from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppAlert } from "../../src/components/AppAlert";
 import { GlassCard } from "../../src/components/GlassCard";
@@ -46,6 +52,63 @@ export default function HabitDetailScreen() {
     () => createStyles(colors, typography, material3),
     [colors, typography, material3],
   );
+
+  // Pinch-to-dismiss: pinch ke dalam (nyubit, jari nutup) di layar detail
+  // habit ini buat balik ke home — mirip pola "pinch to close" di app foto.
+  // Haptic bertingkat: tick ringan tiap ngelewatin ambang batas pas lagi
+  // nyubit (biar berasa "makin deket"), notif sukses pas beneran ke-dismiss,
+  // tick ringan lagi kalau dilepas sebelum ambang batas (batal, snap balik).
+  const pinchScale = useRef(new Animated.Value(1)).current;
+  const crossedThresholdsRef = useRef<Set<number>>(new Set());
+  const HAPTIC_THRESHOLDS = [0.94, 0.86, 0.78];
+  const DISMISS_THRESHOLD = 0.72;
+
+  const onPinchGestureEvent = Animated.event(
+    [{ nativeEvent: { scale: pinchScale } }],
+    {
+      useNativeDriver: true,
+      listener: (event: PinchGestureHandlerGestureEvent) => {
+        const scale = event.nativeEvent.scale;
+        for (const threshold of HAPTIC_THRESHOLDS) {
+          if (scale <= threshold && !crossedThresholdsRef.current.has(threshold)) {
+            crossedThresholdsRef.current.add(threshold);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          } else if (scale > threshold + 0.03) {
+            crossedThresholdsRef.current.delete(threshold);
+          }
+        }
+      },
+    },
+  );
+
+  const onPinchHandlerStateChange = (event: PinchGestureHandlerStateChangeEvent) => {
+    if (event.nativeEvent.oldState !== State.ACTIVE) return;
+    crossedThresholdsRef.current.clear();
+
+    if (event.nativeEvent.scale <= DISMISS_THRESHOLD) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Animated.timing(pinchScale, {
+        toValue: 0.3,
+        duration: 180,
+        useNativeDriver: true,
+      }).start(() => router.back());
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      Animated.spring(pinchScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        damping: 16,
+        stiffness: 220,
+        mass: 0.7,
+      }).start();
+    }
+  };
+
+  const pinchOpacity = pinchScale.interpolate({
+    inputRange: [0.3, 1],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
 
   if (!habit) {
     return (
@@ -111,7 +174,18 @@ export default function HabitDetailScreen() {
   };
 
   return (
-    <View key={isDark ? "dark" : "light"} style={styles.container}>
+    <View style={{ flex: 1 }}>
+      <PinchGestureHandler
+        onGestureEvent={onPinchGestureEvent}
+        onHandlerStateChange={onPinchHandlerStateChange}
+      >
+        <Animated.View
+          key={isDark ? "dark" : "light"}
+          style={[
+            styles.container,
+            { transform: [{ scale: pinchScale }], opacity: pinchOpacity },
+          ]}
+        >
       <ScrollView
         contentContainerStyle={[
           styles.content,
@@ -220,6 +294,8 @@ export default function HabitDetailScreen() {
           </Text>
         </Pressable>
       </ScrollView>
+        </Animated.View>
+      </PinchGestureHandler>
 
       <AppAlert
         visible={alertState.visible}
