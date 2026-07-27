@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Checkpoint 4a: ukuran min/target masih placeholder generik. Bakal
+  disesuaikan lagi di checkpoint 4c pas grid heatmap 30-hari beneran
+  didesain (target ukuran per breakpoint responsive).
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="3600000"
+    android:initialLayout="@layout/widget_heatmap_placeholder"
+    android:description="@string/widget_heatmap_description"
+    android:widgetCategory="home_screen" />

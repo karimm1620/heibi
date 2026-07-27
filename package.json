@@ -9,6 +9,11 @@
     "web": "expo start --web",
     "lint": "expo lint"
   },
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "./modules"
+    }
+  },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "@pchmn/expo-material3-theme": "^1.4.0",
