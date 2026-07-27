@@ -14,8 +14,15 @@ import { useHabitsStore } from "../src/store/useHabitsStore";
 import { useSettingsStore } from "../src/store/useSettingsStore";
 import { useTodosStore } from "../src/store/useTodosStore";
 import { useTheme } from "../src/theme/useTheme";
+import { registerWidgetSync } from "../src/widgets/syncWidgetSnapshot";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// Dipanggil di sini (module scope, bukan dalam useEffect) supaya subscriber
+// udah kepasang SEBELUM hydrate() pertama di bawah nge-trigger `set()` --
+// biar snapshot widget langsung ke-sync sekali pas app baru dibuka juga,
+// gak nunggu sampai ada mutasi data berikutnya.
+registerWidgetSync();
 
 export default function RootLayout() {
   return (
