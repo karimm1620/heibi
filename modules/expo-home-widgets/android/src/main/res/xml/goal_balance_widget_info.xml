@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Checkpoint 4a: `android:configure` (Configuration Activity buat milih
-  goal) BELUM ditambahin di sini -- activity-nya sendiri baru dibikin di
+  goal) BELUM ditambahin di sini, activity-nya sendiri baru dibikin di
   checkpoint 4d. Nambahin atribut ini sekarang bakal nunjuk ke activity
   yang belum ada. Sementara widget bisa langsung dipasang tanpa config
   (nampilin placeholder), ukuran min/target juga masih generik sama kayak
