@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -66,6 +67,13 @@ function RootLayoutContent() {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [ready]);
+
+  // Root window Android defaultnya putih kalau gak di-set manual — bikin
+  // flash kelihatan pas transisi Stack (push/modal) atau tepat abis splash
+  // hilang, apalagi di dark mode. Di-sync tiap kali warna tema berubah.
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(colors.background).catch(() => {});
+  }, [colors.background]);
 
   // Dilempar pas render (bukan cuma di-log) — supaya ErrorBoundary di
   // `RootLayout` (parent component ini) yang nangkep. Bootstrap DB gagal

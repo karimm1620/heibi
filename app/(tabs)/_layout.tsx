@@ -4,8 +4,10 @@ import { Fab } from "../../src/components/Fab";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_MARGIN, FloatingTabBar } from "../../src/components/FloatingTabBar";
 import { UndoSnackbar } from "../../src/components/UndoSnackbar";
 import { spacing } from "../../src/theme/colors";
+import { useTheme } from "../../src/theme/useTheme";
 
 export default function TabsLayout() {
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
@@ -24,7 +26,13 @@ export default function TabsLayout() {
 
   return (
     <>
-      <Tabs tabBar={(props) => <FloatingTabBar {...props} />} screenOptions={{ headerShown: false }}>
+      <Tabs
+        tabBar={(props) => <FloatingTabBar {...props} />}
+        screenOptions={{
+          headerShown: false,
+          sceneStyle: { backgroundColor: colors.background },
+        }}
+      >
         <Tabs.Screen name="index" options={{ title: "Today" }} />
         <Tabs.Screen name="goals" options={{ title: "Goals" }} />
         <Tabs.Screen name="history" options={{ title: "History" }} />
