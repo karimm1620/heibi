@@ -1,6 +1,7 @@
 package expo.modules.homewidgets
 
 import expo.modules.homewidgets.widgets.WidgetUpdater
+import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
@@ -10,10 +11,10 @@ class HomeWidgetsModule : Module() {
     Name("HomeWidgets")
 
     // Satu pintu masuk buat JS: tulis snapshot data terbaru + trigger update
-    // semua widget yang lagi kepasang, dalam satu panggilan atomik -- biar
-    // gak ada state di mana widget ke-trigger update tapi snapshot-nya
-    // belum ke-tulis (atau sebaliknya).
-    AsyncFunction("updateWidgets") { snapshotJson: String ->
+    // semua widget yang lagi kepasang, dalam satu panggilan atomik. Pakai
+    // `Coroutine` (bukan lambda suspend biasa) karena `WidgetUpdater.updateAll`
+    // sekarang suspend function -- ngikutin API resmi Glance (`updateAll`).
+    AsyncFunction("updateWidgets") Coroutine { snapshotJson: String ->
       val context = appContext.reactContext
         ?: throw IllegalStateException("React context belum siap")
 

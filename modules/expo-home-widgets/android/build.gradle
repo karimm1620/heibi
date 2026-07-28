@@ -1,3 +1,20 @@
+// Checkpoint 4c: Widget 1 (Heatmap) pindah ke Jetpack Glance, yang butuh
+// Compose Compiler Gradle plugin. Versinya HARUS sama persis kayak versi
+// Kotlin project ini (2.0.21 -- default dari `ExpoModulesCorePlugin.gradle`
+// di bawah, lihat `project.ext.kotlinVersion()` di situ). Kalau project
+// upgrade versi Kotlin, baris classpath ini WAJIB ikut di-update ke versi
+// yang sama persis, atau build bakal gagal (compiler mismatch).
+buildscript {
+  repositories {
+    gradlePluginPortal()
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    classpath "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.0.21"
+  }
+}
+
 apply plugin: 'com.android.library'
 
 group = 'expo.modules.homewidgets'
@@ -6,6 +23,9 @@ version = '0.1.0'
 def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
 apply from: expoModulesCorePlugin
 applyKotlinExpoModulesCorePlugin()
+// Compose Compiler plugin butuh kotlin-android (di-apply barusan sama baris
+// di atas) udah ke-apply duluan.
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 useCoreDependencies()
 useExpoPublishing()
 
@@ -37,7 +57,17 @@ android {
     versionCode 1
     versionName "0.1.0"
   }
+  buildFeatures {
+    compose true
+  }
   lintOptions {
     abortOnError false
   }
+}
+
+dependencies {
+  // Widget 1 (Heatmap) -- checkpoint 4c. Widget 2 masih RemoteViews klasik
+  // (checkpoint 4d migrasi ke Glance juga, dependency ini bakal kepake
+  // bareng).
+  implementation "androidx.glance:glance-appwidget:1.1.1"
 }

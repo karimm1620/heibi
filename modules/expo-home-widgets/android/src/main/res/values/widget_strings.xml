@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_heatmap_placeholder_text">Heatmap kebiasaan segera hadir</string>
+    <string name="widget_heatmap_placeholder_text">Memuat heatmap kebiasaan…</string>
     <string name="widget_heatmap_description">Lihat konsistensi kebiasaanmu 30 hari terakhir</string>
 
     <string name="widget_goal_balance_placeholder_text">Saldo goal segera hadir</string>

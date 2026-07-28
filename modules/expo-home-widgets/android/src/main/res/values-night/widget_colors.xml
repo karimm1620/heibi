@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_background">#17151F</color>
+    <color name="widget_text_secondary">#A6A3AD</color>
+    <color name="widget_heatmap_cell_empty">#2A2733</color>
+    <color name="widget_heatmap_cell_low">#4A3A66</color>
+    <color name="widget_heatmap_cell_mid">#7057A0</color>
+    <color name="widget_heatmap_cell_full">#A985E0</color>
+</resources>
