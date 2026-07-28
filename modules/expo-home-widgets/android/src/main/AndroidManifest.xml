@@ -23,5 +23,21 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/goal_balance_widget_info" />
         </receiver>
+
+        <!--
+          Fully qualified (bukan relatif ".widgets.XXX") karena launcher
+          app (proses LAIN) yang manggil activity ini buat konfigurasi
+          widget pas ditambahin, jadi exported="true" WAJIB. Beda sama
+          <receiver> di atas yang tetap kena trigger sistem meskipun
+          exported="false" (widget update broadcast lewat jalur khusus
+          system, activity launch cross-app biasa enggak).
+        -->
+        <activity
+            android:name="expo.modules.homewidgets.widgets.GoalBalanceConfigActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

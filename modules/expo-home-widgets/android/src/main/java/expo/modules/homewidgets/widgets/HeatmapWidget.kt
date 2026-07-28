@@ -10,6 +10,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.LocalSize
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -88,6 +89,7 @@ private fun HeatmapContent(snapshot: WidgetSnapshot) {
     modifier = GlanceModifier
       .fillMaxSize()
       .background(ColorBackground)
+      .cornerRadius(16.dp) // catatan: cuma jalan di Android 12+ (API 31+)
       .padding(10.dp),
     verticalAlignment = Alignment.Top,
   ) {
@@ -126,6 +128,7 @@ private fun HeatmapCell(ratio: Double?) {
     modifier = GlanceModifier
       .width(CELL_SIZE)
       .height(CELL_SIZE)
+      .cornerRadius(3.dp)
       .background(color),
   ) {}
 }

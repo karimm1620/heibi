@@ -1,26 +1,13 @@
 package expo.modules.homewidgets.widgets
 
-import android.appwidget.AppWidgetManager
-import android.appwidget.AppWidgetProvider
-import android.content.Context
-import android.widget.RemoteViews
-import expo.modules.homewidgets.R
+import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetReceiver
 
 /**
- * Placeholder -- konten saldo goal + Configuration Activity buat milih
- * goal mana yang ditampilin (per appWidgetId) masuk di checkpoint 4d,
- * sekalian migrasi ke Jetpack Glance. Provider ini cuma buat mastiin
- * widget udah kedaftar & bisa di-update dari native module.
+ * Nama class SENGAJA dipertahankan sama kayak checkpoint 4a (RemoteViews)
+ * biar entry <receiver> di AndroidManifest.xml gak perlu berubah -- cuma
+ * base class & isinya yang migrasi ke Glance (checkpoint 4d).
  */
-class GoalBalanceWidgetProvider : AppWidgetProvider() {
-  override fun onUpdate(
-    context: Context,
-    appWidgetManager: AppWidgetManager,
-    appWidgetIds: IntArray,
-  ) {
-    for (appWidgetId in appWidgetIds) {
-      val views = RemoteViews(context.packageName, R.layout.widget_goal_balance_placeholder)
-      appWidgetManager.updateAppWidget(appWidgetId, views)
-    }
-  }
+class GoalBalanceWidgetProvider : GlanceAppWidgetReceiver() {
+  override val glanceAppWidget: GlanceAppWidget = GoalBalanceWidget()
 }

@@ -16,13 +16,19 @@ export function syncWidgetSnapshot() {
   if (syncTimeout) clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => {
     syncTimeout = null;
-    const { goals } = useGoalsStore.getState();
-    const { habits, habitLogs } = useHabitsStore.getState();
-    const snapshot = buildWidgetSnapshot(goals, habits, habitLogs);
+    try {
+      const { goals } = useGoalsStore.getState();
+      const { habits, habitLogs } = useHabitsStore.getState();
+      const snapshot = buildWidgetSnapshot(goals, habits, habitLogs);
 
-    HomeWidgetsModule.updateWidgets(JSON.stringify(snapshot)).catch((error: unknown) => {
-      console.warn("[widgets] Gagal update snapshot widget:", error);
-    });
+      HomeWidgetsModule.updateWidgets(JSON.stringify(snapshot)).catch((error: unknown) => {
+        console.warn("[widgets] Gagal update snapshot widget:", error);
+      });
+    } catch (error) {
+      // Exception SINKRON (mis. gagal bangun snapshot) sebelumnya bisa
+      // diam-diam gak ketahuan sama sekali di listener store subscribe.
+      console.warn("[widgets] Gagal bangun snapshot widget:", error);
+    }
   }, 300);
 }
 

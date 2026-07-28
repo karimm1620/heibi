@@ -14,7 +14,7 @@ import { useHabitsStore } from "../src/store/useHabitsStore";
 import { useSettingsStore } from "../src/store/useSettingsStore";
 import { useTodosStore } from "../src/store/useTodosStore";
 import { useTheme } from "../src/theme/useTheme";
-import { registerWidgetSync } from "../src/widgets/syncWidgetSnapshot";
+import { registerWidgetSync, syncWidgetSnapshot } from "../src/widgets/syncWidgetSnapshot";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -63,6 +63,14 @@ function RootLayoutContent() {
           hydrateHabits(),
           hydrateTodos(),
         ]);
+        // Sync eksplisit di sini, TERLEPAS dari subscribe reaktif di
+        // registerWidgetSync(). Alasannya: subscribe react ke tiap hydrate
+        // satu-satu, jadi kalau salah satu hydrate resolve lebih dulu dari
+        // yang lain, sync pertama bisa aja ke-debounce & jalan SEBELUM semua
+        // data lengkap -- widget nampilin data kosong/parsial padahal app
+        // udah keliatan normal. Panggilan di sini dijamin semua data udah
+        // lengkap karena nunggu Promise.all di atas kelar duluan.
+        syncWidgetSnapshot();
       } catch (error) {
         setBootError(error);
       }
