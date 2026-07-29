@@ -2,7 +2,7 @@ package expo.modules.homewidgets.widgets
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -35,28 +35,34 @@ private val ColorTextPrimary = ColorProvider(R.color.widget_text_primary)
 private val ColorTextSecondary = ColorProvider(R.color.widget_text_secondary)
 private val ColorCellEmpty = ColorProvider(R.color.widget_heatmap_cell_empty)
 
-private val SIZE_SMALL = DpSize(220.dp, 90.dp)
-private val SIZE_LARGE = DpSize(220.dp, 220.dp)
+/** Harus sinkron sama `WIDGET_HABIT_ROW_WINDOW_DAYS` di buildWidgetSnapshot.ts. */
+private const val DAYS_PER_ROW = 14
 
-private const val MAX_ROWS_SMALL = 3
-private const val MAX_ROWS_LARGE = 8
-
+private val CONTAINER_PADDING = 10.dp
+private val TITLE_RESERVED_HEIGHT = 22.dp
 private val ROW_HEIGHT = 26.dp
 private val DOT_SIZE = 8.dp
+private val DOT_GAP = 6.dp
 private val NAME_WIDTH = 56.dp
-private val CELL_SIZE = 6.dp
-private val CELL_GAP = 1.dp
+private val NAME_GAP = 6.dp
 private val STREAK_WIDTH = 32.dp
+private val STREAK_GAP = 6.dp
+private val CELL_GAP = 2.dp
+private val MIN_CELL_SIZE = 4.dp
+private val MAX_CELL_SIZE = 18.dp
 
 /**
- * Widget 1 -- konsistensi habit, SATU BARIS PER HABIT (dot warna khas
- * habit itu, nama, strip 14 hari terakhir, current streak) -- desain baru
- * checkpoint 4e, gantiin grid agregat gabungan semua habit dari checkpoint
- * 4c. Data dari snapshot JSON (`src/widgets/syncWidgetSnapshot.ts`), gak
- * pernah baca SQLite langsung.
+ * Widget 1 -- konsistensi habit, satu baris per habit (dot warna khas
+ * habit itu, nama, strip 14 hari terakhir, current streak).
+ *
+ * Checkpoint 4f: pindah dari `SizeMode.Responsive` (2 preset ukuran) ke
+ * `SizeMode.Exact` -- konten sekarang ngitung ULANG lebar strip sel &
+ * jumlah baris berdasarkan ukuran ASLI widget secara terus-menerus, biar
+ * bener-bener ngisi ruang yang tersedia pas widget di-resize (sebelumnya
+ * kepake cuma sebagian kecil kalau widget lebih lebar dari preset).
  */
 class HeatmapWidget : GlanceAppWidget() {
-  override val sizeMode = SizeMode.Responsive(setOf(SIZE_SMALL, SIZE_LARGE))
+  override val sizeMode = SizeMode.Exact
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
     val snapshot = WidgetSnapshotReader.read(context)
@@ -70,15 +76,23 @@ class HeatmapWidget : GlanceAppWidget() {
 @Composable
 private fun HeatmapContent(snapshot: WidgetSnapshot) {
   val size = LocalSize.current
-  val maxRows = if (size.height >= SIZE_LARGE.height) MAX_ROWS_LARGE else MAX_ROWS_SMALL
+
+  val availableHeight = (size.height - CONTAINER_PADDING * 2 - TITLE_RESERVED_HEIGHT)
+    .coerceAtLeast(0.dp)
+  val maxRows = (availableHeight / ROW_HEIGHT).toInt().coerceAtLeast(1)
   val rows = snapshot.habits.take(maxRows)
+
+  val fixedPartWidth = DOT_SIZE + DOT_GAP + NAME_WIDTH + NAME_GAP + STREAK_GAP + STREAK_WIDTH
+  val stripAreaWidth = (size.width - CONTAINER_PADDING * 2 - fixedPartWidth).coerceAtLeast(0.dp)
+  val totalGapWidth = CELL_GAP * (DAYS_PER_ROW - 1)
+  val cellSize = ((stripAreaWidth - totalGapWidth) / DAYS_PER_ROW).coerceIn(MIN_CELL_SIZE, MAX_CELL_SIZE)
 
   Column(
     modifier = GlanceModifier
       .fillMaxSize()
       .background(ColorBackground)
       .cornerRadius(16.dp) // catatan: cuma jalan di Android 12+ (API 31+)
-      .padding(10.dp),
+      .padding(CONTAINER_PADDING),
     verticalAlignment = Alignment.Top,
   ) {
     Text(
@@ -96,13 +110,13 @@ private fun HeatmapContent(snapshot: WidgetSnapshot) {
     }
 
     for (habit in rows) {
-      HabitRow(habit)
+      HabitRow(habit, cellSize)
     }
   }
 }
 
 @Composable
-private fun HabitRow(habit: WidgetHabitRow) {
+private fun HabitRow(habit: WidgetHabitRow, cellSize: Dp) {
   val habitColor = ColorProvider(parseHexColor(habit.colorHex))
 
   Row(
@@ -117,7 +131,7 @@ private fun HabitRow(habit: WidgetHabitRow) {
         .background(habitColor),
     ) {}
 
-    Spacer(modifier = GlanceModifier.width(6.dp))
+    Spacer(modifier = GlanceModifier.width(DOT_GAP))
 
     Text(
       text = habit.name,
@@ -126,15 +140,15 @@ private fun HabitRow(habit: WidgetHabitRow) {
       modifier = GlanceModifier.width(NAME_WIDTH),
     )
 
-    Spacer(modifier = GlanceModifier.width(6.dp))
+    Spacer(modifier = GlanceModifier.width(NAME_GAP))
 
     Row {
       for ((index, day) in habit.days.withIndex()) {
         Box(
           modifier = GlanceModifier
-            .width(CELL_SIZE)
-            .height(CELL_SIZE)
-            .cornerRadius(1.dp)
+            .width(cellSize)
+            .height(cellSize)
+            .cornerRadius((cellSize.value / 6).dp)
             .background(if (day.done) habitColor else ColorCellEmpty),
         ) {}
         if (index != habit.days.lastIndex) {
@@ -143,7 +157,7 @@ private fun HabitRow(habit: WidgetHabitRow) {
       }
     }
 
-    Spacer(modifier = GlanceModifier.width(6.dp))
+    Spacer(modifier = GlanceModifier.width(STREAK_GAP))
 
     Text(
       text = "🔥${habit.currentStreak}",

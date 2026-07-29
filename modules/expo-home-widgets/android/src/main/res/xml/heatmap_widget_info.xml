@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Checkpoint 4e: ukuran disesuaikan sama breakpoint baru di HeatmapWidget.kt
-  (SIZE_SMALL 220x90dp menampilkan sampai 3 baris habit, SIZE_LARGE
-  220x220dp sampai 8 baris), desain per-habit-row, bukan grid agregat lagi
-  (checkpoint 4c).
+  Checkpoint 4f: konten sekarang ngikutin ukuran ASLI widget secara terus-
+  menerus (SizeMode.Exact di HeatmapWidget.kt), bukan cuma 2 preset
+  kecil/besar (checkpoint 4e) yang bikin konten gak ngisi lebar beneran
+  pas widget di-resize. Resize horizontal juga diaktifin lagi, sempat
+  gak sengaja dibatasin vertical doang.
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="220dp"
-    android:minHeight="90dp"
-    android:targetCellWidth="5"
+    android:minWidth="180dp"
+    android:minHeight="70dp"
+    android:targetCellWidth="4"
     android:targetCellHeight="2"
-    android:resizeMode="vertical"
+    android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="3600000"
     android:initialLayout="@layout/widget_heatmap_placeholder"
     android:description="@string/widget_heatmap_description"
