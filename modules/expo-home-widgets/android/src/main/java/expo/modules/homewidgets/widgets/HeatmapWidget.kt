@@ -2,7 +2,6 @@ package expo.modules.homewidgets.widgets
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -35,12 +34,10 @@ private val ColorTextPrimary = ColorProvider(R.color.widget_text_primary)
 private val ColorTextSecondary = ColorProvider(R.color.widget_text_secondary)
 private val ColorCellEmpty = ColorProvider(R.color.widget_heatmap_cell_empty)
 
-/** Harus sinkron sama `WIDGET_HABIT_ROW_WINDOW_DAYS` di buildWidgetSnapshot.ts. */
-private const val DAYS_PER_ROW = 14
-
 private val CONTAINER_PADDING = 10.dp
 private val TITLE_RESERVED_HEIGHT = 22.dp
 private val ROW_HEIGHT = 26.dp
+private val CELL_HEIGHT = 14.dp
 private val DOT_SIZE = 8.dp
 private val DOT_GAP = 6.dp
 private val NAME_WIDTH = 56.dp
@@ -48,18 +45,17 @@ private val NAME_GAP = 6.dp
 private val STREAK_WIDTH = 32.dp
 private val STREAK_GAP = 6.dp
 private val CELL_GAP = 2.dp
-private val MIN_CELL_SIZE = 4.dp
-private val MAX_CELL_SIZE = 18.dp
 
 /**
  * Widget 1 -- konsistensi habit, satu baris per habit (dot warna khas
  * habit itu, nama, strip 14 hari terakhir, current streak).
  *
- * Checkpoint 4f: pindah dari `SizeMode.Responsive` (2 preset ukuran) ke
- * `SizeMode.Exact` -- konten sekarang ngitung ULANG lebar strip sel &
- * jumlah baris berdasarkan ukuran ASLI widget secara terus-menerus, biar
- * bener-bener ngisi ruang yang tersedia pas widget di-resize (sebelumnya
- * kepake cuma sebagian kecil kalau widget lebih lebar dari preset).
+ * Checkpoint 4g: strip sel sekarang pake `GlanceModifier.defaultWeight()`
+ * (mekanisme weight LinearLayout Android asli) buat ngisi SISA lebar row,
+ * bukan hitungan manual dari `LocalSize` (checkpoint 4f) yang ternyata
+ * masih nyisain banyak ruang kosong -- weight lebih robust karena
+ * di-resolve sama layout engine Android langsung pas render, gak gantung
+ * ke akurasi angka yang Glance laporin balik ke composable.
  */
 class HeatmapWidget : GlanceAppWidget() {
   override val sizeMode = SizeMode.Exact
@@ -76,16 +72,12 @@ class HeatmapWidget : GlanceAppWidget() {
 @Composable
 private fun HeatmapContent(snapshot: WidgetSnapshot) {
   val size = LocalSize.current
-
+  // Row count masih dari LocalSize (soal tinggi, bukan lebar) -- gak ada
+  // laporan masalah di sisi ini, cuma lebar yang kemarin gak ngisi penuh.
   val availableHeight = (size.height - CONTAINER_PADDING * 2 - TITLE_RESERVED_HEIGHT)
     .coerceAtLeast(0.dp)
   val maxRows = (availableHeight / ROW_HEIGHT).toInt().coerceAtLeast(1)
   val rows = snapshot.habits.take(maxRows)
-
-  val fixedPartWidth = DOT_SIZE + DOT_GAP + NAME_WIDTH + NAME_GAP + STREAK_GAP + STREAK_WIDTH
-  val stripAreaWidth = (size.width - CONTAINER_PADDING * 2 - fixedPartWidth).coerceAtLeast(0.dp)
-  val totalGapWidth = CELL_GAP * (DAYS_PER_ROW - 1)
-  val cellSize = ((stripAreaWidth - totalGapWidth) / DAYS_PER_ROW).coerceIn(MIN_CELL_SIZE, MAX_CELL_SIZE)
 
   Column(
     modifier = GlanceModifier
@@ -110,13 +102,13 @@ private fun HeatmapContent(snapshot: WidgetSnapshot) {
     }
 
     for (habit in rows) {
-      HabitRow(habit, cellSize)
+      HabitRow(habit)
     }
   }
 }
 
 @Composable
-private fun HabitRow(habit: WidgetHabitRow, cellSize: Dp) {
+private fun HabitRow(habit: WidgetHabitRow) {
   val habitColor = ColorProvider(parseHexColor(habit.colorHex))
 
   Row(
@@ -142,13 +134,19 @@ private fun HabitRow(habit: WidgetHabitRow, cellSize: Dp) {
 
     Spacer(modifier = GlanceModifier.width(NAME_GAP))
 
-    Row {
+    // Strip ini yang NYERAP SISA lebar row lewat defaultWeight() -- bukan
+    // hitungan dp manual lagi. Dot/nama/streak di kanan-kiri tetap ukuran
+    // tetap, strip ini yang otomatis melar/menyempit ngisi sisanya.
+    Row(
+      modifier = GlanceModifier.defaultWeight(),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
       for ((index, day) in habit.days.withIndex()) {
         Box(
           modifier = GlanceModifier
-            .width(cellSize)
-            .height(cellSize)
-            .cornerRadius((cellSize.value / 6).dp)
+            .defaultWeight()
+            .height(CELL_HEIGHT)
+            .cornerRadius(3.dp)
             .background(if (day.done) habitColor else ColorCellEmpty),
         ) {}
         if (index != habit.days.lastIndex) {

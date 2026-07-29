@@ -2,14 +2,12 @@ package expo.modules.homewidgets.widgets
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.LocalSize
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.cornerRadius
@@ -20,6 +18,7 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
+import androidx.glance.layout.RowScope
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
@@ -44,20 +43,19 @@ private val ColorProgressEmpty = ColorProvider(R.color.widget_heatmap_cell_empty
 
 private const val PROGRESS_SEGMENTS = 10
 private val CONTAINER_PADDING = 12.dp
+private val SEGMENT_HEIGHT = 14.dp
 private val SEGMENT_GAP = 3.dp
-private val MIN_SEGMENT_SIZE = 5.dp
-private val MAX_SEGMENT_SIZE = 22.dp
 private val PERCENT_TEXT_WIDTH = 34.dp
 private val PERCENT_GAP = 8.dp
 
 /**
  * Widget 2 -- saldo satu goal tabungan pilihan user, progress bar & aksen
- * warna pakai `accent` goal itu sendiri (checkpoint 4e).
+ * warna pakai `accent` goal itu sendiri.
  *
- * Checkpoint 4f: pindah ke `SizeMode.Exact` -- lebar tiap segmen progress
- * bar dihitung ULANG dari ukuran ASLI widget, biar bar-nya bener-bener
- * ngisi lebar yang tersedia pas widget di-resize (sebelumnya segmen ukuran
- * tetap, nyisain ruang kosong kalau widget-nya lebih lebar dari preset).
+ * Checkpoint 4g: progress bar sekarang pake `GlanceModifier.defaultWeight()`
+ * (weight LinearLayout Android asli) buat ngisi sisa lebar row, gantiin
+ * hitungan manual dari `LocalSize` (checkpoint 4f) yang ternyata masih
+ * nyisain ruang kosong.
  */
 class GoalBalanceWidget : GlanceAppWidget() {
   override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
@@ -78,8 +76,6 @@ class GoalBalanceWidget : GlanceAppWidget() {
 
 @Composable
 private fun GoalBalanceContent(goal: WidgetGoal?) {
-  val size = LocalSize.current
-
   Column(
     modifier = GlanceModifier
       .fillMaxSize()
@@ -98,11 +94,6 @@ private fun GoalBalanceContent(goal: WidgetGoal?) {
 
     val progress = progressOf(goal)
     val accentColor = ColorProvider(parseHexColor(goal.accentDeep))
-    val barAreaWidth = (size.width - CONTAINER_PADDING * 2 - PERCENT_GAP - PERCENT_TEXT_WIDTH)
-      .coerceAtLeast(0.dp)
-    val totalGapWidth = SEGMENT_GAP * (PROGRESS_SEGMENTS - 1)
-    val segmentSize = ((barAreaWidth - totalGapWidth) / PROGRESS_SEGMENTS)
-      .coerceIn(MIN_SEGMENT_SIZE, MAX_SEGMENT_SIZE)
 
     Text(
       text = "${goal.emoji ?: "💰"}  ${goal.name}",
@@ -115,8 +106,11 @@ private fun GoalBalanceContent(goal: WidgetGoal?) {
       style = TextStyle(fontSize = 12.sp, color = ColorTextSecondary),
     )
     Spacer(modifier = GlanceModifier.height(8.dp))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      ProgressBar(progress = progress, filledColor = accentColor, segmentSize = segmentSize)
+    Row(
+      modifier = GlanceModifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      ProgressBar(progress = progress, filledColor = accentColor)
       Spacer(modifier = GlanceModifier.width(PERCENT_GAP))
       Text(
         text = "${(progress * 100).toInt()}%",
@@ -132,16 +126,25 @@ private fun progressOf(goal: WidgetGoal): Float {
   return (goal.currentAmount / goal.targetAmount).toFloat().coerceIn(0f, 1f)
 }
 
+/**
+ * Extension function `RowScope` (BUKAN fungsi biasa) -- `defaultWeight()`
+ * di badan fungsi ini butuh RowScope si PEMANGGIL (Row di
+ * GoalBalanceContent) supaya bar-nya bisa nyerap sisa lebar row itu. Kalau
+ * ini fungsi biasa, `defaultWeight()` gak bakal ke-resolve sama sekali.
+ */
 @Composable
-private fun ProgressBar(progress: Float, filledColor: ColorProvider, segmentSize: Dp) {
+private fun RowScope.ProgressBar(progress: Float, filledColor: ColorProvider) {
   val filledSegments = (progress * PROGRESS_SEGMENTS).toInt().coerceIn(0, PROGRESS_SEGMENTS)
-  Row {
+  Row(
+    modifier = GlanceModifier.defaultWeight(),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
     for (i in 0 until PROGRESS_SEGMENTS) {
       Box(
         modifier = GlanceModifier
-          .width(segmentSize)
-          .height(segmentSize)
-          .cornerRadius((segmentSize.value / 5).dp)
+          .defaultWeight()
+          .height(SEGMENT_HEIGHT)
+          .cornerRadius(4.dp)
           .background(if (i < filledSegments) filledColor else ColorProgressEmpty),
       ) {}
       if (i != PROGRESS_SEGMENTS - 1) {
