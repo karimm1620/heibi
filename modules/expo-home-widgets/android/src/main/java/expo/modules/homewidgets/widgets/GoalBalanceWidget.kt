@@ -38,7 +38,6 @@ val SelectedGoalIdKey = stringPreferencesKey("selected_goal_id")
 private val ColorBackground = ColorProvider(R.color.widget_background)
 private val ColorTextPrimary = ColorProvider(R.color.widget_text_primary)
 private val ColorTextSecondary = ColorProvider(R.color.widget_text_secondary)
-private val ColorProgressFilled = ColorProvider(R.color.widget_heatmap_cell_full)
 private val ColorProgressEmpty = ColorProvider(R.color.widget_heatmap_cell_empty)
 
 private val SIZE_SMALL = DpSize(140.dp, 90.dp)
@@ -51,9 +50,9 @@ private val SEGMENT_GAP = 2.dp
 /**
  * Widget 2 -- saldo satu goal tabungan pilihan user (bukan auto-pilih,
  * dipilih lewat [GoalBalanceConfigActivity] pas widget ditambahin ke home
- * screen). Migrasi dari RemoteViews placeholder (checkpoint 4a) ke Jetpack
- * Glance. Data dari snapshot JSON, sama kayak Widget 1 -- gak baca SQLite
- * langsung.
+ * screen). Progress bar & aksen warna pakai `accent` GOAL ITU SENDIRI
+ * (checkpoint 4e) -- bukan satu warna ungu fix buat semua goal, biar senada
+ * sama tampilan goal itu di app.
  */
 class GoalBalanceWidget : GlanceAppWidget() {
   override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
@@ -90,17 +89,30 @@ private fun GoalBalanceContent(goal: WidgetGoal?) {
       return@Column
     }
 
-    Text(
-      text = "${goal.emoji ?: "💰"}  ${goal.name}",
-      style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold, color = ColorTextPrimary),
-    )
+    val progress = progressOf(goal)
+    val accentColor = ColorProvider(parseHexColor(goal.accentDeep))
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Text(
+        text = "${goal.emoji ?: "💰"}  ${goal.name}",
+        maxLines = 1,
+        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold, color = ColorTextPrimary),
+      )
+    }
     Spacer(modifier = GlanceModifier.height(6.dp))
     Text(
       text = "${formatRupiah(goal.currentAmount)} / ${formatRupiah(goal.targetAmount)}",
       style = TextStyle(fontSize = 12.sp, color = ColorTextSecondary),
     )
     Spacer(modifier = GlanceModifier.height(8.dp))
-    ProgressBar(progress = progressOf(goal))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      ProgressBar(progress = progress, filledColor = accentColor)
+      Spacer(modifier = GlanceModifier.width(8.dp))
+      Text(
+        text = "${(progress * 100).toInt()}%",
+        style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = accentColor),
+      )
+    }
   }
 }
 
@@ -110,7 +122,7 @@ private fun progressOf(goal: WidgetGoal): Float {
 }
 
 @Composable
-private fun ProgressBar(progress: Float) {
+private fun ProgressBar(progress: Float, filledColor: ColorProvider) {
   val filledSegments = (progress * PROGRESS_SEGMENTS).toInt().coerceIn(0, PROGRESS_SEGMENTS)
   Row {
     for (i in 0 until PROGRESS_SEGMENTS) {
@@ -119,7 +131,7 @@ private fun ProgressBar(progress: Float) {
           .width(SEGMENT_SIZE)
           .height(SEGMENT_SIZE)
           .cornerRadius(2.dp)
-          .background(if (i < filledSegments) ColorProgressFilled else ColorProgressEmpty),
+          .background(if (i < filledSegments) filledColor else ColorProgressEmpty),
       ) {}
       if (i != PROGRESS_SEGMENTS - 1) {
         Spacer(modifier = GlanceModifier.width(SEGMENT_GAP))

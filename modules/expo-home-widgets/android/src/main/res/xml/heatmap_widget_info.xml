@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Checkpoint 4c: ukuran disesuaikan sama 3 breakpoint responsive di
-  HeatmapWidget.kt (SIZE_SMALL 180x110dp, SIZE_MEDIUM 250x110dp, SIZE_LARGE
-  250x200dp). minWidth/minHeight pakai breakpoint terkecil.
+  Checkpoint 4e: ukuran disesuaikan sama breakpoint baru di HeatmapWidget.kt
+  (SIZE_SMALL 220x90dp menampilkan sampai 3 baris habit, SIZE_LARGE
+  220x220dp sampai 8 baris), desain per-habit-row, bukan grid agregat lagi
+  (checkpoint 4c).
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="180dp"
-    android:minHeight="110dp"
-    android:targetCellWidth="4"
+    android:minWidth="220dp"
+    android:minHeight="90dp"
+    android:targetCellWidth="5"
     android:targetCellHeight="2"
-    android:resizeMode="horizontal|vertical"
+    android:resizeMode="vertical"
     android:updatePeriodMillis="3600000"
     android:initialLayout="@layout/widget_heatmap_placeholder"
     android:description="@string/widget_heatmap_description"
