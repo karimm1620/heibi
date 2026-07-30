@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useRef } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
+import { radius, spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 
 export type SwipeIconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
@@ -21,20 +22,22 @@ interface SwipeableRowProps {
   menuActions?: SwipeAction[];
 }
 
-const ACTION_WIDTH = 72;
+const ACTION_WIDTH = 68;
 
 /**
  * Wrapper swipe-to-reveal-actions buat row Habit/Todo. Pakai `Swipeable`
  * KLASIK dari react-native-gesture-handler (BUKAN `ReanimatedSwipeable`) —
  * SENGAJA, karena app ini gak pakai Reanimated sama sekali (dihapus dari
- * awal project, lihat PROJECT_CONTEXT.md). Classic `Swipeable` ditandai
- * `@deprecated` di type definition-nya (Reanimated versi direkomendasikan
- * untuk proyek baru), tapi masih fully-functional dan gak butuh dependency
- * tambahan — konsisten sama pola app ini yang udah lama pakai
- * `Animated`+`PanResponder` builtin buat semua gesture custom lain
- * (`useSheetMotion.ts`), bukan Reanimated.
+ * awal project, lihat PROJECT_CONTEXT.md).
+ *
+ * Checkpoint 5b: aksi yang kereveal sekarang chip ROUNDED dengan inset
+ * (bukan blok kotak full-height nempel ke tepi row kayak sebelumnya) --
+ * ada backdrop warna `colors.surface` di belakangnya biar transisi ke row
+ * list yang flat (gak ada card individual, cuma divider) gak kerasa
+ * "cutout" tiba-tiba pas digeser.
  */
 export function SwipeableRow({ children, quickAction, menuActions }: SwipeableRowProps) {
+  const { colors } = useTheme();
   const swipeableRef = useRef<Swipeable>(null);
 
   const closeAndRun = (action: SwipeAction) => {
@@ -52,13 +55,23 @@ export function SwipeableRow({ children, quickAction, menuActions }: SwipeableRo
       leftThreshold={40}
       renderRightActions={
         quickAction
-          ? () => <ActionButton action={quickAction} onPress={closeAndRun} />
+          ? () => (
+              <View style={[styles.actionsBackdrop, { backgroundColor: colors.surface }]}>
+                <ActionButton action={quickAction} onPress={closeAndRun} />
+              </View>
+            )
           : undefined
       }
       renderLeftActions={
         menuActions && menuActions.length > 0
           ? () => (
-              <View style={styles.leftActionsRow}>
+              <View
+                style={[
+                  styles.actionsBackdrop,
+                  styles.leftActionsRow,
+                  { backgroundColor: colors.surface },
+                ]}
+              >
                 {menuActions.map((action) => (
                   <ActionButton key={action.label} action={action} onPress={closeAndRun} />
                 ))}
@@ -87,22 +100,32 @@ function ActionButton({
       accessibilityRole="button"
       accessibilityLabel={action.label}
     >
-      <MaterialCommunityIcons name={action.icon} size={20} color="#FFFFFF" />
-      <Text style={[typography.caption, styles.actionLabel]}>{action.label}</Text>
+      <MaterialCommunityIcons name={action.icon} size={18} color="#FFFFFF" />
+      <Text style={[typography.caption, styles.actionLabel]} numberOfLines={1}>
+        {action.label}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  actionsBackdrop: {
+    justifyContent: "center",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
   actionButton: {
     width: ACTION_WIDTH,
     alignItems: "center",
     justifyContent: "center",
-    height: "100%",
+    alignSelf: "stretch",
+    marginHorizontal: spacing.xs / 2,
+    borderRadius: radius.sm,
   },
   actionLabel: {
     color: "#FFFFFF",
     fontWeight: "600",
+    fontSize: 10,
     marginTop: 2,
   },
   leftActionsRow: {

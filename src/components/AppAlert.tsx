@@ -107,11 +107,13 @@ export function AppAlert({
         },
         buttonRow: {
           flexDirection: "row",
+          alignItems: "center",
           gap: spacing.sm,
           marginTop: spacing.lg,
           justifyContent: "flex-end",
         },
         button: {
+          minWidth: 96,
           borderRadius: m3Shape.full,
           paddingVertical: spacing.md,
           paddingHorizontal: spacing.lg,
