@@ -109,11 +109,12 @@ export function AppAlert({
           flexDirection: "row",
           gap: spacing.sm,
           marginTop: spacing.lg,
+          justifyContent: "flex-end",
         },
         button: {
-          flex: 1,
           borderRadius: m3Shape.full,
           paddingVertical: spacing.md,
+          paddingHorizontal: spacing.lg,
           alignItems: "center",
           backgroundColor: colors.surfaceMuted,
           overflow: "hidden",

@@ -7,6 +7,13 @@ import { useTheme } from "../theme/useTheme";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { GlassCard } from "./GlassCard";
 
+// Harus konsisten sama ukuran nyata di Fab.tsx (56dp tombol + jarak aman)
+// -- dulu UndoSnackbar & Fab dapet `bottomOffset` yang SAMA persis, jadi
+// snackbar (full width) numpuk pas di belakang FAB (pojok kanan-bawah).
+// Sekarang snackbar digeser naik biar duduk DI ATAS FAB, bukan sejajar.
+const FAB_HEIGHT = 56;
+const FAB_SNACKBAR_GAP = spacing.sm;
+
 export function UndoSnackbar({ bottomOffset = 0 }: { bottomOffset?: number }) {
   const { colors, typography } = useTheme();
   const reducedMotion = useReducedMotion();
@@ -62,7 +69,7 @@ export function UndoSnackbar({ bottomOffset = 0 }: { bottomOffset?: number }) {
           position: "absolute",
           left: spacing.lg,
           right: spacing.lg,
-          bottom: spacing.md + bottomOffset,
+          bottom: spacing.md + bottomOffset + FAB_HEIGHT + FAB_SNACKBAR_GAP,
         },
         card: {
           flexDirection: "row",
