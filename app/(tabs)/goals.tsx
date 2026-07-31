@@ -95,6 +95,20 @@ export default function GoalsScreen() {
 
   const listToRender = canReorder ? order : displayedGoals;
 
+  // Item yang lagi di-drag dipindah ke urutan RENDER paling akhir (bukan
+  // ngubah data/`order`, cuma buat JSX) -- di Android, `zIndex` gak selalu
+  // reliable buat nentuin tumpukan gambar antar sibling View. Sibling yang
+  // di-render PALING TERAKHIR yang keliatan paling atas, itu yang lebih
+  // konsisten. Tanpa ini, card yang lagi di-drag bisa keliatan "kepotong"
+  // pas transform-nya numpuk ke row tetangga di tengah gesture.
+  const renderOrder =
+    draggingKey === null
+      ? listToRender
+      : [
+          ...listToRender.filter((item) => item.id !== draggingKey),
+          ...listToRender.filter((item) => item.id === draggingKey),
+        ];
+
   const styles = useMemo(
     () => createStyles(colors, typography, insets.bottom),
     [colors, typography, insets.bottom],
@@ -164,7 +178,7 @@ export default function GoalsScreen() {
             }
           />
         ) : (
-          listToRender.map((item) => {
+          renderOrder.map((item) => {
             const isDragging = draggingKey === item.id;
             return (
               <Animated.View

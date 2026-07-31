@@ -1,13 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, LayoutAnimation, PanResponder, Platform, UIManager } from "react-native";
-
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+import { Animated, PanResponder } from "react-native";
 
 const LONG_PRESS_DURATION_MS = 350;
 const MOVE_CANCEL_THRESHOLD = 8;
@@ -107,7 +100,6 @@ export function useDragReorder<T>({
             const [moved] = next.splice(currentIndexRef.current, 1);
             next.splice(newIndex, 0, moved);
             currentIndexRef.current = newIndex;
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             setOrder(next);
           }
         },
