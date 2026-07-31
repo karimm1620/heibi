@@ -110,7 +110,7 @@ export function AppAlert({
           alignItems: "center",
           gap: spacing.sm,
           marginTop: spacing.lg,
-          justifyContent: "flex-end",
+          justifyContent: "center",
         },
         button: {
           minWidth: 96,

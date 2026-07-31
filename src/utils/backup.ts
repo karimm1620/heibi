@@ -184,38 +184,38 @@ export async function restoreFromBackup(payload: BackupPayload): Promise<void> {
   const db = await getDb();
   const { data } = payload;
 
-  await db.withTransactionAsync(async () => {
+  await db.withExclusiveTransactionAsync(async (txn) => {
     // Urutan hapus: anak dulu baru induk gak masalah di sini karena semua
     // FK udah ON DELETE CASCADE — tapi tetap eksplisit hapus semua tabel
     // biar gak nyisa baris "yatim" kalau backup lama gak lengkap.
-    await db.runAsync("DELETE FROM savings_tx");
-    await db.runAsync("DELETE FROM savings_goals");
-    await db.runAsync("DELETE FROM habit_logs");
-    await db.runAsync("DELETE FROM habits");
-    await db.runAsync("DELETE FROM todos");
+    await txn.runAsync("DELETE FROM savings_tx");
+    await txn.runAsync("DELETE FROM savings_goals");
+    await txn.runAsync("DELETE FROM habit_logs");
+    await txn.runAsync("DELETE FROM habits");
+    await txn.runAsync("DELETE FROM todos");
     // Setting internal punya device ini SENGAJA dipertahankan (bukan ikut
     // di-hapus/restore dari backup) — flag migrasi & pending-deletion itu
     // fakta lokal device ini, bukan sesuatu yang masuk akal "dipulihkan".
-    await db.runAsync(
+    await txn.runAsync(
       `DELETE FROM settings WHERE key NOT IN (${[...INTERNAL_SETTINGS_KEYS].map(() => "?").join(",") || "''"})`,
       [...INTERNAL_SETTINGS_KEYS],
     );
 
     for (const g of data.savingsGoals) {
-      await db.runAsync(
+      await txn.runAsync(
         `INSERT INTO savings_goals (id, name, target_amount, current_amount, image_uri, emoji, accent, created_at, sort_order)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [g.id, g.name, g.targetAmount, g.currentAmount, g.imageUri ?? null, g.emoji ?? null, g.accent, g.createdAt, g.sortOrder],
       );
     }
     for (const t of data.savingsTransactions) {
-      await db.runAsync(
+      await txn.runAsync(
         `INSERT INTO savings_tx (id, goal_id, type, amount, note, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
         [t.id, t.goalId, t.type, t.amount, t.note ?? null, t.createdAt],
       );
     }
     for (const h of data.habits) {
-      await db.runAsync(
+      await txn.runAsync(
         `INSERT INTO habits
           (id, name, icon, color, frequency_type, weekdays_mask, reminder_time, notification_id, best_streak, created_at, archived_at, sort_order)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -240,20 +240,20 @@ export async function restoreFromBackup(payload: BackupPayload): Promise<void> {
       );
     }
     for (const l of data.habitLogs) {
-      await db.runAsync(
+      await txn.runAsync(
         `INSERT INTO habit_logs (id, habit_id, date, completed_at) VALUES (?, ?, ?, ?)`,
         [l.id, l.habitId, l.date, l.completedAt],
       );
     }
     for (const td of data.todos) {
-      await db.runAsync(
+      await txn.runAsync(
         `INSERT INTO todos (id, title, date, completed_at, created_at) VALUES (?, ?, ?, ?, ?)`,
         [td.id, td.title, td.date, td.completedAt, td.createdAt],
       );
     }
     for (const s of data.settings) {
       if (INTERNAL_SETTINGS_KEYS.has(s.key)) continue;
-      await db.runAsync(
+      await txn.runAsync(
         "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
         [s.key, s.value],
       );

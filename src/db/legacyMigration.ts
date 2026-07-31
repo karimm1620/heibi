@@ -51,14 +51,14 @@ export async function migrateFromAsyncStorageIfNeeded(): Promise<void> {
       AsyncStorage.getItem(OLD_SETTINGS_KEY),
     ]);
 
-    await db.withTransactionAsync(async () => {
+    await db.withExclusiveTransactionAsync(async (txn) => {
       if (goalsRaw) {
         const parsed: OldGoalsBlob = JSON.parse(goalsRaw);
         const goals = parsed.state?.goals ?? [];
         const transactions = parsed.state?.transactions ?? [];
 
         for (const g of goals) {
-          await db.runAsync(
+          await txn.runAsync(
             `INSERT OR IGNORE INTO savings_goals
               (id, name, target_amount, current_amount, image_uri, emoji, accent, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -76,7 +76,7 @@ export async function migrateFromAsyncStorageIfNeeded(): Promise<void> {
         }
 
         for (const t of transactions) {
-          await db.runAsync(
+          await txn.runAsync(
             `INSERT OR IGNORE INTO savings_tx (id, goal_id, type, amount, note, created_at)
              VALUES (?, ?, ?, ?, ?, ?)`,
             [t.id, t.goalId, t.type, t.amount, t.note ?? null, t.createdAt],
@@ -88,7 +88,7 @@ export async function migrateFromAsyncStorageIfNeeded(): Promise<void> {
         const parsed: OldSettingsBlob = JSON.parse(settingsRaw);
         const s = parsed.state;
         if (s) {
-          await db.runAsync(
+          await txn.runAsync(
             "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
             [
               "reminder",
@@ -103,7 +103,7 @@ export async function migrateFromAsyncStorageIfNeeded(): Promise<void> {
         }
       }
 
-      await db.runAsync(
+      await txn.runAsync(
         "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
         [MIGRATION_FLAG_KEY, String(Date.now())],
       );

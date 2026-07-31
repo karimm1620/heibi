@@ -283,13 +283,13 @@ export const useHabitsStore = create<HabitsState>()((set, get) => ({
     const newStreak = calculateCurrentStreak(habit, completedDateKeys);
     const shouldBumpBest = newStreak > habit.bestStreak;
 
-    await db.withTransactionAsync(async () => {
-      await db.runAsync(
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
         "INSERT INTO habit_logs (id, habit_id, date, completed_at) VALUES (?, ?, ?, ?)",
         [newLog.id, newLog.habitId, newLog.date, newLog.completedAt],
       );
       if (shouldBumpBest) {
-        await db.runAsync("UPDATE habits SET best_streak = ? WHERE id = ?", [
+        await txn.runAsync("UPDATE habits SET best_streak = ? WHERE id = ?", [
           newStreak,
           habitId,
         ]);
@@ -338,9 +338,9 @@ export const useHabitsStore = create<HabitsState>()((set, get) => ({
 
   reorderHabits: async (newOrder) => {
     const db = await getDb();
-    await db.withTransactionAsync(async () => {
+    await db.withExclusiveTransactionAsync(async (txn) => {
       for (let i = 0; i < newOrder.length; i++) {
-        await db.runAsync("UPDATE habits SET sort_order = ? WHERE id = ?", [
+        await txn.runAsync("UPDATE habits SET sort_order = ? WHERE id = ?", [
           i,
           newOrder[i].id,
         ]);

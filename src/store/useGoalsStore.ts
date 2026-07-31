@@ -255,8 +255,8 @@ export const useGoalsStore = create<GoalsState>()((set, get) => ({
     if (!pending) return;
 
     const db = await getDb();
-    await db.withTransactionAsync(async () => {
-      await db.runAsync(
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
         `INSERT INTO savings_goals
           (id, name, target_amount, current_amount, image_uri, emoji, accent, created_at, sort_order)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -273,13 +273,13 @@ export const useGoalsStore = create<GoalsState>()((set, get) => ({
         ],
       );
       for (const t of pending.transactions) {
-        await db.runAsync(
+        await txn.runAsync(
           `INSERT INTO savings_tx (id, goal_id, type, amount, note, created_at)
            VALUES (?, ?, ?, ?, ?, ?)`,
           [t.id, t.goalId, t.type, t.amount, t.note ?? null, t.createdAt],
         );
       }
-      await db.runAsync("DELETE FROM settings WHERE key = ?", [
+      await txn.runAsync("DELETE FROM settings WHERE key = ?", [
         PENDING_DELETION_SETTINGS_KEY,
       ]);
     });
@@ -315,12 +315,12 @@ export const useGoalsStore = create<GoalsState>()((set, get) => ({
     };
 
     const db = await getDb();
-    await db.withTransactionAsync(async () => {
-      await db.runAsync(
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
         `INSERT INTO savings_tx (id, goal_id, type, amount, note, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
         [tx.id, tx.goalId, tx.type, tx.amount, tx.note ?? null, tx.createdAt],
       );
-      await db.runAsync(
+      await txn.runAsync(
         "UPDATE savings_goals SET current_amount = current_amount + ? WHERE id = ?",
         [amount, goalId],
       );
@@ -358,12 +358,12 @@ export const useGoalsStore = create<GoalsState>()((set, get) => ({
     };
 
     const db = await getDb();
-    await db.withTransactionAsync(async () => {
-      await db.runAsync(
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
         `INSERT INTO savings_tx (id, goal_id, type, amount, note, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
         [tx.id, tx.goalId, tx.type, tx.amount, tx.note ?? null, tx.createdAt],
       );
-      await db.runAsync(
+      await txn.runAsync(
         "UPDATE savings_goals SET current_amount = current_amount - ? WHERE id = ?",
         [amount, goalId],
       );
@@ -384,9 +384,9 @@ export const useGoalsStore = create<GoalsState>()((set, get) => ({
 
   reorderGoals: async (newOrder) => {
     const db = await getDb();
-    await db.withTransactionAsync(async () => {
+    await db.withExclusiveTransactionAsync(async (txn) => {
       for (let i = 0; i < newOrder.length; i++) {
-        await db.runAsync("UPDATE savings_goals SET sort_order = ? WHERE id = ?", [
+        await txn.runAsync("UPDATE savings_goals SET sort_order = ? WHERE id = ?", [
           i,
           newOrder[i].id,
         ]);
