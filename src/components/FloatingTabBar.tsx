@@ -1,4 +1,4 @@
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import type { BottomTabBarProps } from "expo-router/js-tabs";
 import React from "react";
 import { MATERIAL_NAV_BAR_HEIGHT, MaterialNavigationBar } from "./MaterialNavigationBar";
 
