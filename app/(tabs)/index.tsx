@@ -118,6 +118,19 @@ export default function TodayScreen() {
   const habitsDoneCount = todayHabits.filter((h) =>
     completedHabitIdsToday.has(h.id),
   ).length;
+
+  // Item yang lagi di-drag dipindah ke urutan RENDER paling akhir (data
+  // urutan asli, `orderedTodayHabits`, gak berubah) -- di Android, sibling
+  // yang di-render TERAKHIR yang konsisten kegambar paling atas. Tanpa
+  // ini, card yang lagi di-drag bisa keliatan "kepotong" pas transform-nya
+  // numpuk ke row tetangga (sama pola fix-nya kayak Goals di checkpoint 5c).
+  const renderOrderedTodayHabits =
+    draggingHabitKey === null
+      ? orderedTodayHabits
+      : [
+          ...orderedTodayHabits.filter((h) => h.id !== draggingHabitKey),
+          ...orderedTodayHabits.filter((h) => h.id === draggingHabitKey),
+        ];
   const todosDoneCount = todayTodos.filter((t) => t.completedAt).length;
   const totalCount = todayHabits.length + todayTodos.length;
   const doneCount = habitsDoneCount + todosDoneCount;
@@ -200,21 +213,26 @@ export default function TodayScreen() {
               <>
                 <Text style={styles.sectionTitle}>Habits</Text>
                 <GlassCard elevationLevel="level1" style={styles.listCard}>
-                  {orderedTodayHabits.map((habit, index) => (
-                    <HabitRow
-                      key={habit.id}
-                      habit={habit}
-                      done={completedHabitIdsToday.has(habit.id)}
-                      streak={streakByHabitId.get(habit.id) ?? 0}
-                      isLast={index === orderedTodayHabits.length - 1}
-                      onPress={() => router.push(`/habit/${habit.id}`)}
-                      onToggle={() => handleToggleHabit(habit.id)}
-                      onLayout={(h) => setHabitRowHeight(h)}
-                      isDragging={draggingHabitKey === habit.id}
-                      dragY={habitDragY}
-                      dragHandlers={getHabitDragHandle(habit).panHandlers}
-                    />
-                  ))}
+                  {renderOrderedTodayHabits.map((habit) => {
+                    const trueIndex = orderedTodayHabits.findIndex(
+                      (h) => h.id === habit.id,
+                    );
+                    return (
+                      <HabitRow
+                        key={habit.id}
+                        habit={habit}
+                        done={completedHabitIdsToday.has(habit.id)}
+                        streak={streakByHabitId.get(habit.id) ?? 0}
+                        isLast={trueIndex === orderedTodayHabits.length - 1}
+                        onPress={() => router.push(`/habit/${habit.id}`)}
+                        onToggle={() => handleToggleHabit(habit.id)}
+                        onLayout={(h) => setHabitRowHeight(h)}
+                        isDragging={draggingHabitKey === habit.id}
+                        dragY={habitDragY}
+                        dragHandlers={getHabitDragHandle(habit).panHandlers}
+                      />
+                    );
+                  })}
                 </GlassCard>
               </>
             )}
