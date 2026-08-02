@@ -524,6 +524,7 @@ function createStyles(
       gap: spacing.md,
       paddingVertical: spacing.sm,
       borderRadius: m3Shape.small,
+      backgroundColor: colors.background,
     },
     dragRow: {
       flexDirection: "row",
