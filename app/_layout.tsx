@@ -119,6 +119,10 @@ function RootLayoutContent() {
               title: "",
               headerTransparent: true,
               headerTintColor: colors.textPrimary,
+              // Eksplisit (bukan andelin "default") -- perilaku "default"
+              // bisa beda-beda antar skin Android/OEM. slide_from_right itu
+              // konvensi Material buat "push forward" dari list ke detail.
+              animation: reducedMotion ? "none" : "slide_from_right",
             }}
           />
           <Stack.Screen
@@ -128,6 +132,7 @@ function RootLayoutContent() {
               title: "",
               headerTransparent: true,
               headerTintColor: colors.textPrimary,
+              animation: reducedMotion ? "none" : "slide_from_right",
             }}
           />
           <Stack.Screen
