@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
@@ -41,6 +41,8 @@ function RootLayoutContent() {
   const hydrateGoals = useGoalsStore((state) => state.hydrate);
   const settingsHydrated = useSettingsStore((state) => state.hasHydrated);
   const hydrateSettings = useSettingsStore((state) => state.hydrate);
+  const hasOnboarded = useSettingsStore((state) => state.hasOnboarded);
+  const router = useRouter();
   const habitsHydrated = useHabitsStore((state) => state.hasHydrated);
   const hydrateHabits = useHabitsStore((state) => state.hydrate);
   const todosHydrated = useTodosStore((state) => state.hasHydrated);
@@ -77,10 +79,20 @@ function RootLayoutContent() {
     })();
   }, [hydrateGoals, hydrateSettings, hydrateHabits, hydrateTodos]);
 
+  // Ganti route ke /onboarding SEBELUM splash native disembunyikan (bukan
+  // sesudah) -- keduanya di-panggil di efek yang sama supaya state navigasi
+  // udah pindah ke "/onboarding" duluan sebelum splash yang lagi nutupin
+  // layar hilang, jadi user gak sempat lihat frame tab "Today" sekilas
+  // sebelum dialihkan. Cuma jalan sekali per app-load (bukan tiap kali
+  // hasOnboarded berubah) -- abis onboarding selesai, `finish()` di layar
+  // onboarding sendiri yang pindah ke "/(tabs)" pakai `replace`.
   useEffect(() => {
-    if (ready) {
-      SplashScreen.hideAsync().catch(() => {});
+    if (!ready) return;
+    if (!hasOnboarded) {
+      router.replace("/onboarding");
     }
+    SplashScreen.hideAsync().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
   // Root window Android defaultnya putih kalau gak di-set manual — bikin
@@ -112,6 +124,16 @@ function RootLayoutContent() {
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="onboarding"
+            options={{
+              headerShown: false,
+              animation: "none",
+              // Ini layar gate, bukan halaman biasa yang wajar di-swipe-back
+              // -- user belum ada tab manapun buat "dibalikin" ke situ.
+              gestureEnabled: false,
+            }}
+          />
           <Stack.Screen
             name="goal/[id]"
             options={{

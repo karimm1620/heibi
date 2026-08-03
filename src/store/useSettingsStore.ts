@@ -27,9 +27,15 @@ const SETTINGS_KEY_BY_DOMAIN: Record<ReminderDomain, string> = {
   planner: "planner_reminder",
 };
 
+/** Key generic `settings` buat flag onboarding — nama ini udah dianggap
+ * sejak schema.ts ditulis (lihat komentar di atas `CREATE TABLE settings`). */
+const ONBOARDING_KEY = "onboarding_complete";
+
 interface SettingsState {
   savingsReminder: ReminderSettings;
   plannerReminder: ReminderSettings;
+  /** True kalau user udah pernah nyelesain/nge-skip flow onboarding. */
+  hasOnboarded: boolean;
   hasHydrated: boolean;
 
   /** Load setting dari SQLite ke memory. Panggil sekali di bootstrap app. */
@@ -41,6 +47,8 @@ interface SettingsState {
     minute: number,
     notificationId: string | null,
   ) => Promise<void>;
+  /** Tandai onboarding selesai (baik lewat flow lengkap atau tombol Lewati). */
+  completeOnboarding: () => Promise<void>;
 }
 
 async function readReminder(
@@ -54,18 +62,32 @@ async function readReminder(
   return row ? JSON.parse(row.value) : DEFAULT_REMINDER;
 }
 
+async function readOnboarded(
+  db: Awaited<ReturnType<typeof getDb>>,
+): Promise<boolean> {
+  const row = await db.getFirstAsync<{ value: string }>(
+    "SELECT value FROM settings WHERE key = ?",
+    [ONBOARDING_KEY],
+  );
+  // Belum pernah ke-set = user baru / DB lama sebelum ada flag ini ->
+  // dianggap belum onboarding, BUKAN error/exception.
+  return row ? JSON.parse(row.value) === true : false;
+}
+
 export const useSettingsStore = create<SettingsState>()((set) => ({
   savingsReminder: DEFAULT_REMINDER,
   plannerReminder: DEFAULT_REMINDER,
+  hasOnboarded: false,
   hasHydrated: false,
 
   hydrate: async () => {
     const db = await getDb();
-    const [savingsReminder, plannerReminder] = await Promise.all([
+    const [savingsReminder, plannerReminder, hasOnboarded] = await Promise.all([
       readReminder(db, "savings"),
       readReminder(db, "planner"),
+      readOnboarded(db),
     ]);
-    set({ savingsReminder, plannerReminder, hasHydrated: true });
+    set({ savingsReminder, plannerReminder, hasOnboarded, hasHydrated: true });
   },
 
   setReminder: async (domain, enabled, hour, minute, notificationId) => {
@@ -81,5 +103,14 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
         ? { savingsReminder: value }
         : { plannerReminder: value },
     );
+  },
+
+  completeOnboarding: async () => {
+    const db = await getDb();
+    await db.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      [ONBOARDING_KEY, JSON.stringify(true)],
+    );
+    set({ hasOnboarded: true });
   },
 }));
