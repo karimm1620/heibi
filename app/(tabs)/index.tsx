@@ -542,7 +542,14 @@ function createStyles(
       gap: spacing.md,
       paddingVertical: spacing.sm,
       borderRadius: m3Shape.small,
-      backgroundColor: colors.background,
+      // Checkpoint 6: dulu `colors.background` (scheme.surface, putih/terang)
+      // -- opak buat nutupin action button pas swipe (fix lama), TAPI beda
+      // warna sama tint GlassCard pembungkus (`listCard` pakai default
+      // `colors.glassTintLight`), jadi row keliatan kotak putih nongol di
+      // atas card pink. `glassTintLight` tetap opak (alpha 0.92, sama kayak
+      // yang dipakai GlassCard sendiri) jadi masih nutupin action button,
+      // tapi sekarang nyatu sama card di sekelilingnya.
+      backgroundColor: colors.glassTintLight,
     },
     dragRow: {
       flexDirection: "row",

@@ -37,7 +37,6 @@ const ACTION_WIDTH = 68;
  * "cutout" tiba-tiba pas digeser.
  */
 export function SwipeableRow({ children, quickAction, menuActions }: SwipeableRowProps) {
-  const { colors } = useTheme();
   const swipeableRef = useRef<Swipeable>(null);
 
   const closeAndRun = (action: SwipeAction) => {
@@ -56,7 +55,7 @@ export function SwipeableRow({ children, quickAction, menuActions }: SwipeableRo
       renderRightActions={
         quickAction
           ? () => (
-              <View style={[styles.actionsBackdrop, { backgroundColor: colors.surface }]}>
+              <View style={[styles.actionsBackdrop]}>
                 <ActionButton action={quickAction} onPress={closeAndRun} />
               </View>
             )
@@ -69,7 +68,6 @@ export function SwipeableRow({ children, quickAction, menuActions }: SwipeableRo
                 style={[
                   styles.actionsBackdrop,
                   styles.leftActionsRow,
-                  { backgroundColor: colors.surface },
                 ]}
               >
                 {menuActions.map((action) => (
