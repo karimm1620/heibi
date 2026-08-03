@@ -83,8 +83,16 @@ export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) 
             accessibilityState={{ selected: isFocused }}
             android_ripple={{
               color: material3.onSurfaceVariant,
-              borderless: true,
-              radius: 32,
+              // Checkpoint 6: dulu `borderless: true, radius: 32` -- ripple-nya
+              // jadi lingkaran penuh (diameter 64) yang gak diclip ke bentuk
+              // pill oval 64x32 ATAU ke batas tab, jadi nongol kayak bayangan
+              // gelap gak wajar pas transisi (borderless ripple di RN memang
+              // sengaja "kabur" dari bounds view, cocok buat icon-button kecil,
+              // tapi bukan buat area setinggi tab ini). Indikator "aktif" udah
+              // ditangani full sama Animated pill di bawah (warna+scale), jadi
+              // ripple bawaan cukup jadi feedback taktil biasa yang diclip ke
+              // area tab (borderless: false, default).
+              borderless: false,
             }}
           >
             <View style={styles.iconRow}>

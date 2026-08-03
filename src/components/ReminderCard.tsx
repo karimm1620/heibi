@@ -1,3 +1,4 @@
+import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { useFocusEffect } from "expo-router/react-navigation";
 import React, { useCallback, useMemo, useState } from "react";
 import { Linking, Pressable, StyleSheet, Switch, Text, View } from "react-native";
@@ -68,6 +69,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
   } = reminder;
 
   const [busy, setBusy] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   // Ganti dari "tiap kali sheet dibuka" (dulu, keyed ke prop `visible`) jadi
   // "tiap kali user balik fokus ke tab Settings ini" — behavior setara buat
@@ -149,6 +151,23 @@ export function ReminderCard({ domain }: ReminderCardProps) {
     }
     setBusy(false);
   };
+
+  // Chip "Atur sendiri" dobel fungsi: kalau reminder aktif lagi pas jam yang
+  // gak ada di TIME_PRESETS (hasil dari custom picker), chip ini yang jadi
+  // "aktif" dan labelnya ganti nampilin jam kustomnya -- bukan cuma tombol
+  // buka dialog doang.
+  const matchesPreset = TIME_PRESETS.some(
+    (preset) => preset.hour === reminderHour && preset.minute === reminderMinute,
+  );
+  const customChipLabel = matchesPreset
+    ? "Atur sendiri"
+    : `${String(reminderHour).padStart(2, "0")}.${String(reminderMinute).padStart(2, "0")}`;
+
+  const pickerValue = useMemo(() => {
+    const date = new Date();
+    date.setHours(reminderHour, reminderMinute, 0, 0);
+    return date;
+  }, [reminderHour, reminderMinute]);
 
   const styles = useMemo(
     () =>
@@ -249,7 +268,40 @@ export function ReminderCard({ domain }: ReminderCardProps) {
               </Pressable>
             );
           })}
+          <Pressable
+            key="custom"
+            onPress={() => setShowTimePicker(true)}
+            disabled={busy}
+            style={[styles.timeChip, !matchesPreset && styles.timeChipActive]}
+            accessibilityRole="button"
+            accessibilityLabel="Atur jam reminder sendiri"
+            accessibilityState={{ selected: !matchesPreset }}
+          >
+            <Text
+              style={[
+                styles.timeChipText,
+                !matchesPreset && styles.timeChipTextActive,
+              ]}
+            >
+              {customChipLabel}
+            </Text>
+          </Pressable>
         </View>
+      )}
+
+      {showTimePicker && (
+        <DateTimePicker
+          value={pickerValue}
+          mode="time"
+          presentation="dialog"
+          is24Hour
+          accentColor={colors.deposit}
+          onValueChange={(_event, date) => {
+            setShowTimePicker(false);
+            handlePickTime(date.getHours(), date.getMinutes());
+          }}
+          onDismiss={() => setShowTimePicker(false)}
+        />
       )}
 
       <AppAlert
