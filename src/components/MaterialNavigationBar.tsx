@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "expo-router/js-tabs";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { m3ElevationStyle, m3Motion, m3Shape } from "../theme/material3/tokens";
@@ -22,9 +22,15 @@ export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) 
     [colors.textPrimary, colors.textSecondary],
   );
 
-  const anims = useRef(
+  // Checkpoint 6: dulu `useRef(state.routes.map(...)).current` -- selain
+  // kena warning `react-hooks/refs` (baca ref pas render), argumen useRef
+  // itu sebenarnya kehitung ulang (map() bikin array Animated.Value baru)
+  // di SETIAP render, cuma hasil render pertama yang kepake (`.current`),
+  // sisanya langsung dibuang -- mubazir. `useState(() => ...)` pakai lazy
+  // initializer yang beneran cuma jalan sekali pas mount.
+  const [anims] = useState(() =>
     state.routes.map((_, i) => new Animated.Value(state.index === i ? 1 : 0)),
-  ).current;
+  );
 
   useEffect(() => {
     state.routes.forEach((_, i) => {
