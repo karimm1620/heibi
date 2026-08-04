@@ -1,5 +1,6 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Animated, Easing, StyleSheet, Text } from "react-native";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { spacing } from "../theme/colors";
@@ -26,8 +27,10 @@ export function CelebrationOverlay({
 }: CelebrationOverlayProps) {
   const { typography, material3 } = useTheme();
   const reducedMotion = useReducedMotion();
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.85)).current;
+  // Checkpoint 6/7: useState(() => ...) gantiin useRef(...).current -- lihat
+  // catatan sama di MaterialNavigationBar.tsx (hindari react-hooks/refs).
+  const [opacity] = useState(() => new Animated.Value(0));
+  const [scale] = useState(() => new Animated.Value(0.85));
 
   const styles = useMemo(
     () =>
@@ -106,7 +109,7 @@ export function CelebrationOverlay({
       <Animated.View
         style={[styles.card, { opacity, transform: [{ scale }] }]}
       >
-        <Text style={{ fontSize: 20 }}>✓</Text>
+        <MaterialCommunityIcons name="check" size={20} color={material3.onPrimaryContainer} />
         <Text style={styles.text}>Semua beres hari ini</Text>
       </Animated.View>
     </Animated.View>

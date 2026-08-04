@@ -97,13 +97,13 @@ const REMINDER_COPY: Record<
   savings: {
     channelId: 'savings',
     channelName: 'Pengingat Menabung',
-    title: 'Waktunya menabung! 🐷',
+    title: 'Waktunya menabung!',
     body: 'Sisihkan sedikit buat goal tabunganmu hari ini.',
   },
   planner: {
     channelId: 'planner',
     channelName: 'Pengingat Tugas',
-    title: 'Cek tugas hari ini 📝',
+    title: 'Cek tugas hari ini',
     body: 'Masih ada tugas yang belum selesai hari ini.',
   },
 };
@@ -155,7 +155,7 @@ export async function scheduleHabitReminder(
     await ensureChannel('habits', 'Pengingat Habit');
     const id = await Notifications.scheduleNotificationAsync({
       content: {
-        title: `Waktunya "${habitName}" 💪`,
+        title: `Waktunya "${habitName}"`,
         body: 'Tap buat langsung tandai selesai di Today.',
         sound: 'default',
         color: NOTIFICATION_ACCENT_COLOR,

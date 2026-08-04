@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -152,6 +153,7 @@ export default function AddGoalScreen() {
           borderStyle: "dashed",
           alignItems: "center",
           justifyContent: "center",
+          gap: 2,
           overflow: "hidden",
         },
         imagePreview: {
@@ -231,10 +233,17 @@ export default function AddGoalScreen() {
           >
             {imageUri ? (
               <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+            ) : pickerBusy ? (
+              <Text style={styles.imagePickerText}>...</Text>
             ) : (
-              <Text style={styles.imagePickerText}>
-                {pickerBusy ? "..." : "📷\nUpload"}
-              </Text>
+              <>
+                <MaterialCommunityIcons
+                  name="camera-outline"
+                  size={24}
+                  color={colors.textSecondary}
+                />
+                <Text style={styles.imagePickerText}>Upload</Text>
+              </>
             )}
           </Pressable>
           {imageUri ? (

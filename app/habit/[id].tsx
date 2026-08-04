@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   PinchGestureHandler,
@@ -58,11 +58,21 @@ export default function HabitDetailScreen() {
   // Haptic bertingkat: tick ringan tiap ngelewatin ambang batas pas lagi
   // nyubit (biar berasa "makin deket"), notif sukses pas beneran ke-dismiss,
   // tick ringan lagi kalau dilepas sebelum ambang batas (batal, snap balik).
-  const pinchScale = useRef(new Animated.Value(1)).current;
+  // Checkpoint 6/7: useState(() => ...) gantiin useRef(...).current buat
+  // Animated.Value (hindari react-hooks/refs). crossedThresholdsRef TETAP
+  // useRef biasa -- cuma dibaca/ditulis di dalam handler, gak pernah diakses
+  // langsung pas render.
+  const [pinchScale] = useState(() => new Animated.Value(1));
   const crossedThresholdsRef = useRef<Set<number>>(new Set());
   const HAPTIC_THRESHOLDS = [0.94, 0.86, 0.78];
   const DISMISS_THRESHOLD = 0.72;
 
+  /* eslint-disable react-hooks/refs -- false positive: linter nganggep
+     closure `listener` di bawah ini "dibaca pas render" karena
+     `Animated.event(...)` dipanggil di render body, tapi
+     `crossedThresholdsRef.current` di dalemnya CUMA keeksekusi pas event
+     pinch beneran nembak (listener callback), gak pernah pas render itu
+     sendiri. */
   const onPinchGestureEvent = Animated.event(
     [{ nativeEvent: { scale: pinchScale } }],
     {
@@ -80,6 +90,7 @@ export default function HabitDetailScreen() {
       },
     },
   );
+  /* eslint-enable react-hooks/refs */
 
   const onPinchHandlerStateChange = (event: PinchGestureHandlerStateChangeEvent) => {
     if (event.nativeEvent.oldState !== State.ACTIVE) return;
@@ -280,6 +291,13 @@ export default function HabitDetailScreen() {
           }
           android_ripple={{ color: colors.glassBorder }}
         >
+          {doneToday && (
+            <MaterialCommunityIcons
+              name="check"
+              size={18}
+              color={material3.onSecondaryContainer}
+            />
+          )}
           <Text
             style={[
               styles.markButtonText,
@@ -290,7 +308,7 @@ export default function HabitDetailScreen() {
               },
             ]}
           >
-            {doneToday ? "✓ Sudah selesai hari ini" : "Tandai selesai hari ini"}
+            {doneToday ? "Sudah selesai hari ini" : "Tandai selesai hari ini"}
           </Text>
         </Pressable>
       </ScrollView>
@@ -383,7 +401,10 @@ function createStyles(
       marginTop: spacing.xl,
       borderRadius: m3Shape.full,
       paddingVertical: spacing.md,
+      flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.xs,
       overflow: "hidden",
       ...m3ElevationStyle("level1"),
     },

@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Appearance, Pressable, StyleSheet, Text, View } from 'react-native';
 import { accentByKey, errorFallbackColors, radius, spacing } from '../theme/colors';
@@ -44,7 +45,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={styles.emoji}>😵</Text>
+        <MaterialCommunityIcons
+          name="alert-circle-outline"
+          size={48}
+          color={colors.textSecondary}
+          style={styles.icon}
+        />
         <Text style={[styles.title, { color: colors.textPrimary }]}>Ada yang gak beres</Text>
         <Text style={[styles.description, { color: colors.textSecondary }]}>
           Aplikasi mengalami error yang gak terduga. Coba muat ulang — kalau masih
@@ -70,8 +76,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.xl,
   },
-  emoji: {
-    fontSize: 48,
+  icon: {
     marginBottom: spacing.md,
   },
   title: {

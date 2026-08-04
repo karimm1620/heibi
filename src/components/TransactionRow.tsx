@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { radius, spacing, withOpacity } from "../theme/colors";
@@ -27,7 +28,7 @@ export function TransactionRow({ transaction, goalName }: TransactionRowProps) {
   const isDeposit = transaction.type === "deposit";
   const color = isDeposit ? colors.deposit : colors.withdraw;
   const sign = isDeposit ? "+" : "-";
-  const icon = isDeposit ? "↓" : "↑";
+  const iconName = isDeposit ? "arrow-down" : "arrow-up";
   const styles = useMemo(
     () => createStyles(colors, typography),
     [colors, typography],
@@ -36,7 +37,7 @@ export function TransactionRow({ transaction, goalName }: TransactionRowProps) {
   return (
     <View style={styles.row}>
       <View style={[styles.iconWrap, { backgroundColor: withOpacity(color, 0.15) }]}>
-        <Text style={[styles.icon, { color }]}>{icon}</Text>
+        <MaterialCommunityIcons name={iconName} size={20} color={color} />
       </View>
       <View style={styles.info}>
         <Text style={styles.title}>
@@ -73,10 +74,6 @@ function createStyles(
       borderRadius: radius.pill,
       alignItems: "center",
       justifyContent: "center",
-    },
-    icon: {
-      fontSize: 18,
-      fontWeight: "700",
     },
     info: {
       flex: 1,

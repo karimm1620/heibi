@@ -420,7 +420,7 @@ function HabitRow({
                 ]}
               >
                 {done && (
-                  <Text style={{ color: material3.onPrimary, fontSize: 14 }}>✓</Text>
+                  <MaterialCommunityIcons name="check" size={14} color={material3.onPrimary} />
                 )}
               </Pressable>
             </Pressable>
@@ -485,7 +485,7 @@ function TodoRow({ title, done, isLast, onToggle, onDelete }: TodoRowProps) {
             done && { backgroundColor: material3.primary, borderColor: material3.primary },
           ]}
         >
-          {done && <Text style={{ color: material3.onPrimary, fontSize: 14 }}>✓</Text>}
+          {done && <MaterialCommunityIcons name="check" size={14} color={material3.onPrimary} />}
         </Pressable>
         <Text
           style={[typography.body, styles.rowFlexText, done && styles.doneText]}

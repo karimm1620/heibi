@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { useFocusEffect } from "expo-router/react-navigation";
 import React, { useCallback, useMemo, useState } from "react";
@@ -176,12 +177,18 @@ export function ReminderCard({ domain }: ReminderCardProps) {
         title: { ...typography.subtitle, marginBottom: spacing.xs },
         description: { ...typography.caption, marginBottom: spacing.md },
         unavailableNotice: {
-          ...typography.caption,
-          color: colors.danger,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.xs,
           backgroundColor: withOpacity(colors.danger, 0.1),
           padding: spacing.sm,
           borderRadius: radius.md,
           marginBottom: spacing.md,
+        },
+        unavailableNoticeText: {
+          ...typography.caption,
+          color: colors.danger,
+          flexShrink: 1,
         },
         toggleRow: {
           flexDirection: "row",
@@ -224,9 +231,12 @@ export function ReminderCard({ domain }: ReminderCardProps) {
       <Text style={styles.description}>{copy.description}</Text>
 
       {!isNotificationsAvailable && (
-        <Text style={styles.unavailableNotice}>
-          ⚠️ Belum bisa dipakai di Expo Go. Fitur ini butuh development build.
-        </Text>
+        <View style={styles.unavailableNotice}>
+          <MaterialCommunityIcons name="alert-outline" size={16} color={colors.danger} />
+          <Text style={styles.unavailableNoticeText}>
+            Belum bisa dipakai di Expo Go. Fitur ini butuh development build.
+          </Text>
+        </View>
       )}
 
       <View style={styles.toggleRow}>

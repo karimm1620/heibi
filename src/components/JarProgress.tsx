@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { glassShineTint, radius } from '../theme/colors';
 import { useTheme } from "../theme/useTheme";
@@ -13,7 +14,15 @@ interface JarProgressProps {
 }
 
 const JAR_HEIGHT = 220;
-const SPARKLES = ["✨", "🎉", "⭐️", "🎊", "✨", "🎉"];
+type SparkleIconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+const SPARKLE_ICONS: SparkleIconName[] = [
+  "star-four-points",
+  "party-popper",
+  "star",
+  "star-four-points-outline",
+  "star-four-points",
+  "party-popper",
+];
 
 /**
  * Signature visual aplikasi: "jar tabungan" — metafora nabung dalam toples kaca.
@@ -32,12 +41,15 @@ export function JarProgress({
     targetAmount > 0 ? Math.min(1, currentAmount / targetAmount) : 0;
   const isComplete = percent >= 1;
 
-  const fillAnim = useRef(new Animated.Value(0)).current;
-  const bounceAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
-  const sparkleAnims = useRef(
-    SPARKLES.map(() => new Animated.Value(0)),
-  ).current;
+  // Checkpoint 6/7: useState(() => ...) gantiin useRef(...).current buat
+  // semua Animated.Value -- lihat catatan sama di MaterialNavigationBar.tsx
+  // (hindari warning react-hooks/refs). wasCompleteRef & glowLoopRef TETAP
+  // useRef biasa -- keduanya cuma dibaca/ditulis di dalam useEffect, gak
+  // pernah diakses langsung pas render, jadi aman & memang pola yang tepat.
+  const [fillAnim] = useState(() => new Animated.Value(0));
+  const [bounceAnim] = useState(() => new Animated.Value(1));
+  const [glowAnim] = useState(() => new Animated.Value(0));
+  const [sparkleAnims] = useState(() => SPARKLE_ICONS.map(() => new Animated.Value(0)));
   const wasCompleteRef = useRef(false);
   const glowLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
@@ -187,7 +199,6 @@ export function JarProgress({
         },
         sparkle: {
           position: "absolute",
-          fontSize: 20,
         },
       }),
     [colors, typography],
@@ -238,7 +249,7 @@ export function JarProgress({
             <Text style={styles.amountText}>{formatIDR(currentAmount)}</Text>
             <Text style={styles.targetText}>
               {isComplete
-                ? "Goal tercapai! 🎉"
+                ? "Goal tercapai!"
                 : `dari ${formatIDR(targetAmount)}`}
             </Text>
           </View>
@@ -246,8 +257,8 @@ export function JarProgress({
       </Animated.View>
 
       {/* Semburan sparkle saat baru mencapai 100% */}
-      {SPARKLES.map((emoji, index) => {
-        const offsetX = (index - (SPARKLES.length - 1) / 2) * 26;
+      {SPARKLE_ICONS.map((iconName, index) => {
+        const offsetX = (index - (SPARKLE_ICONS.length - 1) / 2) * 26;
         const anim = sparkleAnims[index];
         const translateY = anim.interpolate({
           inputRange: [0, 1],
@@ -258,7 +269,7 @@ export function JarProgress({
           outputRange: [0, 1, 0],
         });
         return (
-          <Animated.Text
+          <Animated.View
             key={index}
             style={[
               styles.sparkle,
@@ -272,8 +283,8 @@ export function JarProgress({
             ]}
             pointerEvents="none"
           >
-            {emoji}
-          </Animated.Text>
+            <MaterialCommunityIcons name={iconName} size={20} color={accentDeep} />
+          </Animated.View>
         );
       })}
     </View>
