@@ -1,3 +1,4 @@
+import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -77,6 +78,7 @@ export default function AddHabitScreen() {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderHour, setReminderHour] = useState(20);
   const [reminderMinute, setReminderMinute] = useState(0);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   useEffect(() => {
     if (habit) {
@@ -93,6 +95,22 @@ export default function AddHabitScreen() {
       }
     }
   }, [habit]);
+
+  // Chip "Atur sendiri" dobel fungsi: kalau reminder aktif lagi pas jam yang
+  // gak ada di TIME_PRESETS (hasil dari custom picker), chip ini yang jadi
+  // "aktif" dan labelnya ganti nampilin jam kustomnya.
+  const matchesPreset = TIME_PRESETS.some(
+    (preset) => preset.hour === reminderHour && preset.minute === reminderMinute,
+  );
+  const customChipLabel = matchesPreset
+    ? "Atur sendiri"
+    : `${String(reminderHour).padStart(2, "0")}.${String(reminderMinute).padStart(2, "0")}`;
+
+  const pickerValue = useMemo(() => {
+    const date = new Date();
+    date.setHours(reminderHour, reminderMinute, 0, 0);
+    return date;
+  }, [reminderHour, reminderMinute]);
 
   const handleSave = async () => {
     const trimmedName = name.trim();
@@ -273,7 +291,30 @@ export default function AddHabitScreen() {
                 }}
               />
             ))}
+            <Chip
+              key="custom"
+              label={customChipLabel}
+              selected={!matchesPreset}
+              onPress={() => setShowTimePicker(true)}
+              accessibilityLabel="Atur jam reminder sendiri"
+            />
           </View>
+        )}
+
+        {showTimePicker && (
+          <DateTimePicker
+            value={pickerValue}
+            mode="time"
+            presentation="dialog"
+            is24Hour
+            accentColor={material3.primary}
+            onValueChange={(_event, date) => {
+              setShowTimePicker(false);
+              setReminderHour(date.getHours());
+              setReminderMinute(date.getMinutes());
+            }}
+            onDismiss={() => setShowTimePicker(false)}
+          />
         )}
 
         <Pressable
