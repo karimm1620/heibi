@@ -203,9 +203,11 @@ export default function TodayScreen() {
 
         {hasNothing ? (
           <EmptyState
-            emoji="🌱"
+            icon="clipboard-text-outline"
             title="Belum ada apa-apa hari ini"
-            description="Tap tombol + di kanan bawah buat mulai bikin habit pertamamu."
+            description="Mulai bikin habit pertamamu."
+            ctaLabel="Tambah Habit"
+            onPressCta={() => router.push("/habit/add")}
           />
         ) : (
           <>

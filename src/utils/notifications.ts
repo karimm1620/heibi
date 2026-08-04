@@ -98,13 +98,13 @@ const REMINDER_COPY: Record<
     channelId: 'savings',
     channelName: 'Pengingat Menabung',
     title: 'Waktunya menabung! 🐷',
-    body: 'Jangan lupa sisihkan sedikit uang buat goal tabunganmu hari ini.',
+    body: 'Sisihkan sedikit buat goal tabunganmu hari ini.',
   },
   planner: {
     channelId: 'planner',
     channelName: 'Pengingat Tugas',
     title: 'Cek tugas hari ini 📝',
-    body: 'Buka Today buat lihat apa aja yang masih perlu diselesaikan.',
+    body: 'Masih ada tugas yang belum selesai hari ini.',
   },
 };
 

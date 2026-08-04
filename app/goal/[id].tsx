@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Animated,
   Keyboard,
@@ -69,7 +69,11 @@ export default function GoalDetailScreen() {
     sheetTranslateY,
     dragHandlers,
   } = useSheetMotion({ visible: action !== null, onDismiss: closeSheet });
-  const keyboardOffset = useRef(new Animated.Value(0)).current;
+  // Checkpoint 6: useState(() => ...) gantiin useRef(...).current -- lihat
+  // catatan yang sama di MaterialNavigationBar.tsx (hindari warning
+  // react-hooks/refs, sekalian gak query recompute Animated.Value baru tiap
+  // render yang langsung dibuang).
+  const [keyboardOffset] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
@@ -240,9 +244,11 @@ export default function GoalDetailScreen() {
         style={[styles.container, { paddingTop: insets.top + spacing.xl }]}
       >
         <EmptyState
-          emoji="🔍"
+          icon="magnify-close"
           title="Goal tidak ditemukan"
           description="Goal ini mungkin sudah dihapus."
+          ctaLabel="Kembali"
+          onPressCta={() => router.back()}
         />
       </View>
     );
@@ -352,7 +358,7 @@ export default function GoalDetailScreen() {
         <Text style={styles.sectionTitle}>History</Text>
         {transactions.length === 0 ? (
           <EmptyState
-            emoji="🌱"
+            icon="sprout"
             title="Belum ada transaksi"
             description="Mulai nabung untuk lihat progress-nya di sini."
           />

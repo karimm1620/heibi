@@ -165,7 +165,7 @@ export default function GoalsScreen() {
 
         {listToRender.length === 0 ? (
           <EmptyState
-            emoji={showCompletedOnly ? "🎉" : "🫙"}
+            icon={showCompletedOnly ? "party-popper" : "piggy-bank-outline"}
             title={
               showCompletedOnly
                 ? "Belum ada goal yang selesai"
@@ -174,7 +174,13 @@ export default function GoalsScreen() {
             description={
               showCompletedOnly
                 ? "Terus nabung sampai salah satu goal-mu mencapai 100%."
-                : "Tap tombol + di kanan bawah buat mulai nabung untuk wishlist pertamamu."
+                : "Mulai nabung untuk wishlist pertamamu."
+            }
+            ctaLabel={showCompletedOnly ? "Lihat semua goal" : "Tambah Goal"}
+            onPressCta={
+              showCompletedOnly
+                ? () => setShowCompletedOnly(false)
+                : () => router.push("/goal/add")
             }
           />
         ) : (

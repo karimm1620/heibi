@@ -100,9 +100,9 @@ export default function HistoryScreen() {
         )}
         ListEmptyComponent={
           <EmptyState
-            emoji="📭"
+            icon="history"
             title="Belum ada transaksi"
-            description="Riwayat menabung & menarik tabungan bakal muncul di sini."
+            description="Riwayat menabung & menarik bakal muncul di sini."
           />
         }
       />
