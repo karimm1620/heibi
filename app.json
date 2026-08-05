@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "tabungan-kertas",
-    "slug": "tabungan-kertas",
+    "name": "Heibi",
+    "slug": "heibi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "tabungankertas",
+    "scheme": "heibi",
     "userInterfaceStyle": "automatic",
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "android.permission.SCHEDULE_EXACT_ALARM",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.immz.tabungankertas"
+      "package": "com.immz.heibi"
     },
     "web": {
       "output": "static",
@@ -62,8 +62,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "dbd93928-e1b7-41b1-a3a7-20e1a952fc79"
+        "projectId": "64aa6cb6-2934-4ce9-b567-2fedb65da08f"
       }
-    }
+    },
+    "owner": "karimms1620"
   }
 }
