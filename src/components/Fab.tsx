@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useState } from "react";
 import { Animated, Pressable, StyleSheet, Text } from "react-native";
 import { m3ElevationStyle, m3Motion, m3Shape } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
@@ -12,7 +12,8 @@ interface FabProps {
 
 export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: FabProps) {
   const { material3 } = useTheme();
-  const scale = useRef(new Animated.Value(1)).current;
+  // Checkpoint 9: useState(() => ...) gantiin useRef(...).current.
+  const [scale] = useState(() => new Animated.Value(1));
 
   const handlePressIn = () => {
     Animated.timing(scale, { toValue: 0.92, duration: m3Motion.duration.short2, useNativeDriver: true }).start();

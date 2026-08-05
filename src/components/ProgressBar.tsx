@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { useTheme } from "../theme/useTheme";
 
@@ -16,7 +16,8 @@ export function ProgressBar({
   trackColor,
 }: ProgressBarProps) {
   const { colors } = useTheme();
-  const widthAnim = useRef(new Animated.Value(0)).current;
+  // Checkpoint 9: useState(() => ...) gantiin useRef(...).current.
+  const [widthAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.timing(widthAnim, {

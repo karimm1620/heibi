@@ -22,12 +22,28 @@ export function UndoSnackbar({ bottomOffset = 0 }: { bottomOffset?: number }) {
   const commitPendingDeletion = useGoalsStore((s) => s.commitPendingDeletion);
 
   const [mounted, setMounted] = useState(false);
-  const translateY = useRef(new Animated.Value(120)).current;
+  // Checkpoint 9: useState(() => ...) gantiin useRef(...).current buat
+  // Animated.Value. timerRef TETAP useRef biasa -- cuma dibaca/ditulis di
+  // dalam effect/cleanup, gak pernah diakses langsung pas render.
+  const [translateY] = useState(() => new Animated.Value(120));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Checkpoint 9: dulu `setMounted(true)` dipanggil sinkron di awal body
+  // useEffect -- kena react-hooks/set-state-in-effect. Dipindah ke
+  // "adjusting state during render" (pola sama kayak goal/add.tsx &
+  // habit/add.tsx): begitu ada pendingDeletion BARU (dibedain lewat
+  // deletedAt), langsung mounted=true di render itu juga, gak nunggu extra
+  // render dari effect. `setMounted(false)` di bawah TETAP di dalam
+  // callback `.start()` animasi (async, bukan sinkron di body effect) jadi
+  // udah lint-clean dari awal, gak perlu dipindah.
+  const [trackedDeletionAt, setTrackedDeletionAt] = useState<number | null>(null);
+  if (pendingDeletion && pendingDeletion.deletedAt !== trackedDeletionAt) {
+    setTrackedDeletionAt(pendingDeletion.deletedAt);
+    setMounted(true);
+  }
 
   useEffect(() => {
     if (pendingDeletion) {
-      setMounted(true);
       if (reducedMotion) {
         Animated.timing(translateY, {
           toValue: 0,

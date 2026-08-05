@@ -100,7 +100,7 @@ export default function SettingsScreen() {
     const { data } = validation.payload;
     showAlert(
       "Pulihkan dari backup?",
-      `Semua data yang ADA SEKARANG di app ini bakal DIGANTI TOTAL sama isi backup ini — ${data.savingsGoals.length} goal, ${data.habits.length} habit, ${data.todos.length} tugas. Ini gak bisa di-undo.`,
+      `Semua data yang ADA SEKARANG di app ini bakal DIGANTI TOTAL sama isi backup ini, ${data.savingsGoals.length} goal, ${data.habits.length} habit, ${data.todos.length} tugas. Ini gak bisa di-undo.`,
       [
         { label: "Batal", style: "cancel" },
         {
@@ -120,7 +120,7 @@ export default function SettingsScreen() {
             } catch {
               showAlert(
                 "Gagal memulihkan",
-                "Terjadi kesalahan waktu nulis data backup. Data lama kemungkinan masih utuh — coba lagi.",
+                "Terjadi kesalahan waktu nulis data backup. Data lama kemungkinan masih utuh, coba lagi.",
               );
             } finally {
               setBusy(null);
@@ -146,7 +146,7 @@ export default function SettingsScreen() {
         <GlassCard style={styles.card} elevationLevel="level1">
           <Text style={typography.body}>
             Semua data (goal tabungan, transaksi, habit, histori, tugas)
-            tersimpan lokal di device ini doang — gak ada cloud, gak ada
+            tersimpan lokal di device ini doang gak ada cloud, gak ada
             akun. Export backup secara berkala biar data aman kalau ganti
             device atau app-nya ke-uninstall.
           </Text>

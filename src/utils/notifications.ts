@@ -155,7 +155,7 @@ export async function scheduleHabitReminder(
     await ensureChannel('habits', 'Pengingat Habit');
     const id = await Notifications.scheduleNotificationAsync({
       content: {
-        title: `Waktunya "${habitName}"`,
+        title: `Waktunya ${habitName}`,
         body: 'Tap buat langsung tandai selesai di Today.',
         sound: 'default',
         color: NOTIFICATION_ACCENT_COLOR,

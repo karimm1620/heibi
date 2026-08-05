@@ -73,7 +73,7 @@ export default function HistoryScreen() {
       key={isDark ? "dark" : "light"}
       style={[styles.container, { paddingTop: insets.top + spacing.md }]}
     >
-      <Text style={styles.headerTitle}>History</Text>
+      <Text style={styles.headerTitle}>Histori</Text>
       <Text style={typography.caption}>
         Semua transaksi dari seluruh goal-mu
       </Text>

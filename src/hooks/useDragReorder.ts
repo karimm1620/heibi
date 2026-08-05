@@ -35,11 +35,19 @@ export function useDragReorder<T>({
 }: UseDragReorderOptions<T>) {
   const [order, setOrder] = useState(items);
   const orderRef = useRef(order);
-  orderRef.current = order;
+  // Checkpoint 9: dulu ditulis langsung di body render (`orderRef.current =
+  // order`), kena react-hooks/refs. `orderRef` cuma dibaca di dalam
+  // PanResponder callback (event handler), jadi sinkroninnya aman dipindah
+  // ke useEffect -- commit dulu baru ke-update, gak beda perilaku wong
+  // callback-nya toh baru jalan belakangan pas user narik gesture.
+  useEffect(() => {
+    orderRef.current = order;
+  }, [order]);
 
   const draggingKeyRef = useRef<string | null>(null);
   const [draggingKey, setDraggingKey] = useState<string | null>(null);
-  const dragY = useRef(new Animated.Value(0)).current;
+  // Checkpoint 9: useState(() => ...) gantiin useRef(...).current.
+  const [dragY] = useState(() => new Animated.Value(0));
   const startIndexRef = useRef(0);
   const currentIndexRef = useRef(0);
 

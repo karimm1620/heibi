@@ -181,7 +181,7 @@ export default function TodayScreen() {
         scrollEnabled={draggingHabitKey === null}
       >
         <Text style={typography.caption}>{formatIndonesianDate()}</Text>
-        <Text style={styles.headerTitle}>Today</Text>
+        <Text style={styles.headerTitle}>Agenda hari ini</Text>
 
         {totalCount > 0 && (
           <GlassCard
@@ -320,7 +320,7 @@ function HabitRow({
   const handleDelete = () => {
     showAlert(
       "Hapus permanen?",
-      `Semua histori "${habit.name}" akan hilang selamanya — ini gak bisa di-undo. Kalau cuma mau berhenti tanpa kehilangan histori, swipe lagi terus pilih Arsip aja.`,
+      `Semua histori "${habit.name}" akan hilang selamanya, ini gak bisa di-undo. Kalau cuma mau berhenti tanpa kehilangan histori, swipe lagi terus pilih Arsip aja.`,
       [
         { label: "Batal", style: "cancel" },
         {

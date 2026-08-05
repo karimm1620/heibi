@@ -123,7 +123,7 @@ export function validateBackupPayload(raw: unknown): BackupValidationResult {
   if (obj.formatVersion > BACKUP_FORMAT_VERSION) {
     return {
       valid: false,
-      error: "Backup ini dibuat dari versi app yang lebih baru — update app dulu sebelum restore.",
+      error: "Backup ini dibuat dari versi app yang lebih baru, update app dulu sebelum restore.",
     };
   }
   if (typeof obj.data !== "object" || obj.data === null) {

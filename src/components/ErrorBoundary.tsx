@@ -53,7 +53,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
         />
         <Text style={[styles.title, { color: colors.textPrimary }]}>Ada yang gak beres</Text>
         <Text style={[styles.description, { color: colors.textSecondary }]}>
-          Aplikasi mengalami error yang gak terduga. Coba muat ulang — kalau masih
+          Aplikasi mengalami error yang gak terduga. Coba muat ulang! kalau masih
           terjadi, tutup dan buka lagi aplikasinya.
         </Text>
         <Pressable

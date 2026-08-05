@@ -11,8 +11,8 @@ interface TabMetaEntry {
 }
 
 export const TAB_META: Record<string, TabMetaEntry> = {
-  index: { icon: "calendar-check-outline", iconActive: "calendar-check", label: "Today" },
-  goals: { icon: "target", label: "Goals" },
-  history: { icon: "history", label: "History" },
-  settings: { icon: "cog-outline", iconActive: "cog", label: "Settings" },
+  index: { icon: "calendar-check-outline", iconActive: "calendar-check", label: "Hari ini" },
+  goals: { icon: "target", label: "Target" },
+  history: { icon: "history", label: "Histori" },
+  settings: { icon: "cog-outline", iconActive: "cog", label: "Pengaturan" },
 };

@@ -100,7 +100,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
     if (!isNotificationsAvailable) {
       showAlert(
         "Belum bisa dipakai di Expo Go",
-        "Fitur reminder butuh development build — expo-notifications tidak didukung penuh di Expo Go sejak SDK 53.",
+        "Fitur reminder butuh development build, expo-notifications tidak didukung penuh di Expo Go sejak SDK 53.",
       );
       return;
     }

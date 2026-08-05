@@ -44,37 +44,47 @@ export default function AddGoalScreen() {
   const [emoji, setEmoji] = useState<string | undefined>("🎯");
   const [pickerBusy, setPickerBusy] = useState(false);
 
-  const originalImageUri = useRef<string | undefined>(undefined);
+  const [originalImageUri, setOriginalImageUri] = useState<string | undefined>(undefined);
   const savedSuccessfully = useRef(false);
 
-  useEffect(() => {
-    if (goal) {
-      setName(goal.name);
-      setTargetDisplay(formatThousands(String(goal.targetAmount)));
-      setImageUri(goal.imageUri);
-      originalImageUri.current = goal.imageUri;
-      setEmoji(goal.emoji ?? "🎯");
-    }
-  }, [goal]);
+  // Checkpoint 9: dulu populate form (edit mode) lewat useEffect + setState
+  // -- kena react-hooks/set-state-in-effect (nge-trigger cascading render).
+  // `goal` baru kebaca async dari SQLite (bisa masih undefined pas mount
+  // pertama, baru keisi begitu store selesai hydrate), jadi gak bisa cukup
+  // lazy initializer useState biasa. Pola resmi React buat kasus ini:
+  // "adjusting state during render" -- setState dipanggil LANGSUNG di body
+  // render (bukan di useEffect), dijaga guard biar cuma jalan sekali per
+  // goal.id. React bakal langsung re-render sebelum paint, gak ada
+  // efek "kedip" state lama, dan gak masuk kategori warning ini lagi
+  // (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
+  const [populatedGoalId, setPopulatedGoalId] = useState<string | undefined>(undefined);
+  if (goal && goal.id !== populatedGoalId) {
+    setPopulatedGoalId(goal.id);
+    setName(goal.name);
+    setTargetDisplay(formatThousands(String(goal.targetAmount)));
+    setImageUri(goal.imageUri);
+    setOriginalImageUri(goal.imageUri);
+    setEmoji(goal.emoji ?? "🎯");
+  }
 
   useEffect(() => {
     return () => {
       if (
         !savedSuccessfully.current &&
         imageUri &&
-        imageUri !== originalImageUri.current
+        imageUri !== originalImageUri
       ) {
         deleteGoalImage(imageUri);
       }
     };
-  }, [imageUri]);
+  }, [imageUri, originalImageUri]);
 
   const handlePickImage = async () => {
     setPickerBusy(true);
     try {
       const uri = await pickGoalImage();
       if (uri) {
-        if (imageUri && imageUri !== originalImageUri.current) {
+        if (imageUri && imageUri !== originalImageUri) {
           deleteGoalImage(imageUri);
         }
         setImageUri(uri);

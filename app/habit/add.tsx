@@ -1,6 +1,6 @@
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Linking,
@@ -80,21 +80,25 @@ export default function AddHabitScreen() {
   const [reminderMinute, setReminderMinute] = useState(0);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  useEffect(() => {
-    if (habit) {
-      setName(habit.name);
-      setIcon(habit.icon as HabitIconName);
-      setColor(habit.color);
-      setFrequencyType(habit.frequencyType);
-      setWeekdaysMask(habit.weekdaysMask);
-      if (habit.reminderTime) {
-        const [h, m] = habit.reminderTime.split(":").map(Number);
-        setReminderEnabled(true);
-        setReminderHour(h);
-        setReminderMinute(m);
-      }
+  // Checkpoint 9: adjusting state during render (bukan useEffect) -- lihat
+  // catatan sama di goal/add.tsx. `habit` baru kebaca async dari SQLite,
+  // jadi tetap butuh guard "belum di-populate buat id ini", bukan cuma
+  // lazy initializer useState biasa.
+  const [populatedHabitId, setPopulatedHabitId] = useState<string | undefined>(undefined);
+  if (habit && habit.id !== populatedHabitId) {
+    setPopulatedHabitId(habit.id);
+    setName(habit.name);
+    setIcon(habit.icon as HabitIconName);
+    setColor(habit.color);
+    setFrequencyType(habit.frequencyType);
+    setWeekdaysMask(habit.weekdaysMask);
+    if (habit.reminderTime) {
+      const [h, m] = habit.reminderTime.split(":").map(Number);
+      setReminderEnabled(true);
+      setReminderHour(h);
+      setReminderMinute(m);
     }
-  }, [habit]);
+  }
 
   // Chip "Atur sendiri" dobel fungsi: kalau reminder aktif lagi pas jam yang
   // gak ada di TIME_PRESETS (hasil dari custom picker), chip ini yang jadi
@@ -141,7 +145,7 @@ export default function AddHabitScreen() {
       if (!isNotificationsAvailable) {
         showAlert(
           "Reminder gak tersedia",
-          "Fitur reminder butuh development build — expo-notifications gak didukung penuh di Expo Go sejak SDK 53. Habit tetap kesimpen, cuma remindernya belum aktif.",
+          "Fitur reminder butuh development build, expo-notifications gak didukung penuh di Expo Go sejak SDK 53. Habit tetap kesimpen, cuma remindernya belum aktif.",
         );
       } else {
         const granted = await requestNotificationPermission();

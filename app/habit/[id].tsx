@@ -169,7 +169,7 @@ export default function HabitDetailScreen() {
   const handleDelete = () => {
     showAlert(
       "Hapus permanen?",
-      `Semua histori "${habit.name}" akan hilang selamanya — ini gak bisa di-undo. Kalau cuma mau berhenti tanpa kehilangan histori, pakai "Arsipkan" aja.`,
+      `Semua histori "${habit.name}" akan hilang selamanya, ini gak bisa di-undo. Kalau cuma mau berhenti tanpa kehilangan histori, pakai "Arsipkan" aja.`,
       [
         { label: "Batal", style: "cancel" },
         {

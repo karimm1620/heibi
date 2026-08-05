@@ -48,14 +48,28 @@ export function useSheetMotion({
   dismissThreshold = 100,
 }: UseSheetMotionOptions): UseSheetMotionResult {
   const [mounted, setMounted] = useState(false);
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(hiddenTranslateY)).current;
+  // Checkpoint 9: useState(() => ...) gantiin useRef(...).current buat
+  // Animated.Value (hindari react-hooks/refs -- ini juga otomatis nge-fix
+  // warning yang sama di `panResponder` useMemo & return statement di bawah,
+  // soalnya keduanya cuma "ketularan" gara-gara dua value ini asalnya dari ref).
+  const [backdropOpacity] = useState(() => new Animated.Value(0));
+  const [sheetTranslateY] = useState(() => new Animated.Value(hiddenTranslateY));
   const dragStartValue = useRef(0);
   const reducedMotion = useReducedMotion();
 
+  // Checkpoint 9: dulu `setMounted(true)` dipanggil sinkron di awal body
+  // useEffect -- kena react-hooks/set-state-in-effect. `visible` boolean
+  // sederhana (beda sama UndoSnackbar yang butuh lacak identitas
+  // pendingDeletion), jadi cukup guard "visible tapi belum mounted" LANGSUNG
+  // di body render -- otomatis cuma jalan sekali per transisi off->on.
+  // `setMounted(false)` di useEffect bawah TETAP di dalam callback `.start()`
+  // (async, bukan sinkron di body effect) jadi udah lint-clean dari awal.
+  if (visible && !mounted) {
+    setMounted(true);
+  }
+
   useEffect(() => {
     if (visible) {
-      setMounted(true);
       if (reducedMotion) {
         Animated.parallel([
           Animated.timing(backdropOpacity, {
@@ -119,6 +133,12 @@ export function useSheetMotion({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, reducedMotion]);
 
+  /* eslint-disable react-hooks/refs -- false positive: linter nganggep
+     `PanResponder.create({...})` di dalam factory `useMemo` ini "dibaca pas
+     render" karena factory-nya emang jalan pas render, tapi `dragStartValue
+     .current` di dalem `onPanResponderGrant`/`onPanResponderMove` CUMA
+     keeksekusi pas user beneran narik gesture (callback event), gak pernah
+     pas render/useMemo itu sendiri jalan. */
   const panResponder = useMemo(
     () =>
       PanResponder.create({
@@ -148,6 +168,7 @@ export function useSheetMotion({
       }),
     [dismissThreshold, onDismiss, sheetTranslateY, reducedMotion],
   );
+  /* eslint-enable react-hooks/refs */
 
   return {
     mounted,

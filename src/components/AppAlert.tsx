@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Animated,
   Easing,
@@ -31,8 +31,10 @@ export function AppAlert({
 }: AppAlertProps) {
   const { colors, typography, material3 } = useTheme();
   const reducedMotion = useReducedMotion();
-  const scale = useRef(new Animated.Value(0.9)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  // Checkpoint 9: useState(() => ...) gantiin useRef(...).current buat
+  // Animated.Value (hindari react-hooks/refs) -- restore rule ke "error".
+  const [scale] = useState(() => new Animated.Value(0.9));
+  const [opacity] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (visible) {
