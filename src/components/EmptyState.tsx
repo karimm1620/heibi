@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { spacing } from "../theme/colors";
+import { spacing, withOpacity } from "../theme/colors";
 import { m3Shape } from "../theme/material3/tokens";
 import { buildM3FullTypeScale } from "../theme/material3/typography";
 import { useTheme } from "../theme/useTheme";
@@ -54,7 +54,10 @@ export function EmptyState({
           style={[styles.cta, { backgroundColor: material3.secondaryContainer }]}
           accessibilityRole="button"
           accessibilityLabel={ctaLabel}
-          android_ripple={{ color: material3.onSecondaryContainer }}
+          android_ripple={{ color: withOpacity(material3.onSecondaryContainer, 0.12) }}
+          // Checkpoint <next>: fix flash yang sama kayak MaterialNavigationBar/
+          // Fab -- warna "on*Container" itu buat teks, bukan overlay, harus
+          // dibungkus withOpacity biar gak nge-flash opaque pas ditekan.
         >
           <Text
             style={[ctaLabelStyle, { color: material3.onSecondaryContainer, textTransform: "none" }]}

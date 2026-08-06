@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Animated, Pressable, StyleSheet, Text } from "react-native";
 import { m3ElevationStyle, m3Motion, m3Shape } from "../theme/material3/tokens";
+import { withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 
 interface FabProps {
@@ -30,7 +31,12 @@ export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: F
         onPressOut={handlePressOut}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        android_ripple={{ color: material3.onPrimaryContainer }}
+        android_ripple={{ color: withOpacity(material3.onPrimaryContainer, 0.12) }}
+        // Checkpoint <next>: sama kayak fix flash di MaterialNavigationBar --
+        // warna "on*" Material3 itu warna teks kontras-tinggi, dipakai MENTAH
+        // sebagai ripple bikin RippleDrawable Android nge-flash opaque pas
+        // ditekan. Selalu bungkus `withOpacity(...)` buat warna ripple yang
+        // sumbernya token "on*Container"/"onSurfaceVariant".
         style={[
           styles.fab,
           m3ElevationStyle("level3"),

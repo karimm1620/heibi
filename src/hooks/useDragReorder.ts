@@ -51,6 +51,22 @@ export function useDragReorder<T>({
   const startIndexRef = useRef(0);
   const currentIndexRef = useRef(0);
 
+  // Checkpoint <next>: `itemHeight`/`onReorderCommit` dibaca lewat ref, BUKAN
+  // di-closure langsung sama PanResponder callback -- alasannya nyambung ke
+  // cache di bawah (`panResponderCacheRef`): kalau closure-nya baca prop
+  // langsung, cache yang sengaja DIPERTAHANKAN antar render bakal ke-stuck
+  // pegang nilai lama pas prop ini berubah. Baca dari `.current` selalu
+  // dapet nilai TERBARU walau PanResponder instance-nya gak pernah dibikin
+  // ulang.
+  const itemHeightRef = useRef(itemHeight);
+  useEffect(() => {
+    itemHeightRef.current = itemHeight;
+  }, [itemHeight]);
+  const onReorderCommitRef = useRef(onReorderCommit);
+  useEffect(() => {
+    onReorderCommitRef.current = onReorderCommit;
+  }, [onReorderCommit]);
+
   // Sinkron urutan dari props MASUK ke state lokal — tapi JANGAN pas lagi
   // proses drag, biar urutan yang lagi digeser gak "ketimpa" balik data lama
   // dari parent yang belum sempat ke-refresh (race antara reorder lokal vs
@@ -61,12 +77,32 @@ export function useDragReorder<T>({
     }
   }, [items]);
 
+  // Checkpoint <next> — FIX BUG UTAMA drag-reorder yang lag & "nyangkut":
+  // dulu `getHandlePanResponder(item)` manggil `PanResponder.create(...)`
+  // BARU setiap kali dipanggil, dan dipanggil LANGSUNG di JSX pas render
+  // tiap row (`{...getHandlePanResponder(item).panHandlers}`). Karena
+  // `onPanResponderMove` di bawah motret `setOrder(...)` SETIAP kali index
+  // geser, parent re-render di TENGAH-TENGAH gesture yang masih jalan --
+  // artinya row yang lagi di-drag dapet PanResponder instance BARU sementara
+  // native side masih megang instance LAMA sebagai responder aktif. Itu yang
+  // bikin gesture keliatan macet/nyangkut (native kebingungan pegang
+  // instance mana), belum lagi overhead bikin `PanResponder.create()` ulang
+  // buat SEMUA row (bukan cuma yang di-drag) di SETIAP frame gesture.
+  //
+  // Fix: cache satu PanResponder PER KEY di ref (bukan state -- gak boleh
+  // trigger render sendiri), jadi instance-nya TETAP SAMA sepanjang hidup
+  // key itu, mau parent re-render berapa kali pun.
+  const panResponderCacheRef = useRef(new Map<string, ReturnType<typeof PanResponder.create>>());
+
   const getHandlePanResponder = useCallback(
     (item: T) => {
       const key = keyExtractor(item);
+      const cached = panResponderCacheRef.current.get(key);
+      if (cached) return cached;
+
       const timerState = { timer: null as ReturnType<typeof setTimeout> | null, activated: false };
 
-      return PanResponder.create({
+      const responder = PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onStartShouldSetPanResponderCapture: () => false,
         onMoveShouldSetPanResponder: () => true,
@@ -75,14 +111,24 @@ export function useDragReorder<T>({
           timerState.activated = false;
           timerState.timer = setTimeout(() => {
             timerState.activated = true;
-            draggingKeyRef.current = key;
             startIndexRef.current = orderRef.current.findIndex(
               (it) => keyExtractor(it) === key,
             );
             currentIndexRef.current = startIndexRef.current;
-            dragY.setValue(0);
-            setDraggingKey(key);
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+            // Checkpoint <next> -- FIX BUG "tiba-tiba pindah posisi pas gak
+            // sengaja kepencet": dulu `draggingKeyRef.current = key` +
+            // `setDraggingKey(key)` langsung dipanggil DI SINI, begitu timer
+            // long-press 350ms nyala -- PADAHAL jari belum tentu digeser
+            // sama sekali. `renderOrder` di goals.tsx/index.tsx mindahin
+            // item yang `draggingKey`-nya cocok ke urutan RENDER paling
+            // akhir SEKETIKA `draggingKey` keisi, jadi long-press-lepas
+            // tanpa gerakan pun bikin item keliatan "lompat" ke bawah
+            // sesaat sebelum balik lagi pas jari diangkat. Fix: JANGAN
+            // masuk mode dragging visual di sini, tunda sampai gerakan
+            // PERTAMA beneran kejadian di `onPanResponderMove` (lihat di
+            // bawah) -- kalau ternyata gak pernah gerak (nekan-lepas doang),
+            // `draggingKey` gak pernah keisi sama sekali, gak ada lompatan.
           }, LONG_PRESS_DURATION_MS);
         },
         onPanResponderMove: (_, gesture) => {
@@ -96,9 +142,16 @@ export function useDragReorder<T>({
             return;
           }
 
+          if (draggingKeyRef.current !== key) {
+            // Gerakan PERTAMA abis long-press ke-aktivasi -- baru sekarang
+            // resmi masuk mode dragging visual (lihat komentar di atas).
+            draggingKeyRef.current = key;
+            setDraggingKey(key);
+          }
+
           dragY.setValue(gesture.dy);
 
-          const shift = Math.round(gesture.dy / itemHeight);
+          const shift = Math.round(gesture.dy / itemHeightRef.current);
           const newIndex = Math.min(
             Math.max(startIndexRef.current + shift, 0),
             orderRef.current.length - 1,
@@ -113,12 +166,16 @@ export function useDragReorder<T>({
         },
         onPanResponderRelease: () => {
           if (timerState.timer) clearTimeout(timerState.timer);
-          if (timerState.activated) {
+          if (timerState.activated && draggingKeyRef.current === key) {
+            // Kondisi kedua (`draggingKeyRef.current === key`) SENGAJA
+            // ditambah -- kalau timer sempet aktif tapi jari gak pernah
+            // gerak (draggingKey gak pernah keisi lewat onPanResponderMove
+            // di atas), gak ada apa-apa yang perlu di-commit/reset.
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
             draggingKeyRef.current = null;
             setDraggingKey(null);
             dragY.setValue(0);
-            onReorderCommit(orderRef.current);
+            onReorderCommitRef.current(orderRef.current);
           }
           timerState.activated = false;
         },
@@ -132,9 +189,26 @@ export function useDragReorder<T>({
           }
         },
       });
+
+      panResponderCacheRef.current.set(key, responder);
+      return responder;
     },
-    [itemHeight, keyExtractor, onReorderCommit, dragY],
+    // Sengaja CUMA `keyExtractor`+`dragY` -- `itemHeight`/`onReorderCommit`
+    // dibaca lewat ref (lihat di atas), BUKAN dependency di sini, justru
+    // supaya cache di atas gak perlu di-invalidate tiap prop itu berubah.
+    [keyExtractor, dragY],
   );
+
+  // Buang entry cache buat key yang item-nya udah gak ada (ke-delete) --
+  // biar Map ini gak numpuk terus tanpa batas sepanjang umur komponen.
+  useEffect(() => {
+    const validKeys = new Set(items.map(keyExtractor));
+    for (const key of panResponderCacheRef.current.keys()) {
+      if (!validKeys.has(key)) {
+        panResponderCacheRef.current.delete(key);
+      }
+    }
+  }, [items, keyExtractor]);
 
   return { order, draggingKey, dragY, getHandlePanResponder };
 }

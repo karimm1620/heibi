@@ -156,7 +156,7 @@ export async function scheduleHabitReminder(
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title: `Waktunya ${habitName}`,
-        body: 'Tap buat langsung tandai selesai di Today.',
+        body: 'Tap buat langsung tandai selesai di Agenda.',
         sound: 'default',
         color: NOTIFICATION_ACCENT_COLOR,
       },

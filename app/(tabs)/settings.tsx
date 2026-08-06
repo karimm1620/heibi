@@ -1,9 +1,18 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { File } from "expo-file-system";
 import * as DocumentPicker from "expo-document-picker";
 import * as Sharing from "expo-sharing";
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppAlert } from "../../src/components/AppAlert";
 import { GlassCard } from "../../src/components/GlassCard";
@@ -25,6 +34,9 @@ import {
   restoreFromBackup,
   validateBackupPayload,
 } from "../../src/utils/backup";
+
+const GITHUB_URL = "https://github.com/karimm1620/heibi";
+const SAWERIA_URL = "https://saweria.co/immu";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -184,6 +196,47 @@ export default function SettingsScreen() {
 
         <Text style={styles.sectionTitle}>Tentang</Text>
         <GlassCard style={styles.card} elevationLevel="level1">
+          <Pressable
+            onPress={() => Linking.openURL(GITHUB_URL).catch(() => {})}
+            style={styles.aboutRow}
+            accessibilityRole="link"
+            accessibilityLabel="Buka repository GitHub heibi"
+            android_ripple={{ color: colors.glassBorder }}
+          >
+            <View style={styles.aboutRowLabel}>
+              <MaterialCommunityIcons name="github" size={20} color={colors.textPrimary} />
+              <Text style={typography.body}>GitHub</Text>
+            </View>
+            <MaterialCommunityIcons
+              name="open-in-new"
+              size={16}
+              color={colors.textSecondary}
+            />
+          </Pressable>
+
+          <Pressable
+            onPress={() => Linking.openURL(SAWERIA_URL).catch(() => {})}
+            style={styles.aboutRow}
+            accessibilityRole="link"
+            accessibilityLabel="Buka halaman donasi Saweria"
+            android_ripple={{ color: colors.glassBorder }}
+          >
+            <View style={styles.aboutRowLabel}>
+              <MaterialCommunityIcons name="coffee" size={20} color={colors.textPrimary} />
+              <View>
+                <Text style={typography.body}>Traktir Kopi</Text>
+                <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                  via Saweria
+                </Text>
+              </View>
+            </View>
+            <MaterialCommunityIcons
+              name="open-in-new"
+              size={16}
+              color={colors.textSecondary}
+            />
+          </Pressable>
+
           <View style={styles.aboutRow}>
             <Text style={typography.body}>Versi aplikasi</Text>
             <Text style={[typography.body, { color: colors.textSecondary }]}>
@@ -274,6 +327,11 @@ function createStyles(
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+    },
+    aboutRowLabel: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
     },
   });
 }

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { m3Shape } from "../theme/material3/tokens";
+import { withOpacity } from "../theme/colors";
 import { buildM3FullTypeScale } from "../theme/material3/typography";
 import { useTheme } from "../theme/useTheme";
 
@@ -24,7 +25,9 @@ export function Chip({ label, selected, onPress, accessibilityLabel }: ChipProps
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected }}
-      android_ripple={{ color: material3.onSecondaryContainer }}
+      android_ripple={{ color: withOpacity(material3.onSecondaryContainer, 0.12) }}
+      // Checkpoint <next>: fix flash yang sama kayak komponen lain -- warna
+      // "on*Container" harus dibungkus withOpacity buat ripple.
       hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
       style={[
         styles.chip,

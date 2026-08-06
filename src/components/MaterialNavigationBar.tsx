@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { m3ElevationStyle, m3Motion, m3Shape } from "../theme/material3/tokens";
+import { withOpacity } from "../theme/colors";
 import { buildM3FullTypeScale } from "../theme/material3/typography";
 import { useTheme } from "../theme/useTheme";
 import { TAB_META } from "./TabMeta";
@@ -88,7 +89,19 @@ export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) 
             accessibilityLabel={meta.label}
             accessibilityState={{ selected: isFocused }}
             android_ripple={{
-              color: material3.onSurfaceVariant,
+              color: withOpacity(material3.onSurfaceVariant, 0.12),
+              // Checkpoint <next>: `material3.onSurfaceVariant` dipakai MENTAH
+              // (tanpa opacity) sebelumnya -- itu warna teks kontras-tinggi
+              // (dirancang buat DIBACA di atas surface, bukan buat overlay
+              // tembus pandang). RippleDrawable Android nge-render highlight
+              // state OPAQUE penuh sesaat pas jari NYENTUH (sebelum lingkaran
+              // ripple-nya sempat animasi keluar) -- itu yang keliatan kayak
+              // "flash" terang pas ditekan. Warna solid apapun bakal kena ini;
+              // fix-nya WAJIB di-`withOpacity(...)`, bukan ganti warna doang.
+              // Follow-up: 0.24 masih kerasa "samar" keliatan, diturunin ke
+              // 0.12 (masih ada feedback taktil dikit, gak didisable total --
+              // ripple sepenuhnya transparan bikin tombol kerasa "mati" gak
+              // ada respons pas ditekan, itu keluar dari konvensi Material).
               // Checkpoint 6: dulu `borderless: true, radius: 32` -- ripple-nya
               // jadi lingkaran penuh (diameter 64) yang gak diclip ke bentuk
               // pill oval 64x32 ATAU ke batas tab, jadi nongol kayak bayangan
