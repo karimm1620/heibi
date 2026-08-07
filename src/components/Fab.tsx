@@ -51,6 +51,9 @@ export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: F
 
 const styles = StyleSheet.create({
   wrapper: { position: "absolute", right: 16 },
-  fab: { width: 56, height: 56, alignItems: "center", justifyContent: "center" },
+  // Checkpoint 13: fix KEDUA buat bug flash (lihat komentar sama di
+  // Chip.tsx) -- overflow:hidden biar ripple clip ke bentuk rounded FAB,
+  // bukan ke bounding-box persegi.
+  fab: { width: 56, height: 56, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   icon: { fontSize: 28, fontWeight: "400", marginTop: -2 },
 });

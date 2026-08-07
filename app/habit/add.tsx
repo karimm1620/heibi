@@ -393,6 +393,10 @@ function createStyles(
       borderColor: colors.glassBorder,
       alignItems: "center",
       justifyContent: "center",
+      // Checkpoint 13: fix KEDUA buat bug flash (lihat komentar sama di
+      // Chip.tsx) -- overflow:hidden biar ripple clip ke bentuk circular
+      // chip-nya, bukan ke bounding-box persegi.
+      overflow: "hidden",
     },
     reminderHeader: {
       flexDirection: "row",

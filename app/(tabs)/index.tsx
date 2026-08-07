@@ -552,6 +552,10 @@ function createStyles(
       // yang dipakai GlassCard sendiri) jadi masih nutupin action button,
       // tapi sekarang nyatu sama card di sekelilingnya.
       backgroundColor: colors.glassTintLight,
+      // Checkpoint 13: fix KEDUA buat bug flash (lihat komentar sama di
+      // Chip.tsx) -- overflow:hidden biar ripple clip ke bentuk rounded
+      // row, bukan ke bounding-box persegi.
+      overflow: "hidden",
     },
     dragRow: {
       flexDirection: "row",

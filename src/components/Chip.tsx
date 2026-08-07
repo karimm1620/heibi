@@ -61,5 +61,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    // Checkpoint 13: fix KEDUA buat bug flash -- ini beda dari fix opacity
+    // ripple (lihat komentar android_ripple di atas). borderRadius tanpa
+    // overflow:hidden bikin ripple Android clip ke bounding-box PERSEGI,
+    // bukan ke bentuk rounded chip-nya -- keliatan kayak flash yang
+    // "bocor" kotak di sudut. Dua fix ini SALING MELENGKAPI, bukan
+    // duplikat -- satu benerin warna/opacity, satu benerin bentuk clip.
+    overflow: "hidden",
   },
 });
