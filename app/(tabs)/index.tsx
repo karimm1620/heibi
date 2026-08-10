@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppAlert } from "../../src/components/AppAlert";
 import { CelebrationOverlay } from "../../src/components/CelebrationOverlay";
+import { DayHistorySheet } from "../../src/components/DayHistorySheet";
 import { EmptyState } from "../../src/components/EmptyState";
 import {
   FLOATING_TAB_BAR_HEIGHT,
@@ -24,6 +25,7 @@ import { GlassCard } from "../../src/components/GlassCard";
 import { HabitCompleteToggle } from "../../src/components/HabitCompleteToggle";
 import { ProgressBar } from "../../src/components/ProgressBar";
 import { SwipeableRow } from "../../src/components/SwipeableRow";
+import { WeekCalendarStrip } from "../../src/components/WeekCalendarStrip";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import {
   mergeReorderedSubsetIntoFullList,
@@ -142,6 +144,7 @@ export default function TodayScreen() {
   // nyala pas mount pertama kali walau kebetulan semua udah selesai dari
   // sesi sebelumnya. Lihat CelebrationOverlay.tsx buat alasan desainnya.
   const [showCelebration, setShowCelebration] = useState(false);
+  const [historyDate, setHistoryDate] = useState<string | null>(null);
   const prevAllDoneRef = useRef(allDone);
   useEffect(() => {
     if (allDone && !prevAllDoneRef.current) {
@@ -185,6 +188,10 @@ export default function TodayScreen() {
       >
         <Text style={typography.caption}>{formatIndonesianDate()}</Text>
         <Text style={styles.headerTitle}>Agenda hari ini</Text>
+
+        <GlassCard elevationLevel="level1" style={styles.calendarCard}>
+          <WeekCalendarStrip onSelectDate={setHistoryDate} />
+        </GlassCard>
 
         {totalCount > 0 && (
           <GlassCard
@@ -285,6 +292,7 @@ export default function TodayScreen() {
         visible={showCelebration}
         onDismiss={() => setShowCelebration(false)}
       />
+      <DayHistorySheet dateKey={historyDate} onClose={() => setHistoryDate(null)} />
     </View>
   );
 }
@@ -505,6 +513,10 @@ function createStyles(
       fontSize: 28,
       marginTop: 2,
       marginBottom: spacing.md,
+    },
+    calendarCard: {
+      padding: spacing.lg,
+      marginBottom: spacing.lg,
     },
     progressCard: {
       padding: spacing.lg,

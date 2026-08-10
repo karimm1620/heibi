@@ -10,7 +10,7 @@ const INDONESIAN_WEEKDAYS = [
   "Sabtu",
 ];
 
-const INDONESIAN_MONTHS = [
+export const INDONESIAN_MONTHS = [
   "Januari",
   "Februari",
   "Maret",
@@ -51,6 +51,26 @@ export function parseDateKey(dateKey: string): Date {
 export function getWeekdayIndex(date: Date): number {
   const jsDay = date.getDay();
   return jsDay === 0 ? 6 : jsDay - 1;
+}
+
+/** Tambah/kurang N hari, normalize ke tengah malam LOKAL (bukan geser jam). */
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+/** Senin minggu itu — buat `WeekCalendarStrip` (Senin=0 konsisten sama `getWeekdayIndex`). */
+export function startOfWeekMonday(date: Date): Date {
+  return addDays(date, -getWeekdayIndex(date));
+}
+
+/** "14:05" dari epoch ms, waktu LOKAL device (`Date.getHours/getMinutes` udah otomatis lokal, bukan UTC). */
+export function formatTimeOfDay(epochMs: number): string {
+  const date = new Date(epochMs);
+  const h = String(date.getHours()).padStart(2, "0");
+  const m = String(date.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
 }
 
 export const ALL_WEEKDAYS_MASK: WeekdaysMask = 0b1111111; // 127 — semua hari
