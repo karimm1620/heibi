@@ -21,6 +21,7 @@ import {
   FLOATING_TAB_BAR_MARGIN,
 } from "../../src/components/FloatingTabBar";
 import { GlassCard } from "../../src/components/GlassCard";
+import { HabitCompleteToggle } from "../../src/components/HabitCompleteToggle";
 import { ProgressBar } from "../../src/components/ProgressBar";
 import { SwipeableRow } from "../../src/components/SwipeableRow";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
@@ -150,7 +151,9 @@ export default function TodayScreen() {
   }, [allDone]);
 
   const handleToggleHabit = (habitId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    // Haptic dipegang `HabitCompleteToggle` sendiri (reaktif ke transisi
+    // `done`, beda haptic buat complete vs uncomplete) -- jangan getar di
+    // sini juga, nanti dobel.
     void toggleHabitToday(habitId);
   };
 
@@ -312,7 +315,7 @@ function HabitRow({
   dragHandlers,
 }: HabitRowProps) {
   const router = useRouter();
-  const { colors, typography, material3 } = useTheme();
+  const { colors, typography } = useTheme();
   const { alertState, showAlert, hideAlert } = useAppAlert();
   const { archiveWithCleanup, deletePermanentlyWithCleanup } = useHabitActions();
   const styles = useMemo(() => createStyles(colors, typography, 0), [colors, typography]);
@@ -405,24 +408,7 @@ function HabitRow({
                   {habit.reminderTime ? ` · ${habit.reminderTime}` : ""}
                 </Text>
               </View>
-              <Pressable
-                onPress={onToggle}
-                hitSlop={10}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: done }}
-                accessibilityLabel={`Tandai ${habit.name} ${done ? "belum selesai" : "sudah selesai"}`}
-                style={[
-                  styles.checkbox,
-                  done && {
-                    backgroundColor: material3.primary,
-                    borderColor: material3.primary,
-                  },
-                ]}
-              >
-                {done && (
-                  <MaterialCommunityIcons name="check" size={14} color={material3.onPrimary} />
-                )}
-              </Pressable>
+              <HabitCompleteToggle done={done} onToggle={onToggle} habitName={habit.name} />
             </Pressable>
           </SwipeableRow>
         </View>
