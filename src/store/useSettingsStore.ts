@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { getDb } from "../db/client";
+import type { Language } from "../i18n";
 
 export type ReminderDomain = "savings" | "planner";
 
@@ -31,12 +32,18 @@ const SETTINGS_KEY_BY_DOMAIN: Record<ReminderDomain, string> = {
  * sejak schema.ts ditulis (lihat komentar di atas `CREATE TABLE settings`). */
 const ONBOARDING_KEY = "onboarding_complete";
 
+const LANGUAGE_KEY = "language";
+/** Default `id` -- user existing (belum pernah nge-set bahasa) TETAP dapet
+ * Bahasa Indonesia kayak sebelumnya, gak ada perubahan behavior mendadak. */
+const DEFAULT_LANGUAGE: Language = "id";
+
 interface SettingsState {
   savingsReminder: ReminderSettings;
   plannerReminder: ReminderSettings;
   /** True kalau user udah pernah nyelesain/nge-skip flow onboarding. */
   hasOnboarded: boolean;
   hasHydrated: boolean;
+  language: Language;
 
   /** Load setting dari SQLite ke memory. Panggil sekali di bootstrap app. */
   hydrate: () => Promise<void>;
@@ -49,6 +56,7 @@ interface SettingsState {
   ) => Promise<void>;
   /** Tandai onboarding selesai (baik lewat flow lengkap atau tombol Lewati). */
   completeOnboarding: () => Promise<void>;
+  setLanguage: (language: Language) => Promise<void>;
 }
 
 async function readReminder(
@@ -74,20 +82,30 @@ async function readOnboarded(
   return row ? JSON.parse(row.value) === true : false;
 }
 
+async function readLanguage(db: Awaited<ReturnType<typeof getDb>>): Promise<Language> {
+  const row = await db.getFirstAsync<{ value: string }>(
+    "SELECT value FROM settings WHERE key = ?",
+    [LANGUAGE_KEY],
+  );
+  return row ? (JSON.parse(row.value) as Language) : DEFAULT_LANGUAGE;
+}
+
 export const useSettingsStore = create<SettingsState>()((set) => ({
   savingsReminder: DEFAULT_REMINDER,
   plannerReminder: DEFAULT_REMINDER,
   hasOnboarded: false,
   hasHydrated: false,
+  language: DEFAULT_LANGUAGE,
 
   hydrate: async () => {
     const db = await getDb();
-    const [savingsReminder, plannerReminder, hasOnboarded] = await Promise.all([
+    const [savingsReminder, plannerReminder, hasOnboarded, language] = await Promise.all([
       readReminder(db, "savings"),
       readReminder(db, "planner"),
       readOnboarded(db),
+      readLanguage(db),
     ]);
-    set({ savingsReminder, plannerReminder, hasOnboarded, hasHydrated: true });
+    set({ savingsReminder, plannerReminder, hasOnboarded, language, hasHydrated: true });
   },
 
   setReminder: async (domain, enabled, hour, minute, notificationId) => {
@@ -112,5 +130,14 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
       [ONBOARDING_KEY, JSON.stringify(true)],
     );
     set({ hasOnboarded: true });
+  },
+
+  setLanguage: async (language) => {
+    const db = await getDb();
+    await db.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      [LANGUAGE_KEY, JSON.stringify(language)],
+    );
+    set({ language });
   },
 }));

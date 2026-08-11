@@ -1,0 +1,102 @@
+/**
+ * Kamus Bahasa Indonesia -- SUMBER KEBENARAN buat bentuk (shape) semua
+ * kamus bahasa lain. `en.ts` di-type pake `TranslationDict` (typeof objek
+ * ini), jadi kalau ada key yang lupa diterjemahin di `en.ts`, tsc bakal
+ * error -- gak mungkin ke-skip diam-diam.
+ *
+ * Konvensi akses: LANGSUNG lewat object property (`t.settings.title`),
+ * BUKAN string key ("settings.title") kayak i18next -- biar typo ke-tangkep
+ * tsc + autocomplete jalan, konsisten sama gaya project ini yang berat
+ * ngandelin tsc buat correctness.
+ */
+export const id = {
+  common: {
+    cancel: "Batal",
+    later: "Nanti",
+  },
+  settings: {
+    title: "Pengaturan",
+    sections: {
+      language: "Bahasa",
+      notifications: "Notifikasi",
+      backup: "Backup & Restore",
+      about: "Tentang",
+    },
+    language: {
+      id: "Indonesia",
+      en: "English",
+    },
+    backup: {
+      description:
+        "Semua data (goal tabungan, transaksi, habit, histori, tugas) tersimpan lokal di device ini doang gak ada cloud, gak ada akun. Export backup secara berkala biar data aman kalau ganti device atau app-nya ke-uninstall.",
+      exportButton: "Export Backup",
+      exportAccessibilityLabel: "Export backup data",
+      importButton: "Import Backup",
+      importAccessibilityLabel: "Import backup data dari file",
+      shareDialogTitle: "Simpan backup heibi",
+      exportSuccessTitle: "Backup dibuat",
+      exportSuccessMessage: "Sharing gak tersedia di device ini, tapi file backup-nya tersimpan di:\n{{uri}}",
+      exportErrorTitle: "Gagal ekspor",
+      exportErrorMessage: "Terjadi kesalahan waktu bikin file backup. Coba lagi.",
+      importOpenErrorTitle: "Gagal buka file",
+      importOpenErrorMessage: "Terjadi kesalahan waktu buka pemilih file.",
+      importParseErrorTitle: "Gagal membaca file",
+      importParseErrorMessage: "File ini bukan JSON yang valid atau gagal dibuka.",
+      importInvalidTitle: "Backup gak valid",
+      importInvalidFallback: "File ini gak bisa dipulihkan.",
+      confirmTitle: "Pulihkan dari backup?",
+      confirmMessage:
+        "Semua data yang ADA SEKARANG di app ini bakal DIGANTI TOTAL sama isi backup ini, {{goals}} goal, {{habits}} habit, {{todos}} tugas. Ini gak bisa di-undo.",
+      confirmRestore: "Pulihkan",
+      restoreSuccessTitle: "Berhasil dipulihkan",
+      restoreSuccessMessage: "Data dari backup udah aktif sekarang.",
+      restoreErrorTitle: "Gagal memulihkan",
+      restoreErrorMessage:
+        "Terjadi kesalahan waktu nulis data backup. Data lama kemungkinan masih utuh, coba lagi.",
+    },
+    about: {
+      github: "GitHub",
+      githubAccessibilityLabel: "Buka repository GitHub heibi",
+      coffee: "Traktir Kopi",
+      coffeeSubtitle: "via Saweria",
+      coffeeAccessibilityLabel: "Buka halaman donasi Saweria",
+      appVersion: "Versi aplikasi",
+    },
+  },
+  reminder: {
+    savings: {
+      title: "Pengingat Menabung",
+      description: "Dapat notifikasi harian biar gak lupa nabung.",
+      toggleLabel: "Aktifkan pengingat harian",
+    },
+    planner: {
+      title: "Pengingat Tugas",
+      description: "Dapat notifikasi harian buat cek tugas hari ini yang belum selesai.",
+      toggleLabel: "Aktifkan pengingat harian",
+    },
+    unavailableNotice: "Belum bisa dipakai di Expo Go. Fitur ini butuh development build.",
+    expoGoTitle: "Belum bisa dipakai di Expo Go",
+    expoGoMessage:
+      "Fitur reminder butuh development build, expo-notifications tidak didukung penuh di Expo Go sejak SDK 53.",
+    permissionTitle: "Izin notifikasi diperlukan",
+    permissionMessage:
+      "Aktifkan izin notifikasi buat aplikasi ini di pengaturan device supaya pengingat bisa muncul.",
+    permissionOpenSettings: "Buka Pengaturan",
+    disabledTitle: "Reminder dinonaktifkan",
+    disabledMessage:
+      "Izin notifikasi buat aplikasi ini kelihatannya udah gak aktif lagi. Aktifkan lagi kalau mau pakai reminder.",
+    scheduleErrorTitle: "Gagal mengaktifkan reminder",
+    scheduleErrorMessage: "Coba lagi, atau gunakan development build kalau masih gagal.",
+    customChipLabel: "Atur sendiri",
+    customChipAccessibilityLabel: "Atur jam reminder sendiri",
+    presetAccessibilityLabel: "Jadwalkan reminder jam {{time}}",
+  },
+} as const;
+
+// `as const` di atas bikin tsc infer LITERAL string type per leaf (misal
+// "Batal" doang, bukan `string`) -- perlu widening manual biar `en.ts` bisa
+// diisi string BEDA (Inggris) tapi STRUKTUR-nya (keys & nesting) tetep
+// dipaksa sama persis kayak `id.ts`.
+type DeepStringify<T> = T extends string ? string : { [K in keyof T]: DeepStringify<T[K]> };
+
+export type TranslationDict = DeepStringify<typeof id>;

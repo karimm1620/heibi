@@ -22,6 +22,7 @@ import {
 } from "../../src/components/FloatingTabBar";
 import { ReminderCard } from "../../src/components/ReminderCard";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
+import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
 import { useSettingsStore } from "../../src/store/useSettingsStore";
@@ -41,6 +42,8 @@ const SAWERIA_URL = "https://saweria.co/immu";
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { colors, typography, isDark, material3 } = useTheme();
+  const { t, interpolate, language } = useTranslation();
+  const setLanguage = useSettingsStore((s) => s.setLanguage);
   const { alertState, showAlert, hideAlert } = useAppAlert();
   const [busy, setBusy] = useState<"export" | "import" | null>(null);
 
@@ -62,16 +65,16 @@ export default function SettingsScreen() {
       if (available) {
         await Sharing.shareAsync(file.uri, {
           mimeType: "application/json",
-          dialogTitle: "Simpan backup heibi",
+          dialogTitle: t.settings.backup.shareDialogTitle,
         });
       } else {
         showAlert(
-          "Backup dibuat",
-          `Sharing gak tersedia di device ini, tapi file backup-nya tersimpan di:\n${file.uri}`,
+          t.settings.backup.exportSuccessTitle,
+          interpolate(t.settings.backup.exportSuccessMessage, { uri: file.uri }),
         );
       }
     } catch {
-      showAlert("Gagal ekspor", "Terjadi kesalahan waktu bikin file backup. Coba lagi.");
+      showAlert(t.settings.backup.exportErrorTitle, t.settings.backup.exportErrorMessage);
     } finally {
       setBusy(null);
     }
@@ -85,7 +88,7 @@ export default function SettingsScreen() {
         copyToCacheDirectory: true,
       });
     } catch {
-      showAlert("Gagal buka file", "Terjadi kesalahan waktu buka pemilih file.");
+      showAlert(t.settings.backup.importOpenErrorTitle, t.settings.backup.importOpenErrorMessage);
       return;
     }
     if (result.canceled || !result.assets?.length) return;
@@ -98,25 +101,32 @@ export default function SettingsScreen() {
       parsed = JSON.parse(text);
     } catch {
       setBusy(null);
-      showAlert("Gagal membaca file", "File ini bukan JSON yang valid atau gagal dibuka.");
+      showAlert(t.settings.backup.importParseErrorTitle, t.settings.backup.importParseErrorMessage);
       return;
     }
 
     const validation = validateBackupPayload(parsed);
     setBusy(null);
     if (!validation.valid || !validation.payload) {
-      showAlert("Backup gak valid", validation.error ?? "File ini gak bisa dipulihkan.");
+      showAlert(
+        t.settings.backup.importInvalidTitle,
+        validation.error ?? t.settings.backup.importInvalidFallback,
+      );
       return;
     }
 
     const { data } = validation.payload;
     showAlert(
-      "Pulihkan dari backup?",
-      `Semua data yang ADA SEKARANG di app ini bakal DIGANTI TOTAL sama isi backup ini, ${data.savingsGoals.length} goal, ${data.habits.length} habit, ${data.todos.length} tugas. Ini gak bisa di-undo.`,
+      t.settings.backup.confirmTitle,
+      interpolate(t.settings.backup.confirmMessage, {
+        goals: data.savingsGoals.length,
+        habits: data.habits.length,
+        todos: data.todos.length,
+      }),
       [
-        { label: "Batal", style: "cancel" },
+        { label: t.common.cancel, style: "cancel" },
         {
-          label: "Pulihkan",
+          label: t.settings.backup.confirmRestore,
           style: "destructive",
           onPress: async () => {
             setBusy("import");
@@ -128,12 +138,9 @@ export default function SettingsScreen() {
                 hydrateHabits(),
                 hydrateTodos(),
               ]);
-              showAlert("Berhasil dipulihkan", "Data dari backup udah aktif sekarang.");
+              showAlert(t.settings.backup.restoreSuccessTitle, t.settings.backup.restoreSuccessMessage);
             } catch {
-              showAlert(
-                "Gagal memulihkan",
-                "Terjadi kesalahan waktu nulis data backup. Data lama kemungkinan masih utuh, coba lagi.",
-              );
+              showAlert(t.settings.backup.restoreErrorTitle, t.settings.backup.restoreErrorMessage);
             } finally {
               setBusy(null);
             }
@@ -148,33 +155,48 @@ export default function SettingsScreen() {
   return (
     <View key={isDark ? "dark" : "light"} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.headerTitle}>Pengaturan</Text>
+        <Text style={styles.headerTitle}>{t.settings.title}</Text>
 
-        <Text style={styles.sectionTitle}>Notifikasi</Text>
+        <Text style={styles.sectionTitle}>{t.settings.sections.language}</Text>
+        <GlassCard style={styles.card} elevationLevel="level1">
+          <View style={styles.languageRow}>
+            <LanguageOption
+              label={t.settings.language.id}
+              active={language === "id"}
+              onPress={() => setLanguage("id")}
+              styles={styles}
+              material3={material3}
+            />
+            <LanguageOption
+              label={t.settings.language.en}
+              active={language === "en"}
+              onPress={() => setLanguage("en")}
+              styles={styles}
+              material3={material3}
+            />
+          </View>
+        </GlassCard>
+
+        <Text style={styles.sectionTitle}>{t.settings.sections.notifications}</Text>
         <ReminderCard domain="savings" />
         <ReminderCard domain="planner" />
 
-        <Text style={styles.sectionTitle}>Backup & Restore</Text>
+        <Text style={styles.sectionTitle}>{t.settings.sections.backup}</Text>
         <GlassCard style={styles.card} elevationLevel="level1">
-          <Text style={typography.body}>
-            Semua data (goal tabungan, transaksi, habit, histori, tugas)
-            tersimpan lokal di device ini doang gak ada cloud, gak ada
-            akun. Export backup secara berkala biar data aman kalau ganti
-            device atau app-nya ke-uninstall.
-          </Text>
+          <Text style={typography.body}>{t.settings.backup.description}</Text>
 
           <Pressable
             onPress={handleExport}
             disabled={busy !== null}
             style={[styles.primaryButton, busy === "export" && styles.buttonDisabled]}
             accessibilityRole="button"
-            accessibilityLabel="Export backup data"
+            accessibilityLabel={t.settings.backup.exportAccessibilityLabel}
             android_ripple={{ color: colors.glassBorder }}
           >
             {busy === "export" ? (
               <ActivityIndicator color={material3.onPrimary} />
             ) : (
-              <Text style={styles.primaryButtonText}>Export Backup</Text>
+              <Text style={styles.primaryButtonText}>{t.settings.backup.exportButton}</Text>
             )}
           </Pressable>
 
@@ -183,29 +205,29 @@ export default function SettingsScreen() {
             disabled={busy !== null}
             style={[styles.secondaryButton, busy === "import" && styles.buttonDisabled]}
             accessibilityRole="button"
-            accessibilityLabel="Import backup data dari file"
+            accessibilityLabel={t.settings.backup.importAccessibilityLabel}
             android_ripple={{ color: colors.glassBorder }}
           >
             {busy === "import" ? (
               <ActivityIndicator color={material3.primary} />
             ) : (
-              <Text style={styles.secondaryButtonText}>Import Backup</Text>
+              <Text style={styles.secondaryButtonText}>{t.settings.backup.importButton}</Text>
             )}
           </Pressable>
         </GlassCard>
 
-        <Text style={styles.sectionTitle}>Tentang</Text>
+        <Text style={styles.sectionTitle}>{t.settings.sections.about}</Text>
         <GlassCard style={styles.card} elevationLevel="level1">
           <Pressable
             onPress={() => Linking.openURL(GITHUB_URL).catch(() => {})}
             style={styles.aboutRow}
             accessibilityRole="link"
-            accessibilityLabel="Buka repository GitHub heibi"
+            accessibilityLabel={t.settings.about.githubAccessibilityLabel}
             android_ripple={{ color: colors.glassBorder }}
           >
             <View style={styles.aboutRowLabel}>
               <MaterialCommunityIcons name="github" size={20} color={colors.textPrimary} />
-              <Text style={typography.body}>GitHub</Text>
+              <Text style={typography.body}>{t.settings.about.github}</Text>
             </View>
             <MaterialCommunityIcons
               name="open-in-new"
@@ -218,15 +240,15 @@ export default function SettingsScreen() {
             onPress={() => Linking.openURL(SAWERIA_URL).catch(() => {})}
             style={styles.aboutRow}
             accessibilityRole="link"
-            accessibilityLabel="Buka halaman donasi Saweria"
+            accessibilityLabel={t.settings.about.coffeeAccessibilityLabel}
             android_ripple={{ color: colors.glassBorder }}
           >
             <View style={styles.aboutRowLabel}>
               <MaterialCommunityIcons name="coffee" size={20} color={colors.textPrimary} />
               <View>
-                <Text style={typography.body}>Traktir Kopi</Text>
+                <Text style={typography.body}>{t.settings.about.coffee}</Text>
                 <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                  via Saweria
+                  {t.settings.about.coffeeSubtitle}
                 </Text>
               </View>
             </View>
@@ -238,7 +260,7 @@ export default function SettingsScreen() {
           </Pressable>
 
           <View style={styles.aboutRow}>
-            <Text style={typography.body}>Versi aplikasi</Text>
+            <Text style={typography.body}>{t.settings.about.appVersion}</Text>
             <Text style={[typography.body, { color: colors.textSecondary }]}>
               {appVersion}
             </Text>
@@ -254,6 +276,34 @@ export default function SettingsScreen() {
         onClose={hideAlert}
       />
     </View>
+  );
+}
+
+interface LanguageOptionProps {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+  material3: ReturnType<typeof useTheme>["material3"];
+}
+
+function LanguageOption({ label, active, onPress, styles, material3 }: LanguageOptionProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      style={[
+        styles.languageChip,
+        active && { backgroundColor: material3.primary, borderColor: material3.primary },
+      ]}
+    >
+      <Text
+        style={[styles.languageChipText, active && { color: material3.onPrimary }]}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -332,6 +382,24 @@ function createStyles(
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
+    },
+    languageRow: {
+      flexDirection: "row",
+      gap: spacing.sm,
+    },
+    languageChip: {
+      flex: 1,
+      paddingVertical: spacing.sm,
+      borderRadius: m3Shape.full,
+      borderWidth: 1.5,
+      borderColor: colors.glassBorder,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    languageChipText: {
+      ...typography.body,
+      fontWeight: "600",
+      color: colors.textPrimary,
     },
   });
 }

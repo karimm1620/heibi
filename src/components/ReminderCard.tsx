@@ -4,6 +4,7 @@ import { useFocusEffect } from "expo-router/react-navigation";
 import React, { useCallback, useMemo, useState } from "react";
 import { Linking, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { useAppAlert } from "../hooks/useAppAlert";
+import { useTranslation } from "../hooks/useTranslation";
 import { type ReminderDomain, useSettingsStore } from "../store/useSettingsStore";
 import { radius, spacing, withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
@@ -26,22 +27,6 @@ const TIME_PRESETS = [
   { hour: 21, minute: 0, label: "21.00" },
 ];
 
-const DOMAIN_COPY: Record<
-  ReminderDomain,
-  { title: string; description: string; toggleLabel: string }
-> = {
-  savings: {
-    title: "Pengingat Menabung",
-    description: "Dapat notifikasi harian biar gak lupa nabung.",
-    toggleLabel: "Aktifkan pengingat harian",
-  },
-  planner: {
-    title: "Pengingat Tugas",
-    description: "Dapat notifikasi harian buat cek tugas hari ini yang belum selesai.",
-    toggleLabel: "Aktifkan pengingat harian",
-  },
-};
-
 interface ReminderCardProps {
   domain: ReminderDomain;
 }
@@ -55,12 +40,13 @@ interface ReminderCardProps {
  */
 export function ReminderCard({ domain }: ReminderCardProps) {
   const { colors, typography } = useTheme();
+  const { t, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
   const reminder = useSettingsStore((s) =>
     domain === "savings" ? s.savingsReminder : s.plannerReminder,
   );
   const setReminder = useSettingsStore((s) => s.setReminder);
-  const copy = DOMAIN_COPY[domain];
+  const copy = t.reminder[domain];
 
   const {
     enabled: reminderEnabled,
@@ -84,10 +70,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
         if (cancelled || granted) return;
         await cancelReminder(reminderNotificationId);
         await setReminder(domain, false, reminderHour, reminderMinute, null);
-        showAlert(
-          "Reminder dinonaktifkan",
-          "Izin notifikasi buat aplikasi ini kelihatannya udah gak aktif lagi. Aktifkan lagi kalau mau pakai reminder.",
-        );
+        showAlert(t.reminder.disabledTitle, t.reminder.disabledMessage);
       })();
       return () => {
         cancelled = true;
@@ -98,10 +81,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
 
   const handleToggle = async (value: boolean) => {
     if (!isNotificationsAvailable) {
-      showAlert(
-        "Belum bisa dipakai di Expo Go",
-        "Fitur reminder butuh development build, expo-notifications tidak didukung penuh di Expo Go sejak SDK 53.",
-      );
+      showAlert(t.reminder.expoGoTitle, t.reminder.expoGoMessage);
       return;
     }
 
@@ -117,14 +97,10 @@ export function ReminderCard({ domain }: ReminderCardProps) {
     const granted = await requestNotificationPermission();
     if (!granted) {
       setBusy(false);
-      showAlert(
-        "Izin notifikasi diperlukan",
-        "Aktifkan izin notifikasi buat aplikasi ini di pengaturan device supaya pengingat bisa muncul.",
-        [
-          { label: "Nanti", style: "cancel" },
-          { label: "Buka Pengaturan", onPress: () => Linking.openSettings() },
-        ],
-      );
+      showAlert(t.reminder.permissionTitle, t.reminder.permissionMessage, [
+        { label: t.common.later, style: "cancel" },
+        { label: t.reminder.permissionOpenSettings, onPress: () => Linking.openSettings() },
+      ]);
       return;
     }
 
@@ -132,10 +108,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
     const id = await scheduleReminder(domain, reminderHour, reminderMinute);
     if (!id) {
       setBusy(false);
-      showAlert(
-        "Gagal mengaktifkan reminder",
-        "Coba lagi, atau gunakan development build kalau masih gagal.",
-      );
+      showAlert(t.reminder.scheduleErrorTitle, t.reminder.scheduleErrorMessage);
       return;
     }
     await setReminder(domain, true, reminderHour, reminderMinute, id);
@@ -161,7 +134,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
     (preset) => preset.hour === reminderHour && preset.minute === reminderMinute,
   );
   const customChipLabel = matchesPreset
-    ? "Atur sendiri"
+    ? t.reminder.customChipLabel
     : `${String(reminderHour).padStart(2, "0")}.${String(reminderMinute).padStart(2, "0")}`;
 
   const pickerValue = useMemo(() => {
@@ -233,9 +206,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
       {!isNotificationsAvailable && (
         <View style={styles.unavailableNotice}>
           <MaterialCommunityIcons name="alert-outline" size={16} color={colors.danger} />
-          <Text style={styles.unavailableNoticeText}>
-            Belum bisa dipakai di Expo Go. Fitur ini butuh development build.
-          </Text>
+          <Text style={styles.unavailableNoticeText}>{t.reminder.unavailableNotice}</Text>
         </View>
       )}
 
@@ -264,7 +235,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
                 disabled={busy}
                 style={[styles.timeChip, isActive && styles.timeChipActive]}
                 accessibilityRole="button"
-                accessibilityLabel={`Jadwalkan reminder jam ${preset.label}`}
+                accessibilityLabel={interpolate(t.reminder.presetAccessibilityLabel, { time: preset.label })}
                 accessibilityState={{ selected: isActive }}
               >
                 <Text
@@ -284,7 +255,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
             disabled={busy}
             style={[styles.timeChip, !matchesPreset && styles.timeChipActive]}
             accessibilityRole="button"
-            accessibilityLabel="Atur jam reminder sendiri"
+            accessibilityLabel={t.reminder.customChipAccessibilityLabel}
             accessibilityState={{ selected: !matchesPreset }}
           >
             <Text
