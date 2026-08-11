@@ -24,6 +24,7 @@ import {
   type HabitIconName,
 } from "../../src/components/HabitIconPicker";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
+import { useTranslation } from "../../src/hooks/useTranslation";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
 import { spacing, withOpacity } from "../../src/theme/colors";
 import { m3Shape } from "../../src/theme/material3/tokens";
@@ -33,6 +34,7 @@ import {
   ALL_WEEKDAYS_MASK,
   isWeekdaySelected,
   toggleWeekdayBit,
+  WEEKDAYS_SHORT_BY_LANGUAGE,
 } from "../../src/utils/date";
 import {
   cancelReminder,
@@ -40,8 +42,6 @@ import {
   requestNotificationPermission,
   scheduleHabitReminder,
 } from "../../src/utils/notifications";
-
-const WEEKDAY_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
 const TIME_PRESETS = [
   { hour: 6, minute: 0, label: "06.00" },
@@ -58,6 +58,7 @@ export default function AddHabitScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
   const { colors, typography, isDark, material3 } = useTheme();
+  const { t, language, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
 
   const habit = useHabitsStore((s) =>
@@ -107,7 +108,7 @@ export default function AddHabitScreen() {
     (preset) => preset.hour === reminderHour && preset.minute === reminderMinute,
   );
   const customChipLabel = matchesPreset
-    ? "Atur sendiri"
+    ? t.reminder.customChipLabel
     : `${String(reminderHour).padStart(2, "0")}.${String(reminderMinute).padStart(2, "0")}`;
 
   const pickerValue = useMemo(() => {
@@ -119,11 +120,11 @@ export default function AddHabitScreen() {
   const handleSave = async () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      showAlert("Nama habit kosong", "Kasih nama dulu buat habit-nya.");
+      showAlert(t.habitForm.emptyNameTitle, t.habitForm.emptyNameMessage);
       return;
     }
     if (frequencyType === "weekdays" && weekdaysMask === 0) {
-      showAlert("Belum pilih hari", "Pilih minimal satu hari buat habit ini.");
+      showAlert(t.habitForm.noWeekdaysTitle, t.habitForm.noWeekdaysMessage);
       return;
     }
 
@@ -143,21 +144,14 @@ export default function AddHabitScreen() {
 
     if (reminderEnabled) {
       if (!isNotificationsAvailable) {
-        showAlert(
-          "Reminder gak tersedia",
-          "Fitur reminder butuh development build, expo-notifications gak didukung penuh di Expo Go sejak SDK 53. Habit tetap kesimpen, cuma remindernya belum aktif.",
-        );
+        showAlert(t.habitForm.reminderUnavailableTitle, t.habitForm.reminderUnavailableMessage);
       } else {
         const granted = await requestNotificationPermission();
         if (!granted) {
-          showAlert(
-            "Izin notifikasi diperlukan",
-            "Aktifkan izin notifikasi di pengaturan device supaya reminder bisa muncul. Habit tetap kesimpen, cuma remindernya belum aktif.",
-            [
-              { label: "Nanti", style: "cancel" },
-              { label: "Buka Pengaturan", onPress: () => Linking.openSettings() },
-            ],
-          );
+          showAlert(t.habitForm.reminderPermissionTitle, t.habitForm.reminderPermissionMessage, [
+            { label: t.common.later, style: "cancel" },
+            { label: t.reminder.permissionOpenSettings, onPress: () => Linking.openSettings() },
+          ]);
         } else {
           notificationId = await scheduleHabitReminder(
             trimmedName,
@@ -200,30 +194,30 @@ export default function AddHabitScreen() {
         style={styles.container}
         contentContainerStyle={styles.content}
       >
-        <Text style={styles.label}>Nama Habit</Text>
+        <Text style={styles.label}>{t.habitForm.nameLabel}</Text>
         <TextInput
           value={name}
           onChangeText={setName}
-          placeholder="Misal: Minum air, Baca 20 menit"
+          placeholder={t.habitForm.namePlaceholder}
           placeholderTextColor={colors.textSecondary}
           style={styles.input}
         />
 
-        <Text style={styles.label}>Ikon</Text>
+        <Text style={styles.label}>{t.habitForm.iconLabel}</Text>
         <HabitIconPicker selected={icon} color={color} onSelect={setIcon} />
 
-        <Text style={styles.label}>Warna</Text>
+        <Text style={styles.label}>{t.habitForm.colorLabel}</Text>
         <HabitColorPicker selected={color} onSelect={setColor} />
 
-        <Text style={styles.label}>Frekuensi</Text>
+        <Text style={styles.label}>{t.habitForm.frequencyLabel}</Text>
         <View style={styles.chipRow}>
           <Chip
-            label="Setiap hari"
+            label={t.habitForm.dailyChip}
             selected={frequencyType === "daily"}
             onPress={() => setFrequencyType("daily")}
           />
           <Chip
-            label="Hari tertentu"
+            label={t.habitForm.weekdaysChip}
             selected={frequencyType === "weekdays"}
             onPress={() => setFrequencyType("weekdays")}
           />
@@ -231,7 +225,7 @@ export default function AddHabitScreen() {
 
         {frequencyType === "weekdays" && (
           <View style={styles.weekdayRow}>
-            {WEEKDAY_LABELS.map((label, index) => {
+            {WEEKDAYS_SHORT_BY_LANGUAGE[language].map((label, index) => {
               const active = isWeekdaySelected(weekdaysMask, index);
               return (
                 <Pressable
@@ -247,7 +241,7 @@ export default function AddHabitScreen() {
                     },
                   ]}
                   accessibilityRole="button"
-                  accessibilityLabel={`Hari ${label}`}
+                  accessibilityLabel={interpolate(t.habitForm.weekdayAccessibilityLabel, { label })}
                   accessibilityState={{ selected: active }}
                   android_ripple={{ color: colors.glassBorder }}
                 >
@@ -270,12 +264,12 @@ export default function AddHabitScreen() {
         )}
 
         <View style={styles.reminderHeader}>
-          <Text style={[styles.label, { marginTop: 0 }]}>Reminder</Text>
+          <Text style={[styles.label, { marginTop: 0 }]}>{t.habitForm.reminderLabel}</Text>
           <Switch
             value={reminderEnabled}
             onValueChange={setReminderEnabled}
             trackColor={{ true: material3.primary }}
-            accessibilityLabel="Aktifkan reminder habit ini"
+            accessibilityLabel={t.habitForm.reminderAccessibilityLabel}
           />
         </View>
 
@@ -300,7 +294,7 @@ export default function AddHabitScreen() {
               label={customChipLabel}
               selected={!matchesPreset}
               onPress={() => setShowTimePicker(true)}
-              accessibilityLabel="Atur jam reminder sendiri"
+              accessibilityLabel={t.reminder.customChipAccessibilityLabel}
             />
           </View>
         )}
@@ -326,12 +320,12 @@ export default function AddHabitScreen() {
           style={styles.saveButton}
           accessibilityRole="button"
           accessibilityLabel={
-            isEditMode ? "Simpan perubahan habit" : "Buat habit baru"
+            isEditMode ? t.habitForm.saveAccessibilityEdit : t.habitForm.saveAccessibilityCreate
           }
           android_ripple={{ color: withOpacity(material3.onPrimary, 0.24) }}
         >
           <Text style={styles.saveButtonText}>
-            {isEditMode ? "Simpan Perubahan" : "Buat Habit"}
+            {isEditMode ? t.habitForm.saveButtonEdit : t.habitForm.saveButtonCreate}
           </Text>
         </Pressable>
       </ScrollView>

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 import { spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 import type { Habit } from "../types";
@@ -28,11 +29,12 @@ interface HabitHeatmapProps {
  */
 export function HabitHeatmap({ habit, completedDateKeys }: HabitHeatmapProps) {
   const { colors, typography } = useTheme();
+  const { language } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
 
   const { weeks, monthLabelByWeekIndex } = useMemo(
-    () => buildHeatmapWeeks(WEEKS_TO_SHOW),
-    [],
+    () => buildHeatmapWeeks(WEEKS_TO_SHOW, new Date(), language),
+    [language],
   );
 
   useEffect(() => {

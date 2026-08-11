@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 import { spacing } from "../theme/colors";
 import { m3Shape } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
@@ -33,6 +34,7 @@ export function HabitColorPicker({
   onSelect,
 }: HabitColorPickerProps) {
   const { colors } = useTheme();
+  const { t, interpolate } = useTranslation();
 
   const styles = useMemo(
     () =>
@@ -71,7 +73,7 @@ export function HabitColorPicker({
               isActive && styles.swatchActive,
             ]}
             accessibilityRole="button"
-            accessibilityLabel={`Pilih warna ${color}`}
+            accessibilityLabel={interpolate(t.habitForm.colorAccessibilityLabel, { color })}
             accessibilityState={{ selected: isActive }}
             hitSlop={4}
           />

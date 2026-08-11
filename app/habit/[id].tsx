@@ -16,6 +16,7 @@ import type { HabitIconName } from "../../src/components/HabitIconPicker";
 import { HabitHeatmap } from "../../src/components/HabitHeatmap";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useHabitActions } from "../../src/hooks/useHabitActions";
+import { useTranslation } from "../../src/hooks/useTranslation";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
 import { spacing } from "../../src/theme/colors";
 import { m3ElevationStyle, m3Shape } from "../../src/theme/material3/tokens";
@@ -25,7 +26,7 @@ import {
   calculateCurrentStreak,
   getLocalDateKey,
   isWeekdaySelected,
-  WEEKDAY_LABELS_SHORT,
+  WEEKDAYS_SHORT_BY_LANGUAGE,
 } from "../../src/utils/date";
 
 export default function HabitDetailScreen() {
@@ -33,6 +34,7 @@ export default function HabitDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, typography, isDark, material3 } = useTheme();
+  const { t, language, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
   const { archiveWithCleanup, unarchiveWithReschedule, deletePermanentlyWithCleanup } =
     useHabitActions();
@@ -124,7 +126,7 @@ export default function HabitDetailScreen() {
   if (!habit) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <Text style={typography.body}>Habit gak ditemukan.</Text>
+        <Text style={typography.body}>{t.habitDetail.notFound}</Text>
       </View>
     );
   }
@@ -135,10 +137,10 @@ export default function HabitDetailScreen() {
 
   const frequencyLabel =
     habit.frequencyType === "daily"
-      ? "Setiap hari"
-      : WEEKDAY_LABELS_SHORT.filter((_, i) =>
-          isWeekdaySelected(habit.weekdaysMask, i),
-        ).join(", ") || "Belum ada hari dipilih";
+      ? t.habitDetail.dailyFrequency
+      : WEEKDAYS_SHORT_BY_LANGUAGE[language]
+          .filter((_, i) => isWeekdaySelected(habit.weekdaysMask, i))
+          .join(", ") || t.habitDetail.noWeekdaysSelected;
 
   const handleToggleToday = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -151,12 +153,12 @@ export default function HabitDetailScreen() {
       return;
     }
     showAlert(
-      "Arsipkan habit?",
-      `"${habit.name}" gak akan muncul lagi di Today, tapi histori dan streak-nya tetap tersimpan. Bisa diaktifkan lagi kapan saja.`,
+      t.habitDetail.archiveConfirmTitle,
+      interpolate(t.habitDetail.archiveConfirmMessage, { name: habit.name }),
       [
-        { label: "Batal", style: "cancel" },
+        { label: t.common.cancel, style: "cancel" },
         {
-          label: "Arsipkan",
+          label: t.habitDetail.archiveLink,
           onPress: async () => {
             await archiveWithCleanup(habit);
             router.back();
@@ -168,12 +170,12 @@ export default function HabitDetailScreen() {
 
   const handleDelete = () => {
     showAlert(
-      "Hapus permanen?",
-      `Semua histori "${habit.name}" akan hilang selamanya, ini gak bisa di-undo. Kalau cuma mau berhenti tanpa kehilangan histori, pakai "Arsipkan" aja.`,
+      t.habitDetail.deleteConfirmTitle,
+      interpolate(t.habitDetail.deleteConfirmMessage, { name: habit.name }),
       [
-        { label: "Batal", style: "cancel" },
+        { label: t.common.cancel, style: "cancel" },
         {
-          label: "Hapus",
+          label: t.common.delete,
           style: "destructive",
           onPress: async () => {
             await deletePermanentlyWithCleanup(habit);
@@ -224,15 +226,15 @@ export default function HabitDetailScreen() {
         <View style={styles.statsRow}>
           <GlassCard style={styles.statCard} elevationLevel="level1">
             <Text style={styles.statValue}>{currentStreak}</Text>
-            <Text style={styles.statLabel}>day streak</Text>
+            <Text style={styles.statLabel}>{t.habitDetail.streakLabel}</Text>
           </GlassCard>
           <GlassCard style={styles.statCard} elevationLevel="level1">
             <Text style={styles.statValue}>{habit.bestStreak}</Text>
-            <Text style={styles.statLabel}>best streak</Text>
+            <Text style={styles.statLabel}>{t.habitDetail.bestStreakLabel}</Text>
           </GlassCard>
           <GlassCard style={styles.statCard} elevationLevel="level1">
             <Text style={styles.statValue}>{completionRate}%</Text>
-            <Text style={styles.statLabel}>30 hari terakhir</Text>
+            <Text style={styles.statLabel}>{t.habitDetail.last30DaysLabel}</Text>
           </GlassCard>
         </View>
 
@@ -240,35 +242,37 @@ export default function HabitDetailScreen() {
           <Pressable
             onPress={() => router.push(`/habit/add?id=${habit.id}`)}
             accessibilityRole="button"
-            accessibilityLabel="Edit habit ini"
+            accessibilityLabel={t.habitDetail.editAccessibilityLabel}
           >
             <Text style={[styles.metaLink, { color: colors.textSecondary }]}>
-              Edit habit
+              {t.habitDetail.editLink}
             </Text>
           </Pressable>
           <Pressable
             onPress={handleToggleArchive}
             accessibilityRole="button"
             accessibilityLabel={
-              habit.archivedAt ? "Batalkan arsip habit ini" : "Arsipkan habit ini"
+              habit.archivedAt
+                ? t.habitDetail.unarchiveAccessibilityLabel
+                : t.habitDetail.archiveAccessibilityLabel
             }
           >
             <Text style={[styles.metaLink, { color: colors.textSecondary }]}>
-              {habit.archivedAt ? "Batalkan arsip" : "Arsipkan"}
+              {habit.archivedAt ? t.habitDetail.unarchiveLink : t.habitDetail.archiveLink}
             </Text>
           </Pressable>
           <Pressable
             onPress={handleDelete}
             accessibilityRole="button"
-            accessibilityLabel="Hapus habit ini permanen"
+            accessibilityLabel={t.habitDetail.deletePermanentAccessibilityLabel}
           >
             <Text style={[styles.metaLink, { color: colors.danger }]}>
-              Hapus permanen
+              {t.habitDetail.deletePermanentLink}
             </Text>
           </Pressable>
         </View>
 
-        <Text style={styles.sectionTitle}>History</Text>
+        <Text style={styles.sectionTitle}>{t.habitDetail.historySection}</Text>
         <GlassCard style={styles.heatmapCard} elevationLevel="level1">
           <HabitHeatmap habit={habit} completedDateKeys={completedDateKeys} />
         </GlassCard>
@@ -284,11 +288,12 @@ export default function HabitDetailScreen() {
             },
           ]}
           accessibilityRole="button"
-          accessibilityLabel={
+          accessibilityLabel={interpolate(
             doneToday
-              ? `Tandai ${habit.name} belum selesai hari ini`
-              : `Tandai ${habit.name} sudah selesai hari ini`
-          }
+              ? t.habitDetail.markDoneAccessibilityIncomplete
+              : t.habitDetail.markDoneAccessibilityComplete,
+            { name: habit.name },
+          )}
           android_ripple={{ color: colors.glassBorder }}
         >
           {doneToday && (
@@ -308,7 +313,7 @@ export default function HabitDetailScreen() {
               },
             ]}
           >
-            {doneToday ? "Sudah selesai hari ini" : "Tandai selesai hari ini"}
+            {doneToday ? t.habitDetail.markDoneButtonDone : t.habitDetail.markDoneButton}
           </Text>
         </Pressable>
       </ScrollView>

@@ -1,0 +1,445 @@
+# PROJECT_CONTEXT.md — heibi
+
+> Dokumen handoff antar sesi chat. **Upload file ini di awal sesi baru** biar
+> Claude langsung punya konteks penuh — repo ini dikerjain lewat BEBERAPA
+> sesi chat berbeda, jadi tanpa file ini ada resiko nyata 2 sesi kerja bareng
+> tanpa saling tau (udah pernah kejadian — lihat catatan di bagian bawah).
+
+## Ringkasan project
+
+**heibi** — savings tracker + habit tracker + daily planner jadi satu app.
+Android-only, fully offline, gak ada login/akun, semua data lokal (SQLite).
+Didesain minimalis pakai Material 3 Expressive (Material You — warna app
+nyesuaiin otomatis sama wallpaper device).
+
+- Repo: `https://github.com/karimm1620/heibi` (dulu `tabungan-kertas`,
+  di-rename Checkpoint 11)
+- Package: `com.immz.heibi`
+- Stack: Expo SDK 57, React Native 0.86.2, TypeScript, Expo Router, Zustand
+  (reactive cache) + expo-sqlite (source of truth), react-native-screens,
+  react-native-gesture-handler **v2.32 (bukan v3!** — lihat alasan di bagian
+  technical lessons)
+- **react-native-reanimated 4.5.1 + react-native-worklets 0.10.1 RESMI
+  ditambahin di Checkpoint 14** — ini ngebalikin keputusan lama "no
+  Reanimated". Scope-nya SENGAJA dibatasin ketat: cuma dipakai di
+  `HabitCompleteToggle.tsx` & `CelebrationBurst.tsx` (animasi completion
+  habit). Drag-reorder (`useDragReorder.ts`) & swipe action
+  (`SwipeableRow.tsx`) TETAP PanResponder/Animated API classic, TIDAK
+  dimigrasiin — jangan asumsiin "Reanimated udah ada jadi boleh dipake di
+  mana aja", ini keputusan per-fitur bukan migrasi arsitektur penuh.
+- Build: EAS Build. `eas build --profile development --platform android`
+  buat dev client, `--profile preview` buat APK sideload testing,
+  `--profile production` buat AAB Play Store (belum pernah dijalanin).
+- Widget Android: local Expo module custom di `modules/expo-home-widgets/`
+  (Kotlin, Jetpack Glance) — 2 widget (goal balance, habit heatmap).
+
+## Status sekarang (per commit `478d14c "12 ripple drag fix and saweria"`)
+
+Checkpoint "Production Quality" **sebagian besar udah kelar**:
+- ✅ App icon baru (jar+checkmark, semua varian Android) — **TAPI lihat
+  bagian "Next update" di bawah, mau di-redesign ULANG, icon ini mau dibuang**
+- ✅ Signing config (otomatis lewat EAS, gak perlu setup manual)
+- ✅ Store listing draft (judul/deskripsi/privacy policy/feature graphic) —
+  belum di-submit ke Play Console (perlu akun Google Play Developer $25)
+- ✅ Ripple "flash" bug di beberapa komponen — FIXED 2x lewat pendekatan
+  beda (lihat technical lessons)
+- ✅ Drag-reorder lag + "nyangkut" + lompat-posisi — FIXED
+- ✅ GitHub card + Saweria donation card di Settings → Tentang
+- ⏭️ ProGuard — **sengaja di-skip**, resiko crash widget custom lebih
+  besar dari manfaatnya (app gak ada data sensitif yang perlu diobfuscate)
+- ⏭️ Testing — user yang pegang sendiri
+
+## Next update (BELUM DIKERJAIN — rencana ke depan)
+
+Ini list yang dikasih user buat update berikutnya, urutan bebas:
+1. Fix widget row lebar — cuma nampilin 5 row, harusnya 14
+2. Fix widget kecil — cuma nampilin 5 row, harusnya 7
+3. ~~UI update~~ — **SEBAGIAN KELAR di Checkpoint 16**: progress card
+   "X dari Y selesai" di Today screen DIHAPUS (redundan visual sama
+   kalender yang udah ada di atasnya). Kalau ada UI update lain yang
+   kepikiran, ini item bisa dibuka lagi/ditambah.
+4. Nambah language switch ke English — **DIMULAI Checkpoint 17**:
+   fondasi i18n (`src/i18n/`, `useTranslation()` hook, custom bikinan
+   sendiri BUKAN library kayak i18next — biar APK tetep ramping) +
+   Settings screen (termasuk `ReminderCard.tsx`) UDAH full ditranslate +
+   toggle bahasa udah bisa dipake. **Checkpoint 18: Today screen +
+   kalender + history sheet JUGA UDAH full ditranslate** (`app/(tabs)
+   /index.tsx`, `WeekCalendarStrip.tsx`, `DayHistorySheet.tsx`,
+   `HabitCompleteToggle.tsx`). **Checkpoint 19: SEMUA layar habit JUGA
+   UDAH full ditranslate** (`app/habit/[id].tsx`, `app/habit/add.tsx`,
+   `HabitColorPicker.tsx`, `HabitIconPicker.tsx`, `HabitHeatmap.tsx`).
+   **File LAIN yang MASIH hardcoded Bahasa Indonesia, belum disentuh**
+   (checklist buat checkpoint lanjutan, urutan bebas):
+   - `app/goal/*` (`[id].tsx` + `add.tsx`), `app/(tabs)/goals.tsx`,
+     `app/(tabs)/target.tsx` (belum dicek detail — kemungkinan
+     `target.tsx` cuma alias/re-export dari `goals.tsx`, cek dulu)
+   - `app/(tabs)/history.tsx` + `src/components/HabitConsistencyHeatmap
+     .tsx` + `src/components/TransactionRow.tsx` — **INI YANG MASIH
+     MANGGIL `buildHabitConsistencyHeatmap`/`buildHeatmapWeeks` TANPA
+     argumen `language`** (default `"id"` di util-nya nahan behavior
+     lama, JANGAN dihapus default itu sebelum file-file ini beneran
+     dimigrasiin — lihat lesson checkpoint 18 soal jaga 2 versi paralel,
+     prinsip yang sama masih berlaku)
+   - Notifikasi terjadwal (`src/utils/notifications.ts`) — teks
+     notifikasi native
+   - Widget Android (Kotlin/Jetpack Glance, `modules/expo-home-widgets/`)
+     — ini di LUAR jangkauan i18n JS, perlu string resource Android
+     terpisah kalau mau ikut ditranslate
+   - Onboarding flow (kalau ada teks di situ)
+5. ~~Evaluasi pindah ke `react-native-reanimated`~~ — **KEPUTUSAN UDAH
+   DIAMBIL di Checkpoint 14**: user eksplisit minta Reanimated ditambahin
+   (buat animasi completion habit, lihat item baru di "Brief history").
+   Awalnya SCOPED (Checkpoint 14: cuma buat completion animation,
+   `Swipeable` klasik + PanResponder drag-reorder disebut TETAP
+   dipertahankan) — **TAPI scope itu udah RESMI DIPERLUAS di Checkpoint
+   16**: `SwipeableRow.tsx` sekarang pindah ke `ReanimatedSwipeable`
+   (masih GH v2.32 yang SAMA, cuma beda subpath import, BUKAN bump ke
+   v3 — lihat lesson baru di bawah). Alasannya: `Swipeable` klasik emang
+   udah deprecated dari dalem v2.x sendiri (nge-warn di console), bikin
+   kerasa "disuruh update terus" walau app-nya gak ketinggalan versi
+   beneran. **PanResponder drag-reorder (`useDragReorder.ts`) MASIH belum
+   disentuh** — itu keputusan terpisah lagi kalau mau dimigrasiin juga.
+6. Redesign model Jar/Tabungan — **DIEKSPLOR di Checkpoint 15, DITUNDA
+   user sebelum ada kode kesentuh** (masih rounded-rectangle-fill lama).
+   2 arah udah di-preview (lewat Visualizer, bukan kode beneran):
+   (a) toples kaca mason-jar klasik dengan cairan fill mengikuti siluet —
+   **DITOLAK user**, "jangan kaya toples gitu";
+   (b) toples acar (lebih cylindrical, mulut lebar) isinya TUMPUKAN KOIN +
+   UANG KERTAS (bukan cairan) — koin kalau nabung < Rp10rb, uang kertas
+   kalau >= Rp10rb, numpuk kayak nabung beneran — preview sempet
+   ditunjukkin & keliatan diterima, TAPI user bilang skip dulu/ganti
+   pikiran sebelum sempet dikerjain beneran. **Kalau lanjut lagi nanti,
+   mulai dari arah (b) dulu (toples acar + koin/uang numpuk), JANGAN
+   balik ke arah (a) (mason jar + liquid) yang udah ditolak eksplisit.**
+   Technical note buat nanti: butuh `react-native-svg` (belum ada di
+   project, versi SDK 57 yang cocok: `15.15.4`), dan perlu diskusiin lagi
+   gimana pile item di-generate (literal 1:1 per transaksi vs prosedural
+   dari rasio history) sebelum mulai — belum diputusin.
+7. Improvement & scalability biar APK jalan mulus
+8. **Redesign icon app dari NOL** — user eksplisit bilang JANGAN pakai
+   desain/warna icon yang sekarang (jar+checkmark lavender/mint), dan
+   **JANGAN AI slop** — icon harus representasiin 3 pilar app ini (habits,
+   todo, savings) dengan cara yang keliatan niat/dipikirin, bukan generik.
+   Icon yang ada sekarang (dibikin Checkpoint 8, SVG vector manual, bukan
+   AI-generated) mau DIBUANG TOTAL, bukan di-iterasi.
+9. Kurangin ukuran APK.
+
+## Brief history (checkpoint-by-checkpoint)
+
+*Sebelum PROJECT_CONTEXT.md ini dibikin (riwayat dari sesi-sesi sebelumnya):*
+Migrasi AsyncStorage → expo-sqlite (source of truth, Zustand jadi reactive
+cache doang), habit tracker penuh (streak, heatmap ala GitHub, swipe
+actions, drag reorder, notifikasi per-habit), Home Screen Widget (Jetpack
+Glance — heatmap konsistensi habit & saldo goal), Material 3 Expressive
+redesign total (dynamic color dari wallpaper, typography, nav bar, FAB,
+motion system — Android doang, iOS gak disentuh), upgrade SDK 54→57
+bertahap.
+
+*Checkpoint "Production Quality" (sesi-sesi berikutnya, bernomor):*
+- **6** (beberapa sub-item, di-nomorin 6:1 sampai 6:6): fix background putih
+  di card Habits & Tugas; fix ripple tab warna aneh pas transisi (root cause
+  pertama — `borderless:true` di `android_ripple` MaterialNavigationBar);
+  custom reminder time picker (pakai `@expo/ui/community/datetime-picker`,
+  native M3 TimePickerDialog Android, BUKAN `@react-native-community
+  /datetimepicker`); predictive back gesture — **dimatiin** (`predictiveBack
+  GestureEnabled: false`) karena react-native-screens v4 gak support &
+  beresiko break tombol back di Android 16 kalau dinyalain; standarisasi
+  empty state (icon MCI + title + deskripsi 1 baris + CTA opsional); ganti
+  semua emoji UI (kecuali EmojiPicker & konten `goal.emoji` pilihan user)
+  jadi MaterialCommunityIcons.
+- **7**: (nomor ini overlap sama poin di atas — lanjutan cleanup emoji→icon)
+- **8**: App icon redesign — jar (toples savings) + garis pembatas cairan
+  dibikin melengkung kayak checkmark, jadi 1 mark = savings + habits/
+  productivity. **Dibikin manual pakai SVG vector (cairosvg), BUKAN AI image
+  gen** (user gak punya API key SnapAI). Semua varian: icon, adaptive
+  foreground/background/monochrome, notification icon (didesain ULANG
+  terpisah jadi checkmark bold doang — versi jar+garis-tipis ilang kalau
+  di-render di ukuran asli 24dp status bar), splash icon, favicon.
+  **CATATAN: icon ini mau DIBUANG di update berikutnya (lihat "Next
+  update"), user gak suka desain/warnanya.**
+- **9**: Custom reminder time picker ditambahin juga ke Habit (sebelumnya
+  cuma ada di Settings/goal). Fix `react-native-gesture-handler` yang gak
+  sengaja ke-upgrade user sendiri ke v3 (`npx expo install`) — diturunin
+  balik ke v2.32 karena `Swipeable` klasik dihapus total di v3 dan project
+  ini sengaja gak pakai Reanimated.
+- **10**: Lint cleanup penuh — 2 rule `react-hooks/refs` &
+  `react-hooks/set-state-in-effect` yang sempet didowngrade ke "warn"
+  (technical debt checkpoint SDK 56) dibenerin semua (38 kejadian di 13
+  file) & di-restore ke `"error"` lagi di `eslint.config.js`.
+- **11**: Rename app "tabungan-kertas" → "heibi" (cuma `expo.name`, `slug`
+  & `package` SENGAJA gak diubah biar EAS project linking gak rusak). Hapus
+  permission `RECORD_AUDIO` yang ternyata gak kepake sama sekali. Draft
+  store listing lengkap (judul/deskripsi/privacy policy/feature graphic).
+- **12** (dikerjain di SESI CHAT LAIN, bukan sesi yang nulis dokumen ini —
+  makanya dokumen ini dibikin, biar gak kejadian lagi): Fix ripple flash di
+  4 komponen (`MaterialNavigationBar.tsx`, `Fab.tsx`, `EmptyState.tsx`,
+  `Chip.tsx`) pakai pendekatan ripple color alpha 0.12. Restructure BESAR
+  `useDragReorder.ts` — root cause lag "nyangkut" ternyata `PanResponder
+  .create()` dipanggil ULANG tiap render (dipanggil langsung di body render
+  tiap item list), bukan cuma buat item yang lagi di-drag — di-cache per
+  key sekarang. Sekalian fix bug "item lompat posisi kalau kepencet tanpa
+  gerak" — `draggingKey` (state yang mindahin item ke render-order paling
+  akhir) ditunda sampai gerakan PERTAMA beneran kejadian di
+  `onPanResponderMove`, bukan pas timer long-press doang nyala. GitHub card
+  + Saweria donation card ditambahin di Settings.
+
+- **14** (habit completion animation): Nambahin `react-native-reanimated`
+  4.5.1 + `react-native-worklets` 0.10.1 (versi persis bundled Expo SDK
+  57) — SCOPED cuma buat animasi completion habit di Today screen, BUKAN
+  migrasi arsitektur penuh (lihat catatan di "Ringkasan project" & lesson
+  di bawah). 2 komponen baru: `CelebrationBurst.tsx` (burst radial 6 titik,
+  beda dari `CelebrationOverlay.tsx` yang cuma nyala pas SEMUA item hari
+  ini kelar — burst ini per-habit) dan `HabitCompleteToggle.tsx` (checkbox
+  bulat: icon check pop-in spring, box bounce kecil, burst, haptic Success
+  pas complete / Light pas uncomplete — reaktif ke transisi prop `done`,
+  bukan ke event press-nya langsung). Dipicu dari kebutuhan yang sama kayak
+  spec animasi Mimo, tapi diimplementasi terpisah & disesuaiin ke konvensi
+  heibi sendiri (StyleSheet, bukan NativeWind; `useTheme()`/`material3`
+  bukan Zustand settings store buat reduced motion — heibi baca
+  `AccessibilityInfo` OS langsung lewat `useReducedMotion()` yang emang
+  udah ada).
+
+- **15** (kalender + history per tanggal): `WeekCalendarStrip.tsx` di atas
+  progress card Today screen — strip 1 minggu (Sen-Min), swipe geser
+  minggu pake `Gesture.Pan()` + Reanimated (3 minggu di-buffer sekaligus
+  biar transisi nyambung, lihat lesson baru soal `react-hooks/immutability`
+  di bawah), label bulan ngikutin hari Kamis minggu yang tampil, "hari ini"
+  ditandain lingkaran accent M3 (`material3.primary`) permanen. Tap
+  tanggal manapun buka `DayHistorySheet.tsx` (reuse `useSheetMotion` yang
+  sama kayak dipake `goal/[id].tsx`) — isinya gabungan habit log + todo
+  completed di tanggal itu, diurutin kronologis pake `completedAt` yang
+  emang udah ada di DB (gak ada migrasi schema). Nambah 3 util baru di
+  `utils/date.ts`: `addDays`, `startOfWeekMonday`, `formatTimeOfDay`.
+  **Redesign `JarProgress.tsx` (toples nabung) SEMPET dieksplor pake
+  react-native-svg, TAPI di-skip user sebelum ada kode yang kesentuh** —
+  masih rounded-rectangle-fill yang lama, belum di-touch sama sekali.
+
+- **16** (UI cleanup + swipeable migration): Progress card "X dari Y
+  selesai" + `ProgressBar` di Today screen DIHAPUS (redundan visual sama
+  kalender). `totalCount`/`doneCount`/`allDone` computation TETAP ada
+  (masih dipakai buat trigger `CelebrationOverlay`), cuma bagian visualnya
+  yang dicabut. `ProgressBar.tsx` (komponennya sendiri) SENGAJA gak
+  dihapus dari repo, cuma importnya di Today screen — siapa tau kepake
+  lagi (misal pas redesign Jar). `SwipeableRow.tsx` pindah dari
+  `Swipeable` klasik ke `ReanimatedSwipeable` (import dari subpath
+  `react-native-gesture-handler/ReanimatedSwipeable`, default export) —
+  GH TETAP v2.32, gak ada version bump.
+- **17** (i18n foundation): `src/i18n/id.ts` (sumber kebenaran struktur,
+  `as const` + `DeepStringify` mapped type buat widen literal jadi
+  `string`) + `en.ts` (di-type paksa sama struktur, tsc error kalau ada
+  key belum diterjemahin) + `src/i18n/index.ts` (`interpolate()` buat
+  `{{placeholder}}`) + `useTranslation()` hook di `src/hooks/`. Custom
+  bikinan sendiri, BUKAN i18next/library lain — pertimbangan APK size.
+  `useSettingsStore` nambah field `language` (default `"id"`, tabel
+  `settings` generic yang emang udah didesain buat diperluas, gak ada
+  migrasi schema). Settings screen + `ReminderCard.tsx` full
+  ditranslate + toggle bahasa (2 chip) ditambahin di section paling
+  atas Settings. **Sisanya (~36 file lain) BELUM disentuh** — lihat
+  checklist detail di "Next update" item 4.
+- **18** (i18n Today screen): `app/(tabs)/index.tsx`, `WeekCalendarStrip
+  .tsx`, `DayHistorySheet.tsx`, `HabitCompleteToggle.tsx` full
+  ditranslate. Nambah key baru di kamus: `today.*`, `habitToggle.*`,
+  `calendar.*`, `dayHistory.*`, plus `common.delete`/`edit`/`archive`
+  (dipake berkali-kali lintas file, jadi ditaro di `common` bukan
+  diduplikasi per-namespace). `utils/date.ts`: `formatIndonesianDate()` +
+  `INDONESIAN_MONTHS` (LAMA, Indonesia-only) DIHAPUS TOTAL — diganti
+  `formatLongDate(date, language)` + `MONTHS_BY_LANGUAGE` +
+  `WEEKDAYS_SHORT_BY_LANGUAGE` (keduanya `Record<Language, string[]>`).
+  TAPI `WEEKDAY_LABELS_SHORT` (short, Indonesia-only) SENGAJA
+  DIPERTAHANKAN gak dihapus — masih dipake `app/habit/[id].tsx` yang
+  belum dimigrasi, hapus itu bakal break file itu.
+- **19** (i18n layar habit): `app/habit/[id].tsx`, `app/habit/add.tsx`,
+  `HabitColorPicker.tsx`, `HabitIconPicker.tsx`, `HabitHeatmap.tsx` full
+  ditranslate. Nambah namespace `habitDetail.*` & `habitForm.*` di kamus
+  (beberapa string DIREUSE dari `reminder.*` yang udah ada — misal
+  "Atur sendiri"/"Buka Pengaturan" — bukan diduplikasi, TEKS-nya PERSIS
+  sama). `app/habit/add.tsx` yang tadinya punya `WEEKDAY_LABELS` versi
+  LOKAL sendiri (gak pernah import dari `utils/date.ts`) sekarang ikutan
+  pake `WEEKDAYS_SHORT_BY_LANGUAGE` yang shared. `HabitHeatmap.tsx`
+  (dipake di `habit/[id].tsx`) sekarang language-aware lewat parameter
+  baru di `buildHeatmapWeeks(weeks, refDate, language)` — TAPI
+  `buildHabitConsistencyHeatmap`/`buildHeatmapWeeks` TETAP default
+  `language = "id"` karena `HabitConsistencyHeatmap.tsx` (dipake di tab
+  History, BELUM dimigrasi) manggil TANPA argumen itu. Setelah checkpoint
+  ini, `WEEKDAY_LABELS_SHORT` (versi lama, Indonesia-only) UDAH GAK ADA
+  pemakainya sama sekali — DIHAPUS TOTAL dari `utils/date.ts` (beda dari
+  checkpoint 18 yang SENGAJA mempertahankannya buat file ini persis).
+
+## Hard-won technical lessons
+
+- **Migrasi i18n PARSIAL (per-checkpoint) butuh nge-jaga 2 versi data
+  paralel buat sementara**: pas cuma SEBAGIAN file yang dimigrasiin ke
+  i18n, konstanta kayak nama hari/bulan gak bisa langsung "diganti" jadi
+  language-aware — file yang BELUM dimigrasi (`app/habit/[id].tsx`) masih
+  manggil versi LAMA (`WEEKDAY_LABELS_SHORT`, Indonesia-only, hardcoded)
+  dan HARUS TETAP ADA sampe file itu sendiri dimigrasiin, kalau enggak
+  behavior-nya keubah gak sengaja padahal file itu belum "siap" ganti
+  bahasa. Fix-nya: bikin versi BARU yang language-aware
+  (`WEEKDAYS_SHORT_BY_LANGUAGE`) buat file yang UDAH dimigrasi, biarin
+  versi LAMA tetep ada TERPISAH buat yang belum. Baru dihapus/disatuin
+  kalau SEMUA pemakainya udah pindah. Cek dulu SEMUA caller (`grep -rn`)
+  sebelum mutusin nge-delete vs nge-rename sebuah export util pas lagi
+  migrasi partial kayak gini.
+
+- **`as const` + type widening buat kamus i18n dual-bahasa**: `typeof id`
+  (dari objek `as const`) infer LITERAL string type per leaf (misal
+  `"Batal"` doang, bukan `string` general) — bikin `en.ts` (yang isinya
+  string BEDA, "Cancel") gak lolos type check kalau langsung pake `typeof
+  id` sebagai type-nya. Fix: mapped type rekursif `DeepStringify<T>` yang
+  ganti tiap leaf string jadi `string` generik, TAPI tetep pertahanin
+  struktur/nesting key-nya. Ini yang bikin lupa nerjemahin 1 key ke-tangkep
+  tsc (struktur dipaksa sama), sementara isinya bebas beda per bahasa.
+
+- **`ReanimatedSwipeable` diimport dari SUBPATH, bukan named export dari
+  root package**: `import ReanimatedSwipeable, { SwipeableMethods } from
+  "react-native-gesture-handler/ReanimatedSwipeable"` (default export,
+  BUKAN `import { ReanimatedSwipeable } from "react-native-gesture-
+  handler"` — itu bakal gagal, gak ke-export dari index utama). Props API-
+  nya (`renderLeftActions`/`renderRightActions`, `overshootLeft/Right`,
+  `friction`, dst) sama persis kayak `Swipeable` klasik, TAPI callback
+  render-nya sekarang terima `(progress: SharedValue<number>, translation:
+  SharedValue<number>, swipeableMethods: SwipeableMethods)` (Reanimated
+  shared values, bukan `Animated.AnimatedInterpolation` dari core RN
+  Animated) — aman diabaikan kalau emang gak butuh animasi progress-based
+  (kayak dipake di project ini sekarang), tapi kalau nanti mau nambahin
+  animasi fade/slide pas aksi ke-reveal, di sinilah tempatnya.
+
+Kumpulan gotcha yang udah ketemu & harus diinget biar gak keulang:
+
+- `--` di dalam komentar XML bikin parse Gradle gagal (ada script validasi
+  `ET.parse()` + regex permanen buat ini).
+- `ColorProvider(day:, night:)` gak ada di `glance-appwidget:1.1.1`; cuma
+  `ColorProvider(Color)` dan `ColorProvider(resId:)` yang valid.
+- `GlanceModifier.defaultWeight()` scoped ke `RowScope`, gak bisa dipanggil
+  dari composable yang diekstrak kecuali dideklarasiin `fun RowScope
+  .FunctionName()`.
+- `withExclusiveTransactionAsync` (BUKAN `withTransactionAsync`) wajib buat
+  write SQLite konkuren yang aman di expo-sqlite.
+- `LayoutAnimation.configureNext()` tiap index-crossing pas drag bikin lag
+  parah; dihapus bikin reorder instant.
+- Android `zIndex` gak reliable buat stacking item yang lagi di-drag;
+  render item yang di-drag PALING TERAKHIR di JSX lebih reliable.
+- Compose Compiler plugin classpath & versi harus PERSIS sama Kotlin
+  version project (2.1.20 buat SDK 54 & 57, dicek dari `libs.versions.toml`).
+- SDK 56 butuh migrasi `useFocusEffect` & `BottomTabBarProps` dari
+  `@react-navigation/*` ke `expo-router` equivalent, `@react-navigation/*`
+  dihapus total dari `package.json`.
+- `fontFamily: "sans-serif-medium"` + `fontWeight` eksplisit bikin Android
+  synthesize fake bold → text kepotong di container sempit (nav bar).
+- **`useRef(...).current` buat `Animated.Value` kena lint
+  `react-hooks/refs`** — ganti `useState(() => new Animated.Value(x))[0]`.
+  Ini udah jadi KONVENSI TETAP di project ini, dipakai konsisten di semua
+  komponen animasi baru.
+- **`android_ripple={{ borderless: true, radius: N }}` di Pressable yang
+  bounds-nya JAUH lebih gede dari radius-nya** (misal flex:1 tab item ~90px
+  tinggi dikasih radius:32) bikin ripple/flash keliatan gak wajar, nongol
+  di luar bentuk visual yang dimaksud — root cause PERTAMA dari bug "flash
+  aneh pas nekan tombol". Fix pertama: `borderless: false`.
+- **TAPI bug flash itu ternyata punya root cause KEDUA yang lebih luas**:
+  `borderRadius` di style TANPA `overflow: "hidden"` bikin Android ripple
+  clip ke bounding-box PERSEGI (bukan ke bentuk rounded-nya) — beberapa
+  komponen (`Chip.tsx`, `Fab.tsx`, row Habit/Todo, `weekdayChip`) kena ini.
+  **PENTING: 2 sesi chat beda-beda nemuin & mikirin root cause yang beda
+  buat bug yang SAMA** (satu pendekatan `overflow:hidden`, satu lagi
+  pendekatan ripple color alpha 0.12) — kemungkinan keduanya valid/saling
+  melengkapi, tapi belum ke-cross-check. Kalau nemu bug flash serupa lagi,
+  cek KEDUA kemungkinan ini.
+- **Root cause drag-reorder lag/nyangkut**: `getHandlePanResponder(item)`
+  dipanggil LANGSUNG di body render tiap item list (bukan di-memo) — pas
+  drag aktif, `setOrder()` di `onPanResponderMove` trigger re-render list,
+  yang manggil ulang `getHandlePanResponder` buat SEMUA item lagi (bukan
+  cuma yang di-drag) → bikin `PanResponder.create()` BARU dari nol puluhan
+  kali per detik. Fix: cache `PanResponder` per item key di dalam hook
+  (`panResponderCacheRef`), baca `itemHeight`/`onReorderCommit`/
+  `keyExtractor` TERBARU lewat ref (bukan closure langsung) biar cache gak
+  perlu di-invalidate walau parent gak nge-`useCallback` callback-nya.
+- **`cairosvg` (Python) butuh atribut `maskUnits`/`x`/`y`/`width`/`height`
+  EKSPLISIT di elemen `<mask>`** — kalau gak, hasil masking BLANK TOTAL
+  (bukan error, cuma silent fail). Ketemu pas bikin notification icon.
+- Pola **"adjusting state during render"** (setState dipanggil LANGSUNG di
+  body render, dijaga guard biar cuma jalan sekali per transisi) adalah
+  cara resmi React buat ngehindarin `react-hooks/set-state-in-effect`
+  tanpa kehilangan behavior — dipakai buat populate form edit mode
+  (`goal/add.tsx`, `habit/add.tsx`) dan buat animasi masuk/keluar
+  (`UndoSnackbar.tsx`, `useSheetMotion.ts`).
+- Kadang linter false-positive nge-flag `useMemo`/`Animated.event` yang DI
+  DALEMNYA ada ref, padahal ref itu cuma keakses di callback event beneran
+  (bukan pas render/factory function jalan) — solusinya `eslint-disable`
+  dengan komentar jelas KENAPA aman, bukan restructure paksa.
+- **Expo SDK 57 masih bundle `react-native-gesture-handler` v2.32, BUKAN
+  v3** — kalau `npx expo install`/`expo doctor` nge-bump ke v3, itu BUG,
+  bukan upgrade yang bener. `Swipeable` klasik dihapus total di v3, cuma
+  `ReanimatedSwipeable` yang sisa (butuh `react-native-reanimated` yang
+  SENGAJA gak dipakai project ini).
+- `@expo/ui` itu native module (Jetpack Compose beneran), BUKAN library JS
+  — nambah dependency ini butuh REBUILD dev client (`eas build --profile
+  development`), gak cukup reload JS bundle doang.
+- **Reanimated `useSharedValue().value = x` mutation AMAN dari
+  `react-hooks/set-state-in-effect`** (bukan React state, gak nge-trigger
+  re-render) — TAPI kalau di useEffect yang sama juga ada `setState` biasa
+  (React) buat trigger sesuatu (misal token buat re-mount celebration
+  effect), `setState` itu TETAP kena rule yang sama kayak Animated API
+  classic. Fix-nya pola "adjusting state during render" yang SAMA persis
+  kayak `UndoSnackbar.tsx` (`trackedDone` dibandingin ke prop tiap render,
+  setState dipanggil LANGSUNG di body kalau beda) — bukan pindahin ke
+  effect terpisah atau di-disable. Reanimated gak ngubah aturan lint ini
+  sama sekali, cuma nambah kemungkinan orang lupa karena kelihatannya "kan
+  udah di dalem effect yang sama".
+- Expo SDK 57 punya known issue Android memory naik 25-30% gara-gara
+  Hermes V1 + Reanimated (ke-trigger cuma dari IMPORT library-nya, dipake
+  atau enggak). Workaround resminya "Worklets Bundle Mode" masih
+  eksperimental (butuh `babel.config.js` + `metro.config.js` custom, ada
+  known bug kalau dipadu resolver yang nge-remap `react-native`) — SENGAJA
+  DISKIP di Checkpoint 14, belum di-enable. Kalau nanti crash/lag terkait
+  memory Android muncul, ini kandidat pertama buat dicek.
+- **`react-hooks/immutability` (React Compiler) false-positive KEDUA yang
+  ketemu** (Checkpoint 15, `WeekCalendarStrip.tsx`): shared value
+  Reanimated yang di-RESET di `useEffect` (buat sinkronin ulang abis
+  commit state React, pola yang sama kayak di lesson `set-state-in-effect`
+  atas) DAN di-drive live di gesture worklet (`Gesture.Pan().onUpdate`/
+  `.onEnd`) ke-flag "cannot be modified" di KEDUA tempat — beda dari kasus
+  `HabitCompleteToggle`/`CelebrationBurst` (Checkpoint 14) yang cuma
+  mutasi 1 shared value di 1 useEffect doang, gak pernah kena ini. Ini
+  BUKAN kasus yang bisa direstructure ke pola "adjusting state during
+  render" (beda dari `set-state-in-effect` yang punya solusi restructure
+  bersih) — kompiler-nya genuinely kebablasan nganggep SEMUA shared value
+  yang nongol di useEffect manapun harus immutable selamanya, padahal
+  Reanimated shared value bukan React state. Fix: `react-hooks/immutability:
+  "off"` di-scope KHUSUS ke file yang butuh (`eslint.config.js`, blok
+  `files: [...]` terpisah dengan komentar jelas) — BUKAN disable global.
+  Kalau nemu file lain yang kena pola sama (shared value di-reset via
+  effect + di-drive di gesture worklet), tambahin nama filenya ke array
+  `files` yang udah ada, jangan bikin override rule baru yang beda.
+
+## Workflow conventions (WAJIB diikuti)
+
+- **Selalu `git clone` fresh + `git log --oneline -10` sebelum bikin patch
+  baru** — histori commit sering lebih maju dari yang keliatan, APALAGI
+  sekarang udah kebukti ada RESIKO NYATA sesi chat lain push duluan tanpa
+  sepengetahuan sesi ini (checkpoint 12 kejadian gini).
+- Semua perubahan dikirim sebagai `.patch` file (git diff format,
+  `git apply`-able), BUKAN full file content atau download per file.
+  User lebih suka **1 patch gabungan** kalau ngerjain beberapa item
+  sekaligus, kecuali diminta pisah.
+- `package-lock.json` SERING punya noise (beda versi npm sandbox vs punya
+  user — field kayak `"libc"` di optionalDependencies) — cek dulu isi
+  diff-nya, exclude dari patch kalau emang cuma noise, instruksiin user
+  `npm install` sendiri abis apply.
+- Validasi WAJIB sebelum kasih patch: `npx tsc --noEmit` bersih, `npx
+  eslint .` (scan SELURUH project, bukan per file) 0 warning 0 error,
+  `git apply --check` di clone fresh terpisah buat mastiin patch beneran
+  applicable.
+- Sandbox gak bisa akses `api.expo.dev` (Maven/expo-doctor beneran), jadi
+  gak bisa jalanin `expo-doctor` atau Gradle asli — validasi cuma lewat
+  tsc/eslint/JSON-parse/patch-apply-check.
+- Kalau nemu resiko/temuan yang bisa ngubah arah keputusan signifikan
+  (contoh: predictive back gesture ternyata bahaya, ProGuard beresiko
+  crash widget, gesture-handler ke-upgrade gak sengaja) — **STOP dulu,
+  jelasin temuannya, baru tanya arah yang dipilih** — jangan asal jalanin
+  permintaan awal kalau ternyata ada konsekuensi besar yang belum
+  kepertimbangin.
+
+## Link penting
+
+- Repo: `https://github.com/karimm1620/heibi`
+- Donasi: `https://saweria.co/immu`

@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 import { radius, spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 
@@ -55,6 +56,7 @@ export function HabitIconPicker({
   onSelect,
 }: HabitIconPickerProps) {
   const { colors, material3 } = useTheme();
+  const { t, interpolate } = useTranslation();
 
   const styles = useMemo(
     () =>
@@ -96,7 +98,7 @@ export function HabitIconPicker({
               isActive && [styles.itemActive, { backgroundColor: `${color}26` }],
             ]}
             accessibilityRole="button"
-            accessibilityLabel={`Pilih ikon ${icon}`}
+            accessibilityLabel={interpolate(t.habitForm.iconAccessibilityLabel, { icon })}
             accessibilityState={{ selected: isActive }}
             android_ripple={{ color: colors.glassBorder }}
           >

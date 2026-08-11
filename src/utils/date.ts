@@ -2,15 +2,9 @@ import type { Language } from "../i18n";
 import type { Habit, WeekdaysMask } from "../types";
 
 /**
- * Nama hari/bulan per-bahasa buat komponen yang UDAH dimigrasi ke i18n
- * (`WeekCalendarStrip`, `DayHistorySheet`, Today screen). Sengaja BUKAN
- * `Intl`/`toLocaleDateString` -- dukungan ICU locale Hermes gak konsisten
- * di semua build Android.
- *
- * `WEEKDAY_LABELS_SHORT` (di bawah, TANPA per-bahasa) masih dipertahankan
- * TERPISAH buat `app/habit/[id].tsx` yang BELUM dimigrasi -- jangan
- * disatuin, nanti behavior-nya keubah gak sengaja buat layar yang belum
- * siap ganti bahasa.
+ * Nama hari/bulan per-bahasa buat komponen yang UDAH dimigrasi ke i18n.
+ * Sengaja BUKAN `Intl`/`toLocaleDateString` -- dukungan ICU locale Hermes
+ * gak konsisten di semua build Android.
  */
 const WEEKDAYS_LONG_BY_LANGUAGE: Record<Language, string[]> = {
   id: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"],
@@ -31,6 +25,11 @@ export const MONTHS_BY_LANGUAGE: Record<Language, string[]> = {
 export const WEEKDAYS_SHORT_BY_LANGUAGE: Record<Language, string[]> = {
   id: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
   en: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+};
+
+export const MONTHS_SHORT_BY_LANGUAGE: Record<Language, string[]> = {
+  id: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 };
 
 /** "Sunday, 20 July" / "Minggu, 20 Juli". */
@@ -130,13 +129,6 @@ export function calculateCompletionRate(
   return due > 0 ? Math.round((done / due) * 100) : 0;
 }
 
-export const WEEKDAY_LABELS_SHORT = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
-
-const INDONESIAN_MONTHS_SHORT = [
-  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
-];
-
 export interface HeatmapDay {
   dateKey: string;
   /** 0=Senin ... 6=Minggu */
@@ -149,12 +141,17 @@ export interface HeatmapDay {
  * SEMUA habit aktif per hari (bukan per-habit kayak `HabitHeatmap.tsx` yang
  * dipakai di `habit/[id].tsx`, itu SENGAJA gak diubah/disentuh). Dipakai
  * buat heatmap ringkasan konsistensi di atas tab History.
+ *
+ * `language` default `"id"` -- caller ini (`app/(tabs)/history.tsx`) BELUM
+ * dimigrasi ke i18n, jadi default lama dipertahankan biar behaviornya gak
+ * keubah sampe file itu sendiri dimigrasiin.
  */
 export function buildHabitConsistencyHeatmap(
   habits: Pick<Habit, "id" | "frequencyType" | "weekdaysMask" | "archivedAt">[],
   habitLogs: { habitId: string; date: string }[],
   numberOfWeeks: number,
   referenceDate: Date = new Date(),
+  language: Language = "id",
 ) {
   const activeHabits = habits.filter((h) => !h.archivedAt);
   const completedSetByHabit = new Map<string, Set<string>>();
@@ -170,6 +167,7 @@ export function buildHabitConsistencyHeatmap(
   const { weeks, monthLabelByWeekIndex } = buildHeatmapWeeks(
     numberOfWeeks,
     referenceDate,
+    language,
   );
 
   const weeksWithRatio = weeks.map((week) =>
@@ -189,9 +187,12 @@ export function buildHabitConsistencyHeatmap(
 
   return { weeks: weeksWithRatio, monthLabelByWeekIndex };
 }
+
+/** `language` default `"id"` -- lihat catatan sama di `buildHabitConsistencyHeatmap`. */
 export function buildHeatmapWeeks(
   numberOfWeeks: number,
   referenceDate: Date = new Date(),
+  language: Language = "id",
 ): { weeks: HeatmapDay[][]; monthLabelByWeekIndex: (string | null)[] } {
   const today = new Date(
     referenceDate.getFullYear(),
@@ -224,7 +225,7 @@ export function buildHeatmapWeeks(
 
     const mondayMonth = parseDateKey(week[0].dateKey).getMonth();
     if (mondayMonth !== lastMonth) {
-      monthLabelByWeekIndex.push(INDONESIAN_MONTHS_SHORT[mondayMonth]);
+      monthLabelByWeekIndex.push(MONTHS_SHORT_BY_LANGUAGE[language][mondayMonth]);
       lastMonth = mondayMonth;
     } else {
       monthLabelByWeekIndex.push(null);
