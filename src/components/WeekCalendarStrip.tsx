@@ -10,13 +10,14 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useReducedMotion } from "../hooks/useReducedMotion";
+import { useTranslation } from "../hooks/useTranslation";
 import { useTheme } from "../theme/useTheme";
 import {
   addDays,
   getLocalDateKey,
-  INDONESIAN_MONTHS,
+  MONTHS_BY_LANGUAGE,
   startOfWeekMonday,
-  WEEKDAY_LABELS_SHORT,
+  WEEKDAYS_SHORT_BY_LANGUAGE,
 } from "../utils/date";
 
 interface WeekCalendarStripProps {
@@ -44,6 +45,7 @@ const SPRING_CANCEL = { damping: 18, stiffness: 260, mass: 0.5 };
  */
 export function WeekCalendarStrip({ onSelectDate }: WeekCalendarStripProps) {
   const { colors } = useTheme();
+  const { language } = useTranslation();
   const reducedMotion = useReducedMotion();
 
   const todayKey = useMemo(() => getLocalDateKey(), []);
@@ -123,14 +125,14 @@ export function WeekCalendarStrip({ onSelectDate }: WeekCalendarStripProps) {
   );
 
   const headerDate = addDays(anchorWeekStart, 3);
-  const monthLabel = `${INDONESIAN_MONTHS[headerDate.getMonth()]} ${headerDate.getFullYear()}`;
+  const monthLabel = `${MONTHS_BY_LANGUAGE[language][headerDate.getMonth()]} ${headerDate.getFullYear()}`;
 
   return (
     <View>
       <Text style={[styles.monthLabel, { color: colors.textSecondary }]}>{monthLabel}</Text>
 
       <View style={styles.weekdayRow}>
-        {WEEKDAY_LABELS_SHORT.map((label) => (
+        {WEEKDAYS_SHORT_BY_LANGUAGE[language].map((label) => (
           <Text key={label} style={[styles.weekdayLabel, { color: colors.textSecondary }]}>
             {label}
           </Text>
@@ -161,6 +163,7 @@ interface WeekDatesRowProps {
 
 function WeekDatesRow({ width, weekStart, todayKey, onSelectDate }: WeekDatesRowProps) {
   const { colors, material3 } = useTheme();
+  const { t, interpolate } = useTranslation();
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
   const today = useMemo(() => new Date(), []);
 
@@ -176,7 +179,7 @@ function WeekDatesRow({ width, weekStart, todayKey, onSelectDate }: WeekDatesRow
             key={dateKey}
             onPress={() => onSelectDate(dateKey)}
             accessibilityRole="button"
-            accessibilityLabel={`Lihat riwayat tanggal ${day.getDate()}`}
+            accessibilityLabel={interpolate(t.calendar.dateAccessibilityLabel, { day: day.getDate() })}
             style={styles.dateCell}
             hitSlop={4}
           >

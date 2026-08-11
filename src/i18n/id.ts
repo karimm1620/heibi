@@ -13,6 +13,38 @@ export const id = {
   common: {
     cancel: "Batal",
     later: "Nanti",
+    delete: "Hapus",
+    edit: "Edit",
+    archive: "Arsip",
+  },
+  today: {
+    headerTitle: "Agenda hari ini",
+    emptyTitle: "Belum ada apa-apa hari ini",
+    emptyDescription: "Mulai bikin habit pertamamu.",
+    emptyCta: "Tambah Habit",
+    habitsSection: "Habits",
+    todosSection: "Tugas hari ini",
+    addTodoPlaceholder: "Tambah tugas...",
+    streakCount: "{{count}} hari beruntun",
+    noStreak: "Belum ada streak",
+    reorderAccessibilityLabel: "Geser buat urutan ulang {{name}}",
+    deleteHabitConfirmTitle: "Hapus permanen?",
+    deleteHabitConfirmMessage:
+      'Semua histori "{{name}}" akan hilang selamanya, ini gak bisa di-undo. Kalau cuma mau berhenti tanpa kehilangan histori, swipe lagi terus pilih Arsip aja.',
+    toggleTodoComplete: "Tandai tugas {{title}} sudah selesai",
+    toggleTodoIncomplete: "Tandai tugas {{title}} belum selesai",
+  },
+  habitToggle: {
+    markComplete: "Tandai {{name}} sudah selesai",
+    markIncomplete: "Tandai {{name}} belum selesai",
+  },
+  calendar: {
+    dateAccessibilityLabel: "Lihat riwayat tanggal {{day}}",
+  },
+  dayHistory: {
+    emptyTitle: "Belum ada aktivitas",
+    emptyDescription: "Gak ada habit atau tugas yang diselesaikan di tanggal ini.",
+    deletedHabitFallback: "Habit terhapus",
   },
   settings: {
     title: "Pengaturan",

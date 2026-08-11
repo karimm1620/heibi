@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { CelebrationBurst } from "./CelebrationBurst";
 import { useReducedMotion } from "../hooks/useReducedMotion";
+import { useTranslation } from "../hooks/useTranslation";
 import { m3Shape } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
 
@@ -43,6 +44,7 @@ const SPRING_BOUNCY = { damping: 9, stiffness: 220, mass: 0.6 };
  */
 export function HabitCompleteToggle({ done, onToggle, habitName }: HabitCompleteToggleProps) {
   const { colors, material3 } = useTheme();
+  const { t, interpolate } = useTranslation();
   const reducedMotion = useReducedMotion();
 
   const checkScale = useSharedValue(done ? 1 : 0);
@@ -115,7 +117,10 @@ export function HabitCompleteToggle({ done, onToggle, habitName }: HabitComplete
           hitSlop={10}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: done }}
-          accessibilityLabel={`Tandai ${habitName} ${done ? "belum selesai" : "sudah selesai"}`}
+          accessibilityLabel={interpolate(
+            done ? t.habitToggle.markIncomplete : t.habitToggle.markComplete,
+            { name: habitName },
+          )}
           style={styles.pressable}
         >
           <Animated.View style={checkStyle}>

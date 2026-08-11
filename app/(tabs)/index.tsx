@@ -31,6 +31,7 @@ import {
   useDragReorder,
 } from "../../src/hooks/useDragReorder";
 import { useHabitActions } from "../../src/hooks/useHabitActions";
+import { useTranslation } from "../../src/hooks/useTranslation";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
 import { useTodosStore } from "../../src/store/useTodosStore";
 import { spacing } from "../../src/theme/colors";
@@ -39,7 +40,7 @@ import { useTheme } from "../../src/theme/useTheme";
 import type { Habit } from "../../src/types";
 import {
   calculateCurrentStreak,
-  formatIndonesianDate,
+  formatLongDate,
   getLocalDateKey,
   isHabitDueOnDate,
 } from "../../src/utils/date";
@@ -50,6 +51,7 @@ export default function TodayScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, typography, isDark } = useTheme();
+  const { t, language } = useTranslation();
 
   // Selalu select STATE MENTAH dari store (referensi stabil), turunkan
   // sendiri lewat useMemo di bawah — JANGAN panggil method getXxx() store
@@ -185,8 +187,8 @@ export default function TodayScreen() {
         showsVerticalScrollIndicator={false}
         scrollEnabled={draggingHabitKey === null}
       >
-        <Text style={typography.caption}>{formatIndonesianDate()}</Text>
-        <Text style={styles.headerTitle}>Agenda hari ini</Text>
+        <Text style={typography.caption}>{formatLongDate(new Date(), language)}</Text>
+        <Text style={styles.headerTitle}>{t.today.headerTitle}</Text>
 
         <GlassCard elevationLevel="level1" style={styles.calendarCard}>
           <WeekCalendarStrip onSelectDate={setHistoryDate} />
@@ -195,16 +197,16 @@ export default function TodayScreen() {
         {hasNothing ? (
           <EmptyState
             icon="clipboard-text-outline"
-            title="Belum ada apa-apa hari ini"
-            description="Mulai bikin habit pertamamu."
-            ctaLabel="Tambah Habit"
+            title={t.today.emptyTitle}
+            description={t.today.emptyDescription}
+            ctaLabel={t.today.emptyCta}
             onPressCta={() => router.push("/habit/add")}
           />
         ) : (
           <>
             {todayHabits.length > 0 && (
               <>
-                <Text style={styles.sectionTitle}>Habits</Text>
+                <Text style={styles.sectionTitle}>{t.today.habitsSection}</Text>
                 <GlassCard elevationLevel="level1" style={styles.listCard}>
                   {renderOrderedTodayHabits.map((habit) => {
                     const trueIndex = orderedTodayHabits.findIndex(
@@ -230,7 +232,7 @@ export default function TodayScreen() {
               </>
             )}
 
-            <Text style={styles.sectionTitle}>Tugas hari ini</Text>
+            <Text style={styles.sectionTitle}>{t.today.todosSection}</Text>
             {todayTodos.length > 0 && (
               <GlassCard elevationLevel="level1" style={styles.listCard}>
                 {todayTodos.map((todo, index) => (
@@ -253,7 +255,7 @@ export default function TodayScreen() {
               <TextInput
                 value={newTodoTitle}
                 onChangeText={setNewTodoTitle}
-                placeholder="Tambah tugas..."
+                placeholder={t.today.addTodoPlaceholder}
                 placeholderTextColor={colors.textSecondary}
                 style={[
                   typography.body,
@@ -305,18 +307,19 @@ function HabitRow({
 }: HabitRowProps) {
   const router = useRouter();
   const { colors, typography } = useTheme();
+  const { t, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
   const { archiveWithCleanup, deletePermanentlyWithCleanup } = useHabitActions();
   const styles = useMemo(() => createStyles(colors, typography, 0), [colors, typography]);
 
   const handleDelete = () => {
     showAlert(
-      "Hapus permanen?",
-      `Semua histori "${habit.name}" akan hilang selamanya, ini gak bisa di-undo. Kalau cuma mau berhenti tanpa kehilangan histori, swipe lagi terus pilih Arsip aja.`,
+      t.today.deleteHabitConfirmTitle,
+      interpolate(t.today.deleteHabitConfirmMessage, { name: habit.name }),
       [
-        { label: "Batal", style: "cancel" },
+        { label: t.common.cancel, style: "cancel" },
         {
-          label: "Hapus",
+          label: t.common.delete,
           style: "destructive",
           onPress: () => void deletePermanentlyWithCleanup(habit),
         },
@@ -341,26 +344,26 @@ function HabitRow({
         <View style={{ flex: 1 }}>
           <SwipeableRow
             quickAction={{
-              label: "Arsip",
+              label: t.common.archive,
               icon: "archive-outline",
               color: habit.color,
               onPress: () => void archiveWithCleanup(habit),
             }}
             menuActions={[
               {
-                label: "Edit",
+                label: t.common.edit,
                 icon: "pencil-outline",
                 color: colors.textSecondary,
                 onPress: () => router.push(`/habit/add?id=${habit.id}`),
               },
               {
-                label: "Arsip",
+                label: t.common.archive,
                 icon: "archive-outline",
                 color: habit.color,
                 onPress: () => void archiveWithCleanup(habit),
               },
               {
-                label: "Hapus",
+                label: t.common.delete,
                 icon: "delete-outline",
                 color: colors.danger,
                 onPress: handleDelete,
@@ -393,7 +396,7 @@ function HabitRow({
                   {habit.name}
                 </Text>
                 <Text style={typography.caption}>
-                  {streak > 0 ? `${streak} hari beruntun` : "Belum ada streak"}
+                  {streak > 0 ? interpolate(t.today.streakCount, { count: streak }) : t.today.noStreak}
                   {habit.reminderTime ? ` · ${habit.reminderTime}` : ""}
                 </Text>
               </View>
@@ -407,7 +410,7 @@ function HabitRow({
           style={styles.dragHandle}
           hitSlop={8}
           accessibilityRole="adjustable"
-          accessibilityLabel={`Geser buat urutan ulang ${habit.name}`}
+          accessibilityLabel={interpolate(t.today.reorderAccessibilityLabel, { name: habit.name })}
         >
           <MaterialCommunityIcons name="drag-vertical" size={22} color={colors.textSecondary} />
         </View>
@@ -434,13 +437,14 @@ interface TodoRowProps {
 
 function TodoRow({ title, done, isLast, onToggle, onDelete }: TodoRowProps) {
   const { colors, typography, material3 } = useTheme();
+  const { t, interpolate } = useTranslation();
   const styles = useMemo(() => createStyles(colors, typography, 0), [colors, typography]);
 
   return (
     <SwipeableRow
-      quickAction={{ label: "Hapus", icon: "delete-outline", color: colors.danger, onPress: onDelete }}
+      quickAction={{ label: t.common.delete, icon: "delete-outline", color: colors.danger, onPress: onDelete }}
       menuActions={[
-        { label: "Hapus", icon: "delete-outline", color: colors.danger, onPress: onDelete },
+        { label: t.common.delete, icon: "delete-outline", color: colors.danger, onPress: onDelete },
       ]}
     >
       <View
@@ -454,7 +458,10 @@ function TodoRow({ title, done, isLast, onToggle, onDelete }: TodoRowProps) {
           hitSlop={10}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: done }}
-          accessibilityLabel={`Tandai tugas ${title} ${done ? "belum selesai" : "sudah selesai"}`}
+          accessibilityLabel={interpolate(
+            done ? t.today.toggleTodoIncomplete : t.today.toggleTodoComplete,
+            { title },
+          )}
           style={[
             styles.checkbox,
             done && { backgroundColor: material3.primary, borderColor: material3.primary },
@@ -497,7 +504,7 @@ function createStyles(
     },
     calendarCard: {
       padding: spacing.lg,
-      marginBottom: spacing.lg,
+      marginBottom: spacing.md,
     },
     sectionTitle: {
       ...typography.caption,

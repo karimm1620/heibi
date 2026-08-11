@@ -10,6 +10,38 @@ export const en: TranslationDict = {
   common: {
     cancel: "Cancel",
     later: "Later",
+    delete: "Delete",
+    edit: "Edit",
+    archive: "Archive",
+  },
+  today: {
+    headerTitle: "Today's agenda",
+    emptyTitle: "Nothing here yet",
+    emptyDescription: "Start by creating your first habit.",
+    emptyCta: "Add Habit",
+    habitsSection: "Habits",
+    todosSection: "Today's tasks",
+    addTodoPlaceholder: "Add a task...",
+    streakCount: "{{count}} day streak",
+    noStreak: "No streak yet",
+    reorderAccessibilityLabel: "Drag to reorder {{name}}",
+    deleteHabitConfirmTitle: "Delete permanently?",
+    deleteHabitConfirmMessage:
+      'All history for "{{name}}" will be lost forever, this can\'t be undone. If you just want to stop without losing history, swipe again and pick Archive instead.',
+    toggleTodoComplete: "Mark task {{title}} as complete",
+    toggleTodoIncomplete: "Mark task {{title}} as incomplete",
+  },
+  habitToggle: {
+    markComplete: "Mark {{name}} as complete",
+    markIncomplete: "Mark {{name}} as incomplete",
+  },
+  calendar: {
+    dateAccessibilityLabel: "View history for {{day}}",
+  },
+  dayHistory: {
+    emptyTitle: "No activity yet",
+    emptyDescription: "No habits or tasks were completed on this date.",
+    deletedHabitFallback: "Deleted habit",
   },
   settings: {
     title: "Settings",

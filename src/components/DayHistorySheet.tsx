@@ -5,12 +5,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyState } from "./EmptyState";
 import { useSheetMotion } from "../hooks/useSheetMotion";
+import { useTranslation } from "../hooks/useTranslation";
 import { useHabitsStore } from "../store/useHabitsStore";
 import { useTodosStore } from "../store/useTodosStore";
 import { radius, spacing, withOpacity } from "../theme/colors";
 import { m3ElevationStyle, m3Shape } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
-import { formatIndonesianDate, formatTimeOfDay, parseDateKey } from "../utils/date";
+import { formatLongDate, formatTimeOfDay, parseDateKey } from "../utils/date";
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -38,6 +39,7 @@ interface HistoryEntry {
  */
 export function DayHistorySheet({ dateKey, onClose }: DayHistorySheetProps) {
   const { colors, typography } = useTheme();
+  const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const habits = useHabitsStore((state) => state.habits);
   const habitLogs = useHabitsStore((state) => state.habitLogs);
@@ -59,7 +61,7 @@ export function DayHistorySheet({ dateKey, onClose }: DayHistorySheetProps) {
         const habit = habitById.get(log.habitId);
         return {
           id: `habit-${log.id}`,
-          label: habit?.name ?? "Habit terhapus",
+          label: habit?.name ?? t.dayHistory.deletedHabitFallback,
           icon: (habit?.icon ?? "check-circle") as IconName,
           color: habit?.color ?? colors.textSecondary,
           completedAt: log.completedAt,
@@ -77,7 +79,7 @@ export function DayHistorySheet({ dateKey, onClose }: DayHistorySheetProps) {
       }));
 
     return [...fromHabits, ...fromTodos].sort((a, b) => a.completedAt - b.completedAt);
-  }, [dateKey, habits, habitLogs, todos, colors.textSecondary]);
+  }, [dateKey, habits, habitLogs, todos, colors.textSecondary, t]);
 
   const styles = useMemo(
     () => createStyles(colors, typography, insets.bottom),
@@ -87,7 +89,7 @@ export function DayHistorySheet({ dateKey, onClose }: DayHistorySheetProps) {
   if (!mounted) return null;
 
   const headerDate = dateKey ? parseDateKey(dateKey) : null;
-  const headerLabel = headerDate ? `${formatIndonesianDate(headerDate)} ${headerDate.getFullYear()}` : "";
+  const headerLabel = headerDate ? `${formatLongDate(headerDate, language)} ${headerDate.getFullYear()}` : "";
 
   return (
     <Modal visible={mounted} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
@@ -104,8 +106,8 @@ export function DayHistorySheet({ dateKey, onClose }: DayHistorySheetProps) {
             {entries.length === 0 ? (
               <EmptyState
                 icon="calendar-blank-outline"
-                title="Belum ada aktivitas"
-                description="Gak ada habit atau tugas yang diselesaikan di tanggal ini."
+                title={t.dayHistory.emptyTitle}
+                description={t.dayHistory.emptyDescription}
               />
             ) : (
               entries.map((entry) => (

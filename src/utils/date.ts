@@ -1,37 +1,41 @@
+import type { Language } from "../i18n";
 import type { Habit, WeekdaysMask } from "../types";
 
-const INDONESIAN_WEEKDAYS = [
-  "Minggu",
-  "Senin",
-  "Selasa",
-  "Rabu",
-  "Kamis",
-  "Jumat",
-  "Sabtu",
-];
-
-export const INDONESIAN_MONTHS = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
-];
-
 /**
- * "Minggu, 20 Juli" — hardcode nama hari/bulan Indonesia (bukan `Intl`/
- * `toLocaleDateString`) karena dukungan ICU locale Hermes gak konsisten di
- * semua build Android, dan seluruh app ini emang berbahasa Indonesia.
+ * Nama hari/bulan per-bahasa buat komponen yang UDAH dimigrasi ke i18n
+ * (`WeekCalendarStrip`, `DayHistorySheet`, Today screen). Sengaja BUKAN
+ * `Intl`/`toLocaleDateString` -- dukungan ICU locale Hermes gak konsisten
+ * di semua build Android.
+ *
+ * `WEEKDAY_LABELS_SHORT` (di bawah, TANPA per-bahasa) masih dipertahankan
+ * TERPISAH buat `app/habit/[id].tsx` yang BELUM dimigrasi -- jangan
+ * disatuin, nanti behavior-nya keubah gak sengaja buat layar yang belum
+ * siap ganti bahasa.
  */
-export function formatIndonesianDate(date: Date = new Date()): string {
-  return `${INDONESIAN_WEEKDAYS[date.getDay()]}, ${date.getDate()} ${INDONESIAN_MONTHS[date.getMonth()]}`;
+const WEEKDAYS_LONG_BY_LANGUAGE: Record<Language, string[]> = {
+  id: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"],
+  en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+};
+
+export const MONTHS_BY_LANGUAGE: Record<Language, string[]> = {
+  id: [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+  ],
+  en: [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ],
+};
+
+export const WEEKDAYS_SHORT_BY_LANGUAGE: Record<Language, string[]> = {
+  id: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
+  en: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+};
+
+/** "Sunday, 20 July" / "Minggu, 20 Juli". */
+export function formatLongDate(date: Date = new Date(), language: Language = "id"): string {
+  return `${WEEKDAYS_LONG_BY_LANGUAGE[language][date.getDay()]}, ${date.getDate()} ${MONTHS_BY_LANGUAGE[language][date.getMonth()]}`;
 }
 
 /** "YYYY-MM-DD" di waktu LOKAL device — BUKAN `toISOString()` (itu UTC, bisa geser tanggal). */
