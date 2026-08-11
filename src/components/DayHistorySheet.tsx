@@ -100,7 +100,7 @@ export function DayHistorySheet({ dateKey, onClose }: DayHistorySheetProps) {
           <View style={styles.grabber} hitSlop={{ top: 12, bottom: 12, left: 24, right: 24 }} {...dragHandlers} />
           <Text style={styles.title}>{headerLabel}</Text>
 
-          <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+          <ScrollView style={styles.list} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
             {entries.length === 0 ? (
               <EmptyState
                 icon="calendar-blank-outline"
@@ -141,9 +141,11 @@ function createStyles(
     },
     sheetWrapper: {
       position: "absolute",
+      top: 0,
       left: 0,
       right: 0,
       bottom: 0,
+      justifyContent: "flex-end",
     },
     sheetCard: {
       backgroundColor: colors.surface,
@@ -151,7 +153,16 @@ function createStyles(
       borderTopRightRadius: m3Shape.extraLarge,
       padding: spacing.lg,
       paddingBottom: spacing.lg + bottomInset,
-      maxHeight: "70%",
+      // `minHeight` -- SENGAJA, bukan cuma `maxHeight` -- biar sheet SELALU
+      // nutup sampe area tab bar navigasi apapun jumlah entry-nya (0 atau 1
+      // entry sebelumnya bikin card mepet/collapse duluan sebelum nutupin
+      // tab bar, keliatan "kepotong"). `sheetWrapper` di atas HARUS punya
+      // `top:0` (bukan cuma `bottom:0`) biar dia dapet tinggi PASTI dari
+      // Modal (full-screen) -- tanpa itu, persentase di sini gak ada
+      // ancestor bertinggi pasti buat di-resolve, computed height jadi
+      // ambigu (ini yang bikin ScrollView collapse ke ~0 pas isinya dikit).
+      minHeight: "50%",
+      maxHeight: "80%",
       ...m3ElevationStyle("level1"),
     },
     grabber: {
@@ -167,7 +178,21 @@ function createStyles(
       marginBottom: spacing.md,
     },
     list: {
-      flexGrow: 0,
+      // `flex: 1` (BUKAN `flexGrow: 0` kayak sebelumnya) -- sekarang
+      // `sheetCard` punya `minHeight`/`maxHeight` yang well-defined, jadi
+      // ScrollView ini boleh & AMAN ngisi sisa ruang yang ada. Ini yang
+      // benerin bug "1 entry gak nampil apa-apa" & "EmptyState cuma
+      // nongol icon doang" -- sebelumnya ScrollView collapse duluan
+      // sebelum sempet render isinya.
+      flex: 1,
+    },
+    listContent: {
+      // BUKAN `justifyContent:"center"` -- sempet dicoba tapi kelihatan
+      // "ketengah banget" pas isinya cuma 1-2 entry di sheet yang minHeight
+      // 50%. List nature-nya emang harus nempel ATAS (`flex-start`, default),
+      // biar konsisten sama ekspektasi list pada umumnya & gak keliatan
+      // ngambang di tengah ruang kosong.
+      flexGrow: 1,
     },
     entryRow: {
       flexDirection: "row",
