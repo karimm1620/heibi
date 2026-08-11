@@ -23,7 +23,6 @@ import {
 } from "../../src/components/FloatingTabBar";
 import { GlassCard } from "../../src/components/GlassCard";
 import { HabitCompleteToggle } from "../../src/components/HabitCompleteToggle";
-import { ProgressBar } from "../../src/components/ProgressBar";
 import { SwipeableRow } from "../../src/components/SwipeableRow";
 import { WeekCalendarStrip } from "../../src/components/WeekCalendarStrip";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
@@ -50,7 +49,7 @@ type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 export default function TodayScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors, typography, material3, isDark } = useTheme();
+  const { colors, typography, isDark } = useTheme();
 
   // Selalu select STATE MENTAH dari store (referensi stabil), turunkan
   // sendiri lewat useMemo di bawah — JANGAN panggil method getXxx() store
@@ -192,24 +191,6 @@ export default function TodayScreen() {
         <GlassCard elevationLevel="level1" style={styles.calendarCard}>
           <WeekCalendarStrip onSelectDate={setHistoryDate} />
         </GlassCard>
-
-        {totalCount > 0 && (
-          <GlassCard
-            tintColor={colors.glassTintLavender}
-            elevationLevel="level2"
-            style={styles.progressCard}
-          >
-            <Text style={styles.progressText}>
-              {doneCount} dari {totalCount} selesai
-            </Text>
-            <View style={{ marginTop: spacing.sm }}>
-              <ProgressBar
-                percent={totalCount > 0 ? doneCount / totalCount : 0}
-                accentColor={material3.primary}
-              />
-            </View>
-          </GlassCard>
-        )}
 
         {hasNothing ? (
           <EmptyState
@@ -517,13 +498,6 @@ function createStyles(
     calendarCard: {
       padding: spacing.lg,
       marginBottom: spacing.lg,
-    },
-    progressCard: {
-      padding: spacing.lg,
-      marginBottom: spacing.lg,
-    },
-    progressText: {
-      ...typography.subtitle,
     },
     sectionTitle: {
       ...typography.caption,
