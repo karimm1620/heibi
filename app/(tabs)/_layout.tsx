@@ -3,11 +3,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Fab } from "../../src/components/Fab";
 import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_MARGIN, FloatingTabBar } from "../../src/components/FloatingTabBar";
 import { UndoSnackbar } from "../../src/components/UndoSnackbar";
+import { useTranslation } from "../../src/hooks/useTranslation";
 import { spacing } from "../../src/theme/colors";
 import { useTheme } from "../../src/theme/useTheme";
 
 export default function TabsLayout() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
@@ -19,9 +21,9 @@ export default function TabsLayout() {
   // disembunyikan di situ.
   let fabConfig: { onPress: () => void; label: string } | null = null;
   if (pathname === "/" || pathname === "/index") {
-    fabConfig = { onPress: () => router.push("/habit/add"), label: "Tambah habit baru" };
+    fabConfig = { onPress: () => router.push("/habit/add"), label: t.layout.addHabitFab };
   } else if (pathname === "/goals") {
-    fabConfig = { onPress: () => router.push("/goal/add"), label: "Tambah goal tabungan baru" };
+    fabConfig = { onPress: () => router.push("/goal/add"), label: t.layout.addGoalFab };
   }
 
   return (

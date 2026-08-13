@@ -68,18 +68,27 @@ Ini list yang dikasih user buat update berikutnya, urutan bebas:
    `HabitCompleteToggle.tsx`). **Checkpoint 19: SEMUA layar habit JUGA
    UDAH full ditranslate** (`app/habit/[id].tsx`, `app/habit/add.tsx`,
    `HabitColorPicker.tsx`, `HabitIconPicker.tsx`, `HabitHeatmap.tsx`).
+   **Checkpoint 20: SEMUA layar goal/tabungan + tab bar label JUGA UDAH
+   full ditranslate** (`app/goal/[id].tsx`, `app/goal/add.tsx`,
+   `app/(tabs)/goals.tsx`, `GoalCard.tsx`, `TransactionRow.tsx`,
+   `TabMeta.ts`, `MaterialNavigationBar.tsx`, FAB label di `app/(tabs)
+   /_layout.tsx`). **TERNYATA gak ada `app/(tabs)/target.tsx`** — tab
+   "Target" itu cuma LABEL (dari `TAB_META`/`t.tabs.goals`), route-nya
+   tetap `goals.tsx`, bukan file terpisah kayak dugaan checkpoint 19.
    **File LAIN yang MASIH hardcoded Bahasa Indonesia, belum disentuh**
    (checklist buat checkpoint lanjutan, urutan bebas):
-   - `app/goal/*` (`[id].tsx` + `add.tsx`), `app/(tabs)/goals.tsx`,
-     `app/(tabs)/target.tsx` (belum dicek detail — kemungkinan
-     `target.tsx` cuma alias/re-export dari `goals.tsx`, cek dulu)
    - `app/(tabs)/history.tsx` + `src/components/HabitConsistencyHeatmap
-     .tsx` + `src/components/TransactionRow.tsx` — **INI YANG MASIH
-     MANGGIL `buildHabitConsistencyHeatmap`/`buildHeatmapWeeks` TANPA
-     argumen `language`** (default `"id"` di util-nya nahan behavior
-     lama, JANGAN dihapus default itu sebelum file-file ini beneran
-     dimigrasiin — lihat lesson checkpoint 18 soal jaga 2 versi paralel,
-     prinsip yang sama masih berlaku)
+     .tsx` — **INI YANG MASIH MANGGIL
+     `buildHabitConsistencyHeatmap`/`buildHeatmapWeeks` TANPA argumen
+     `language`** (default `"id"` di util-nya nahan behavior lama,
+     JANGAN dihapus default itu sebelum file ini beneran dimigrasiin —
+     lihat lesson checkpoint 18 soal jaga 2 versi paralel, prinsip yang
+     sama masih berlaku). `TransactionRow.tsx` yang dirender DI DALEM
+     `history.tsx` JUSTRU UDAH ikut ke-translate dari checkpoint 20 (dia
+     komponen React yang manggil `useTranslation()` sendiri, otomatis
+     reaktif ke bahasa aktif) — jadi `history.tsx` bakal keliatan
+     CAMPURAN (row transaksi udah ganti bahasa, sisa layar belum) sampe
+     file ini sendiri dimigrasiin.
    - Notifikasi terjadwal (`src/utils/notifications.ts`) — teks
      notifikasi native
    - Widget Android (Kotlin/Jetpack Glance, `modules/expo-home-widgets/`)
@@ -264,8 +273,46 @@ bertahap.
   ini, `WEEKDAY_LABELS_SHORT` (versi lama, Indonesia-only) UDAH GAK ADA
   pemakainya sama sekali — DIHAPUS TOTAL dari `utils/date.ts` (beda dari
   checkpoint 18 yang SENGAJA mempertahankannya buat file ini persis).
+- **20** (i18n layar goal + tab bar): `app/goal/[id].tsx`,
+  `app/goal/add.tsx`, `app/(tabs)/goals.tsx`, `GoalCard.tsx`,
+  `TransactionRow.tsx` full ditranslate. Nambah namespace
+  `goalsList.*`/`goalCard.*`/`goalDetail.*`/`goalForm.*`/`transaction.*`
+  di kamus. **Ketemu bonus scope yang gak kecatet sebelumnya**: label
+  tab bar (Hari ini/Target/Histori/Pengaturan) ternyata hardcoded
+  terpisah di `TabMeta.ts` (dipake `MaterialNavigationBar.tsx`), BUKAN
+  dari `options={{title}}` di `_layout.tsx` (yang itu masih Inggris &
+  gak kepake buat display, cuma metadata React Navigation) — nambah
+  namespace `tabs.*`. `TabMeta.ts` di-strip field `label`-nya, sekarang
+  cuma nyimpen icon; label di-lookup dari `t.tabs[route.name]` langsung
+  di `MaterialNavigationBar.tsx`. Sekalian translate FAB accessibility
+  label ("Tambah habit baru"/"Tambah goal tabungan baru") di
+  `app/(tabs)/_layout.tsx`. `TransactionRow.tsx` (dirender juga di
+  `history.tsx` yang BELUM dimigrasi) jadi language-aware lewat
+  `useTranslation()` LANGSUNG di komponennya sendiri (bukan default
+  parameter kayak util function) — karena dia komponen React beneran,
+  otomatis reaktif ke bahasa aktif tanpa perlu "versi lama vs baru"
+  kayak kasus util `buildHeatmapWeeks`. Nambah
+  `formatTransactionTimestamp(epochMs, language)` di `utils/date.ts`
+  (ganti `toLocaleDateString("id-ID", ...)` yang lama, konsisten sama
+  alasan hindari Intl/ICU yang udah didokumentasiin).
 
 ## Hard-won technical lessons
+
+- **Komponen React vs plain util function butuh strategi BEDA pas migrasi
+  i18n partial**: util function (`buildHeatmapWeeks`, `formatLongDate`,
+  dst) gak punya akses hook, jadi butuh parameter `language` eksplisit +
+  default `"id"` biar caller yang belum dimigrasi tetep jalan kayak
+  sebelumnya (lihat lesson checkpoint 18). Komponen React (`TransactionRow
+  .tsx`, `GoalCard.tsx`) BEDA — dia bisa manggil `useTranslation()`
+  LANGSUNG sendiri, otomatis dapet bahasa aktif TERKINI, gak butuh
+  parameter/default sama sekali. Efeknya: begitu komponen kayak gini
+  dimigrasi, dia langsung reaktif ke toggle bahasa DI MANA PUN dia
+  dirender — termasuk di layar yang BELUM dimigrasi (`history.tsx`
+  render `TransactionRow` yang udah bilingual, sementara teks lain di
+  layar itu masih Indonesia doang). Ini BUKAN bug, cuma efek samping
+  yang diharapkan dari migrasi bertahap — tapi kalau ketemu layar
+  "campuran bahasa" kayak gini pas testing, cek dulu apa itu emang pola
+  ini sebelum dianggep salah.
 
 - **Migrasi i18n PARSIAL (per-checkpoint) butuh nge-jaga 2 versi data
   paralel buat sementara**: pas cuma SEBAGIAN file yang dimigrasiin ke

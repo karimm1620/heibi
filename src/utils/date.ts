@@ -76,6 +76,17 @@ export function formatTimeOfDay(epochMs: number): string {
   return `${h}:${m}`;
 }
 
+/**
+ * "3 Agu 2026, 14:05" -- dipake `TransactionRow.tsx`. Sengaja BUKAN
+ * `toLocaleDateString`/`Intl` (dukungan ICU locale Hermes gak konsisten di
+ * semua build Android, sama alasan kayak `formatLongDate`).
+ */
+export function formatTransactionTimestamp(epochMs: number, language: Language = "id"): string {
+  const date = new Date(epochMs);
+  const month = MONTHS_SHORT_BY_LANGUAGE[language][date.getMonth()];
+  return `${date.getDate()} ${month} ${date.getFullYear()}, ${formatTimeOfDay(epochMs)}`;
+}
+
 export const ALL_WEEKDAYS_MASK: WeekdaysMask = 0b1111111; // 127 — semua hari
 
 export function isWeekdaySelected(

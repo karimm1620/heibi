@@ -12,6 +12,7 @@ import {
 import { GlassCard } from "../../src/components/GlassCard";
 import { GoalCard } from "../../src/components/GoalCard";
 import { useDragReorder } from "../../src/hooks/useDragReorder";
+import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
 import { spacing } from "../../src/theme/colors";
 import { useTheme } from "../../src/theme/useTheme";
@@ -20,20 +21,21 @@ import { clampPercent, formatIDR } from "../../src/utils/currency";
 
 type SortOption = "newest" | "closest" | "az";
 
-const SORT_OPTIONS: { key: SortOption; label: string }[] = [
-  { key: "newest", label: "Terbaru" },
-  { key: "closest", label: "Terdekat" },
-  { key: "az", label: "A-Z" },
-];
-
 const DEFAULT_ROW_HEIGHT = 112;
 
 export default function GoalsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, typography, isDark } = useTheme();
+  const { t, interpolate } = useTranslation();
   const goals = useGoalsStore((state) => state.goals);
   const reorderGoals = useGoalsStore((state) => state.reorderGoals);
+
+  const SORT_OPTIONS: { key: SortOption; label: string }[] = [
+    { key: "newest", label: t.goalsList.sortNewest },
+    { key: "closest", label: t.goalsList.sortClosest },
+    { key: "az", label: t.goalsList.sortAZ },
+  ];
 
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [showCompletedOnly, setShowCompletedOnly] = useState(false);
@@ -126,8 +128,8 @@ export default function GoalsScreen() {
       >
         <View style={styles.header}>
           <View>
-            <Text style={typography.caption}>Total tabungan</Text>
-            <Text style={styles.headerTitle}>Tabungan-ku</Text>
+            <Text style={typography.caption}>{t.goalsList.totalSavingsLabel}</Text>
+            <Text style={styles.headerTitle}>{t.goalsList.headerTitle}</Text>
           </View>
         </View>
 
@@ -138,7 +140,10 @@ export default function GoalsScreen() {
         >
           <Text style={styles.summaryAmount}>{formatIDR(totalSaved)}</Text>
           <Text style={styles.summaryTarget}>
-            dari total target {formatIDR(totalTarget)} • {goals.length} goal
+            {interpolate(t.goalsList.summaryTargetSuffix, {
+              target: formatIDR(totalTarget),
+              count: goals.length,
+            })}
           </Text>
         </GlassCard>
 
@@ -150,15 +155,15 @@ export default function GoalsScreen() {
                 label={option.label}
                 selected={sortOption === option.key}
                 onPress={() => setSortOption(option.key)}
-                accessibilityLabel={`Urutkan berdasarkan ${option.label}`}
+                accessibilityLabel={interpolate(t.goalsList.sortAccessibilityLabel, { label: option.label })}
               />
             ))}
             <View style={styles.androidChipDivider} />
             <Chip
-              label="Selesai"
+              label={t.goalsList.completedChip}
               selected={showCompletedOnly}
               onPress={() => setShowCompletedOnly((prev) => !prev)}
-              accessibilityLabel="Filter goal yang sudah selesai"
+              accessibilityLabel={t.goalsList.completedFilterAccessibilityLabel}
             />
           </View>
         )}
@@ -168,15 +173,15 @@ export default function GoalsScreen() {
             icon={showCompletedOnly ? "party-popper" : "piggy-bank-outline"}
             title={
               showCompletedOnly
-                ? "Belum ada goal yang selesai"
-                : "Belum ada goal tabungan"
+                ? t.goalsList.emptyCompletedTitle
+                : t.goalsList.emptyTitle
             }
             description={
               showCompletedOnly
-                ? "Terus nabung sampai salah satu goal-mu mencapai 100%."
-                : "Mulai nabung untuk wishlist pertamamu."
+                ? t.goalsList.emptyCompletedDescription
+                : t.goalsList.emptyDescription
             }
-            ctaLabel={showCompletedOnly ? "Lihat semua goal" : "Tambah Goal"}
+            ctaLabel={showCompletedOnly ? t.goalsList.viewAllCta : t.goalsList.addGoalCta}
             onPressCta={
               showCompletedOnly
                 ? () => setShowCompletedOnly(false)
@@ -212,7 +217,7 @@ export default function GoalsScreen() {
                     style={styles.dragHandle}
                     hitSlop={8}
                     accessibilityRole="adjustable"
-                    accessibilityLabel={`Geser buat urutan ulang ${item.name}`}
+                    accessibilityLabel={interpolate(t.goalsList.reorderAccessibilityLabel, { name: item.name })}
                   >
                     <MaterialCommunityIcons
                       name="drag-vertical"

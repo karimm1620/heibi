@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 import { getAccentColors, radius, spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 import type { Goal } from "../types";
@@ -14,6 +15,7 @@ interface GoalCardProps {
 
 export function GoalCard({ goal, onPress }: GoalCardProps) {
   const { colors, typography } = useTheme();
+  const { t, interpolate } = useTranslation();
   const accent = getAccentColors(goal.accent);
   const percent = clampPercent(goal.currentAmount, goal.targetAmount);
   const styles = useMemo(
@@ -27,7 +29,12 @@ export function GoalCard({ goal, onPress }: GoalCardProps) {
       style={styles.pressable}
       android_ripple={{ color: colors.glassBorder }}
       accessibilityRole="button"
-      accessibilityLabel={`${goal.name}, ${formatIDR(goal.currentAmount)} dari ${formatIDR(goal.targetAmount)}, ${Math.round(percent * 100)} persen tercapai`}
+      accessibilityLabel={interpolate(t.goalCard.accessibilityLabel, {
+        name: goal.name,
+        current: formatIDR(goal.currentAmount),
+        target: formatIDR(goal.targetAmount),
+        percent: Math.round(percent * 100),
+      })}
     >
       <GlassCard style={styles.card}>
         <View style={styles.row}>

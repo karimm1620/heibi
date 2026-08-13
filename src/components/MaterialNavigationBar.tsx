@@ -7,12 +7,14 @@ import { m3ElevationStyle, m3Motion, m3Shape } from "../theme/material3/tokens";
 import { withOpacity } from "../theme/colors";
 import { buildM3FullTypeScale } from "../theme/material3/typography";
 import { useTheme } from "../theme/useTheme";
+import { useTranslation } from "../hooks/useTranslation";
 import { TAB_META } from "./TabMeta";
 
 export const MATERIAL_NAV_BAR_HEIGHT = 80;
 
 export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) {
   const { colors, material3 } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   // buildM3FullTypeScale menghitung 15 role sekaligus — di-memo biar gak
@@ -58,10 +60,8 @@ export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) 
     >
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
-        const meta = TAB_META[route.name] ?? {
-          icon: "help-circle-outline" as const,
-          label: route.name,
-        };
+        const meta = TAB_META[route.name] ?? { icon: "help-circle-outline" as const };
+        const label = t.tabs[route.name as keyof typeof t.tabs] ?? route.name;
         const iconName = isFocused ? (meta.iconActive ?? meta.icon) : meta.icon;
 
         const onPress = () => {
@@ -86,7 +86,7 @@ export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) 
             onPress={onPress}
             style={styles.tab}
             accessibilityRole="tab"
-            accessibilityLabel={meta.label}
+            accessibilityLabel={label}
             accessibilityState={{ selected: isFocused }}
             android_ripple={{
               color: withOpacity(material3.onSurfaceVariant, 0.12),
@@ -140,7 +140,7 @@ export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) 
                 },
               ]}
             >
-              {meta.label}
+              {label}
             </Text>
           </Pressable>
         );

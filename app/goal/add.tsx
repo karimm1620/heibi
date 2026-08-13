@@ -14,6 +14,7 @@ import {
 import { AppAlert } from "../../src/components/AppAlert";
 import { EmojiPicker } from "../../src/components/EmojiPicker";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
+import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
 import { accentByKey, radius, spacing, withOpacity } from "../../src/theme/colors";
 import { m3Shape } from "../../src/theme/material3/tokens";
@@ -30,6 +31,7 @@ export default function AddGoalScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
   const { colors, typography, isDark, material3 } = useTheme();
+  const { t } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
 
   const goal = useGoalsStore((state) =>
@@ -91,12 +93,9 @@ export default function AddGoalScreen() {
       }
     } catch (error) {
       if (error instanceof ImagePermissionDeniedError) {
-        showAlert(
-          "Izin diperlukan",
-          "Aplikasi butuh akses galeri untuk memilih gambar goal. Aktifkan izin di pengaturan device.",
-        );
+        showAlert(t.goalForm.permissionRequiredTitle, t.goalForm.permissionRequiredMessage);
       } else {
-        showAlert("Gagal memilih gambar", "Coba lagi beberapa saat lagi.");
+        showAlert(t.goalForm.pickImageErrorTitle, t.goalForm.pickImageErrorMessage);
       }
     } finally {
       setPickerBusy(false);
@@ -108,14 +107,11 @@ export default function AddGoalScreen() {
     const amount = parseThousands(targetDisplay);
 
     if (!trimmedName) {
-      showAlert("Nama goal kosong", "Kasih nama dulu buat goal tabunganmu.");
+      showAlert(t.goalForm.emptyNameTitle, t.goalForm.emptyNameMessage);
       return;
     }
     if (amount <= 0) {
-      showAlert(
-        "Target belum diisi",
-        "Masukkan target nominal yang mau dicapai.",
-      );
+      showAlert(t.goalForm.emptyTargetTitle, t.goalForm.emptyTargetMessage);
       return;
     }
 
@@ -231,14 +227,14 @@ export default function AddGoalScreen() {
         style={styles.container}
         contentContainerStyle={styles.content}
       >
-        <Text style={styles.label}>Gambar / Ikon</Text>
+        <Text style={styles.label}>{t.goalForm.imageLabel}</Text>
         <View style={styles.imageRow}>
           <Pressable
             onPress={handlePickImage}
             disabled={pickerBusy}
             style={styles.imagePicker}
             accessibilityRole="button"
-            accessibilityLabel="Pilih gambar goal dari galeri"
+            accessibilityLabel={t.goalForm.pickImageAccessibilityLabel}
             android_ripple={{ color: colors.glassBorder }}
           >
             {imageUri ? (
@@ -252,7 +248,7 @@ export default function AddGoalScreen() {
                   size={24}
                   color={colors.textSecondary}
                 />
-                <Text style={styles.imagePickerText}>Upload</Text>
+                <Text style={styles.imagePickerText}>{t.goalForm.uploadLabel}</Text>
               </>
             )}
           </Pressable>
@@ -261,10 +257,10 @@ export default function AddGoalScreen() {
               onPress={() => setImageUri(undefined)}
               style={styles.removeImageBtn}
               accessibilityRole="button"
-              accessibilityLabel="Hapus gambar, pakai emoji sebagai gantinya"
+              accessibilityLabel={t.goalForm.removeImageAccessibilityLabel}
             >
               <Text style={styles.removeImageText}>
-                Hapus gambar, pakai emoji
+                {t.goalForm.removeImageLabel}
               </Text>
             </Pressable>
           ) : null}
@@ -272,21 +268,21 @@ export default function AddGoalScreen() {
 
         {!imageUri && (
           <>
-            <Text style={styles.label}>Atau pilih emoji</Text>
+            <Text style={styles.label}>{t.goalForm.emojiLabel}</Text>
             <EmojiPicker selected={emoji} onSelect={setEmoji} />
           </>
         )}
 
-        <Text style={styles.label}>Nama Goal</Text>
+        <Text style={styles.label}>{t.goalForm.nameLabel}</Text>
         <TextInput
           value={name}
           onChangeText={setName}
-          placeholder="Misal: iPhone 17, Liburan ke Bali"
+          placeholder={t.goalForm.namePlaceholder}
           placeholderTextColor={colors.textSecondary}
           style={styles.input}
         />
 
-        <Text style={styles.label}>Target Nominal</Text>
+        <Text style={styles.label}>{t.goalForm.targetLabel}</Text>
         <View style={styles.currencyInputWrap}>
           <Text style={styles.currencyPrefix}>Rp</Text>
           <TextInput
@@ -304,12 +300,12 @@ export default function AddGoalScreen() {
           style={styles.saveButton}
           accessibilityRole="button"
           accessibilityLabel={
-            isEditMode ? "Simpan perubahan goal" : "Buat goal baru"
+            isEditMode ? t.goalForm.saveAccessibilityEdit : t.goalForm.saveAccessibilityCreate
           }
           android_ripple={{ color: withOpacity(material3.onPrimary, 0.24) }}
         >
           <Text style={styles.saveButtonText}>
-            {isEditMode ? "Simpan Perubahan" : "Buat Goal"}
+            {isEditMode ? t.goalForm.saveButtonEdit : t.goalForm.saveButtonCreate}
           </Text>
         </Pressable>
       </ScrollView>

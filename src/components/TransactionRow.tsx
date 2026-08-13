@@ -1,10 +1,12 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 import { radius, spacing, withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 import type { Transaction } from "../types";
 import { formatIDR } from "../utils/currency";
+import { formatTransactionTimestamp } from "../utils/date";
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -12,19 +14,9 @@ interface TransactionRowProps {
   goalName?: string;
 }
 
-function formatDate(timestamp: number): string {
-  const date = new Date(timestamp);
-  return date.toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export function TransactionRow({ transaction, goalName }: TransactionRowProps) {
   const { colors, typography } = useTheme();
+  const { t, language } = useTranslation();
   const isDeposit = transaction.type === "deposit";
   const color = isDeposit ? colors.deposit : colors.withdraw;
   const sign = isDeposit ? "+" : "-";
@@ -41,7 +33,7 @@ export function TransactionRow({ transaction, goalName }: TransactionRowProps) {
       </View>
       <View style={styles.info}>
         <Text style={styles.title}>
-          {isDeposit ? "Menabung" : "Menarik tabungan"}
+          {isDeposit ? t.transaction.deposit : t.transaction.withdraw}
         </Text>
         {goalName ? <Text style={styles.goalName}>{goalName}</Text> : null}
         {transaction.note ? (
@@ -49,7 +41,7 @@ export function TransactionRow({ transaction, goalName }: TransactionRowProps) {
             {transaction.note}
           </Text>
         ) : null}
-        <Text style={styles.date}>{formatDate(transaction.createdAt)}</Text>
+        <Text style={styles.date}>{formatTransactionTimestamp(transaction.createdAt, language)}</Text>
       </View>
       <Text style={[styles.amount, { color }]}>
         {sign} {formatIDR(transaction.amount)}

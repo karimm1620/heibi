@@ -19,6 +19,7 @@ import { JarProgress } from "../../src/components/JarProgress";
 import { TransactionRow } from "../../src/components/TransactionRow";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useSheetMotion } from "../../src/hooks/useSheetMotion";
+import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
 import {
   getAccentColors,
@@ -28,7 +29,7 @@ import {
 } from "../../src/theme/colors";
 import { m3ElevationStyle, m3Shape } from "../../src/theme/material3/tokens";
 import { useTheme } from "../../src/theme/useTheme";
-import { formatThousands, parseThousands } from "../../src/utils/currency";
+import { formatIDR, formatThousands, parseThousands } from "../../src/utils/currency";
 
 type ActionType = "deposit" | "withdraw" | null;
 
@@ -37,6 +38,7 @@ export default function GoalDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, typography, isDark } = useTheme();
+  const { t, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
 
   const goal = useGoalsStore((state) => state.getGoalById(id));
@@ -245,9 +247,9 @@ export default function GoalDetailScreen() {
       >
         <EmptyState
           icon="magnify-close"
-          title="Goal tidak ditemukan"
-          description="Goal ini mungkin sudah dihapus."
-          ctaLabel="Kembali"
+          title={t.goalDetail.notFoundTitle}
+          description={t.goalDetail.notFoundDescription}
+          ctaLabel={t.goalDetail.backCta}
           onPressCta={() => router.back()}
         />
       </View>
@@ -257,7 +259,7 @@ export default function GoalDetailScreen() {
   const handleConfirm = async () => {
     const amount = parseThousands(amountDisplay);
     if (amount <= 0) {
-      showAlert("Jumlah belum diisi", "Masukkan nominal yang valid.");
+      showAlert(t.goalDetail.emptyAmountTitle, t.goalDetail.emptyAmountMessage);
       return;
     }
 
@@ -271,7 +273,7 @@ export default function GoalDetailScreen() {
         note.trim() || undefined,
       );
       if (!result.ok) {
-        showAlert("Tidak bisa menarik", result.error ?? "Terjadi kesalahan.");
+        showAlert(t.goalDetail.withdrawErrorTitle, result.error ?? t.goalDetail.withdrawErrorFallback);
         return;
       }
       closeSheet();
@@ -280,12 +282,12 @@ export default function GoalDetailScreen() {
 
   const handleDelete = () => {
     showAlert(
-      "Hapus goal?",
-      `"${goal.name}" akan dihapus. Kamu masih bisa "Undo" beberapa detik setelah ini.`,
+      t.goalDetail.deleteConfirmTitle,
+      interpolate(t.goalDetail.deleteConfirmMessage, { name: goal.name }),
       [
-        { label: "Batal", style: "cancel" },
+        { label: t.common.cancel, style: "cancel" },
         {
-          label: "Hapus",
+          label: t.common.delete,
           style: "destructive",
           onPress: async () => {
             await deleteGoal(goal.id);
@@ -318,19 +320,19 @@ export default function GoalDetailScreen() {
             style={[styles.actionButton, { backgroundColor: colors.deposit }]}
             onPress={() => setAction("deposit")}
             accessibilityRole="button"
-            accessibilityLabel="Nabung ke goal ini"
+            accessibilityLabel={t.goalDetail.depositAccessibilityLabel}
             android_ripple={{ color: withOpacity(colors.textInverse, 0.24) }}
           >
-            <Text style={styles.actionButtonText}>+ Nabung</Text>
+            <Text style={styles.actionButtonText}>{t.goalDetail.depositButton}</Text>
           </Pressable>
           <Pressable
             style={[styles.actionButton, { backgroundColor: colors.withdraw }]}
             onPress={() => setAction("withdraw")}
             accessibilityRole="button"
-            accessibilityLabel="Tarik tabungan dari goal ini"
+            accessibilityLabel={t.goalDetail.withdrawAccessibilityLabel}
             android_ripple={{ color: withOpacity(colors.textInverse, 0.24) }}
           >
-            <Text style={styles.actionButtonText}>- Tarik</Text>
+            <Text style={styles.actionButtonText}>{t.goalDetail.withdrawButton}</Text>
           </Pressable>
         </View>
 
@@ -338,29 +340,29 @@ export default function GoalDetailScreen() {
           <Pressable
             onPress={() => router.push(`/goal/add?id=${goal.id}`)}
             accessibilityRole="button"
-            accessibilityLabel="Edit goal ini"
+            accessibilityLabel={t.goalDetail.editAccessibilityLabel}
           >
             <Text style={[styles.metaLink, { color: colors.textSecondary }]}>
-              Edit goal
+              {t.goalDetail.editLink}
             </Text>
           </Pressable>
           <Pressable
             onPress={handleDelete}
             accessibilityRole="button"
-            accessibilityLabel="Hapus goal ini"
+            accessibilityLabel={t.goalDetail.deleteAccessibilityLabel}
           >
             <Text style={[styles.metaLink, { color: colors.danger }]}>
-              Hapus goal
+              {t.goalDetail.deleteLink}
             </Text>
           </Pressable>
         </View>
 
-        <Text style={styles.sectionTitle}>History</Text>
+        <Text style={styles.sectionTitle}>{t.goalDetail.historySection}</Text>
         {transactions.length === 0 ? (
           <EmptyState
             icon="sprout"
-            title="Belum ada transaksi"
-            description="Mulai nabung untuk lihat progress-nya di sini."
+            title={t.goalDetail.emptyTransactionsTitle}
+            description={t.goalDetail.emptyTransactionsDescription}
           />
         ) : (
           transactions.map((tx) => (
@@ -400,12 +402,11 @@ export default function GoalDetailScreen() {
               {...dragHandlers}
             />
             <Text style={styles.modalTitle}>
-              {action === "deposit" ? "Nabung ke goal ini" : "Tarik tabungan"}
+              {action === "deposit" ? t.goalDetail.sheetTitleDeposit : t.goalDetail.sheetTitleWithdraw}
             </Text>
             {action === "withdraw" && (
               <Text style={styles.modalHint}>
-                Saldo tersedia:{" "}
-                {new Intl.NumberFormat("id-ID").format(goal.currentAmount)}
+                {interpolate(t.goalDetail.availableBalance, { amount: formatIDR(goal.currentAmount) })}
               </Text>
             )}
 
@@ -425,7 +426,7 @@ export default function GoalDetailScreen() {
             <TextInput
               value={note}
               onChangeText={setNote}
-              placeholder="Catatan (opsional)"
+              placeholder={t.goalDetail.notePlaceholder}
               placeholderTextColor={colors.textSecondary}
               style={styles.noteInput}
             />
@@ -435,10 +436,10 @@ export default function GoalDetailScreen() {
                 onPress={closeSheet}
                 style={[styles.modalButton, styles.modalButtonGhost]}
                 accessibilityRole="button"
-                accessibilityLabel="Batalkan"
+                accessibilityLabel={t.goalDetail.cancelAccessibilityLabel}
                 android_ripple={{ color: colors.glassBorder }}
               >
-                <Text style={styles.modalButtonGhostText}>Batal</Text>
+                <Text style={styles.modalButtonGhostText}>{t.common.cancel}</Text>
               </Pressable>
               <Pressable
                 onPress={handleConfirm}
@@ -450,10 +451,10 @@ export default function GoalDetailScreen() {
                   },
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel="Konfirmasi transaksi"
+                accessibilityLabel={t.goalDetail.confirmAccessibilityLabel}
                 android_ripple={{ color: withOpacity(colors.textInverse, 0.24) }}
               >
-                <Text style={styles.actionButtonText}>Konfirmasi</Text>
+                <Text style={styles.actionButtonText}>{t.goalDetail.confirmButton}</Text>
               </Pressable>
             </View>
           </Animated.View>
