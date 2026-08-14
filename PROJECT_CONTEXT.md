@@ -36,6 +36,7 @@ nyesuaiin otomatis sama wallpaper device).
 ## Status sekarang (per commit `478d14c "12 ripple drag fix and saweria"`)
 
 Checkpoint "Production Quality" **sebagian besar udah kelar**:
+
 - ✅ App icon baru (jar+checkmark, semua varian Android) — **TAPI lihat
   bagian "Next update" di bawah, mau di-redesign ULANG, icon ini mau dibuang**
 - ✅ Signing config (otomatis lewat EAS, gak perlu setup manual)
@@ -52,6 +53,7 @@ Checkpoint "Production Quality" **sebagian besar udah kelar**:
 ## Next update (BELUM DIKERJAIN — rencana ke depan)
 
 Ini list yang dikasih user buat update berikutnya, urutan bebas:
+
 1. Fix widget row lebar — cuma nampilin 5 row, harusnya 14
 2. Fix widget kecil — cuma nampilin 5 row, harusnya 7
 3. ~~UI update~~ — **SEBAGIAN KELAR di Checkpoint 16**: progress card
@@ -64,7 +66,7 @@ Ini list yang dikasih user buat update berikutnya, urutan bebas:
    Settings screen (termasuk `ReminderCard.tsx`) UDAH full ditranslate +
    toggle bahasa udah bisa dipake. **Checkpoint 18: Today screen +
    kalender + history sheet JUGA UDAH full ditranslate** (`app/(tabs)
-   /index.tsx`, `WeekCalendarStrip.tsx`, `DayHistorySheet.tsx`,
+/index.tsx`, `WeekCalendarStrip.tsx`, `DayHistorySheet.tsx`,
    `HabitCompleteToggle.tsx`). **Checkpoint 19: SEMUA layar habit JUGA
    UDAH full ditranslate** (`app/habit/[id].tsx`, `app/habit/add.tsx`,
    `HabitColorPicker.tsx`, `HabitIconPicker.tsx`, `HabitHeatmap.tsx`).
@@ -72,7 +74,7 @@ Ini list yang dikasih user buat update berikutnya, urutan bebas:
    full ditranslate** (`app/goal/[id].tsx`, `app/goal/add.tsx`,
    `app/(tabs)/goals.tsx`, `GoalCard.tsx`, `TransactionRow.tsx`,
    `TabMeta.ts`, `MaterialNavigationBar.tsx`, FAB label di `app/(tabs)
-   /_layout.tsx`). **TERNYATA gak ada `app/(tabs)/target.tsx`** — tab
+/_layout.tsx`). **TERNYATA gak ada `app/(tabs)/target.tsx`** — tab
    "Target" itu cuma LABEL (dari `TAB_META`/`t.tabs.goals`), route-nya
    tetap `goals.tsx`, bukan file terpisah kayak dugaan checkpoint 19.
    **Checkpoint 22: `app/(tabs)/history.tsx` + notifikasi terjadwal JUGA
@@ -88,26 +90,36 @@ Ini list yang dikasih user buat update berikutnya, urutan bebas:
    (buat animasi completion habit, lihat item baru di "Brief history").
    Awalnya SCOPED (Checkpoint 14: cuma buat completion animation,
    `Swipeable` klasik + PanResponder drag-reorder disebut TETAP
-   dipertahankan) — **TAPI scope itu udah RESMI DIPERLUAS di Checkpoint
-   16**: `SwipeableRow.tsx` sekarang pindah ke `ReanimatedSwipeable`
-   (masih GH v2.32 yang SAMA, cuma beda subpath import, BUKAN bump ke
-   v3 — lihat lesson baru di bawah). Alasannya: `Swipeable` klasik emang
-   udah deprecated dari dalem v2.x sendiri (nge-warn di console), bikin
-   kerasa "disuruh update terus" walau app-nya gak ketinggalan versi
-   beneran. **PanResponder drag-reorder (`useDragReorder.ts`) MASIH belum
-   disentuh** — itu keputusan terpisah lagi kalau mau dimigrasiin juga.
-6. Improvement & scalability biar APK jalan mulus
-7. **Redesign icon app dari NOL** — user eksplisit bilang JANGAN pakai
+   dipertahankan) — scope itu SEMPET DIPERLUAS di Checkpoint 16
+   (`SwipeableRow.tsx` pindah ke `ReanimatedSwipeable`) — **TAPI
+   DI-REVERT LAGI di Checkpoint 23**: ketauan `ReanimatedSwipeable` di
+   GH `2.32.0` (versi yang kepasang SEKARANG) kena bug KONFIRMASI
+   upstream (issue #3223 GH) — tombol aksi hasil swipe GAK BISA DI-TEKEN
+   sama sekali di Android. Fix resminya (PR #4192) baru merged ke `main`
+   16 Juni 2026, TAPI `2.32.0` di-publish 11 Juni 2026 (5 hari SEBELUM
+   fix), dan belum ada `2.32.x` patch yang bawa fix itu balik — baru
+   masuk di seri v3.x yang PROJECT INI SENGAJA GAK MAU BUMP (belum
+   ke-test Expo buat SDK 57). **`SwipeableRow.tsx` SEKARANG BALIK ke
+   `Swipeable` klasik lagi** (lihat lesson detail di bawah). Konsekuensi:
+   warning deprecation di console balik lagi — COSMETIC doang, gak
+   ngaruh ke user, prioritas jauh lebih rendah dari swipe action yang
+   beneran jalan. **JANGAN migrasi ulang ke `ReanimatedSwipeable` tanpa
+   ngecek changelog GH dulu apa bug #3223 udah kepatch di versi yang mau
+   dipake.** PanResponder drag-reorder (`useDragReorder.ts`) MASIH belum
+   disentuh — itu keputusan terpisah lagi kalau mau dimigrasiin juga.
+6. Tambahain button kecil pilihan bahasa di onboarding biar user bisa langsung milih bahasa (english/indonesia) di awal pertama kali masuk aplikasi.
+7. Improvement & scalability biar APK jalan mulus
+8. **Redesign icon app dari NOL** — user eksplisit bilang JANGAN pakai
    desain/warna icon yang sekarang (jar+checkmark lavender/mint), dan
    **JANGAN AI slop** — icon harus representasiin 3 pilar app ini (habits,
    todo, savings) dengan cara yang keliatan niat/dipikirin, bukan generik.
    Icon yang ada sekarang (dibikin Checkpoint 8, SVG vector manual, bukan
    AI-generated) mau DIBUANG TOTAL, bukan di-iterasi.
-8. Kurangin ukuran APK.
+9. Kurangin ukuran APK.
 
 ## Brief history (checkpoint-by-checkpoint)
 
-*Sebelum PROJECT_CONTEXT.md ini dibikin (riwayat dari sesi-sesi sebelumnya):*
+_Sebelum PROJECT_CONTEXT.md ini dibikin (riwayat dari sesi-sesi sebelumnya):_
 Migrasi AsyncStorage → expo-sqlite (source of truth, Zustand jadi reactive
 cache doang), habit tracker penuh (streak, heatmap ala GitHub, swipe
 actions, drag reorder, notifikasi per-habit), Home Screen Widget (Jetpack
@@ -116,14 +128,15 @@ redesign total (dynamic color dari wallpaper, typography, nav bar, FAB,
 motion system — Android doang, iOS gak disentuh), upgrade SDK 54→57
 bertahap.
 
-*Checkpoint "Production Quality" (sesi-sesi berikutnya, bernomor):*
+_Checkpoint "Production Quality" (sesi-sesi berikutnya, bernomor):_
+
 - **6** (beberapa sub-item, di-nomorin 6:1 sampai 6:6): fix background putih
   di card Habits & Tugas; fix ripple tab warna aneh pas transisi (root cause
   pertama — `borderless:true` di `android_ripple` MaterialNavigationBar);
   custom reminder time picker (pakai `@expo/ui/community/datetime-picker`,
   native M3 TimePickerDialog Android, BUKAN `@react-native-community
-  /datetimepicker`); predictive back gesture — **dimatiin** (`predictiveBack
-  GestureEnabled: false`) karena react-native-screens v4 gak support &
+/datetimepicker`); predictive back gesture — **dimatiin** (`predictiveBack
+GestureEnabled: false`) karena react-native-screens v4 gak support &
   beresiko break tombol back di Android 16 kalau dinyalain; standarisasi
   empty state (icon MCI + title + deskripsi 1 baris + CTA opsional); ganti
   semua emoji UI (kecuali EmojiPicker & konten `goal.emoji` pilihan user)
@@ -156,17 +169,16 @@ bertahap.
   4 komponen (`MaterialNavigationBar.tsx`, `Fab.tsx`, `EmptyState.tsx`,
   `Chip.tsx`) pakai pendekatan ripple color alpha 0.12. Restructure BESAR
   `useDragReorder.ts` — root cause lag "nyangkut" ternyata `PanResponder
-  .create()` dipanggil ULANG tiap render (dipanggil langsung di body render
+.create()` dipanggil ULANG tiap render (dipanggil langsung di body render
   tiap item list), bukan cuma buat item yang lagi di-drag — di-cache per
   key sekarang. Sekalian fix bug "item lompat posisi kalau kepencet tanpa
   gerak" — `draggingKey` (state yang mindahin item ke render-order paling
   akhir) ditunda sampai gerakan PERTAMA beneran kejadian di
   `onPanResponderMove`, bukan pas timer long-press doang nyala. GitHub card
-  + Saweria donation card ditambahin di Settings.
+  - Saweria donation card ditambahin di Settings.
 
 - **14** (habit completion animation): Nambahin `react-native-reanimated`
-  4.5.1 + `react-native-worklets` 0.10.1 (versi persis bundled Expo SDK
-  57) — SCOPED cuma buat animasi completion habit di Today screen, BUKAN
+  4.5.1 + `react-native-worklets` 0.10.1 (versi persis bundled Expo SDK 57) — SCOPED cuma buat animasi completion habit di Today screen, BUKAN
   migrasi arsitektur penuh (lihat catatan di "Ringkasan project" & lesson
   di bawah). 2 komponen baru: `CelebrationBurst.tsx` (burst radial 6 titik,
   beda dari `CelebrationOverlay.tsx` yang cuma nyala pas SEMUA item hari
@@ -204,7 +216,9 @@ bertahap.
   lagi (misal pas redesign Jar). `SwipeableRow.tsx` pindah dari
   `Swipeable` klasik ke `ReanimatedSwipeable` (import dari subpath
   `react-native-gesture-handler/ReanimatedSwipeable`, default export) —
-  GH TETAP v2.32, gak ada version bump.
+  GH TETAP v2.32, gak ada version bump. **~~DI-REVERT lagi di Checkpoint
+  23~~ karena ternyata kena bug upstream GH yang belum kepatch di 2.32.0
+  — lihat entry Checkpoint 23 & lesson di bawah.**
 - **17** (i18n foundation): `src/i18n/id.ts` (sumber kebenaran struktur,
   `as const` + `DeepStringify` mapped type buat widen literal jadi
   `string`) + `en.ts` (di-type paksa sama struktur, tsc error kalau ada
@@ -218,7 +232,7 @@ bertahap.
   atas Settings. **Sisanya (~36 file lain) BELUM disentuh** — lihat
   checklist detail di "Next update" item 4.
 - **18** (i18n Today screen): `app/(tabs)/index.tsx`, `WeekCalendarStrip
-  .tsx`, `DayHistorySheet.tsx`, `HabitCompleteToggle.tsx` full
+.tsx`, `DayHistorySheet.tsx`, `HabitCompleteToggle.tsx` full
   ditranslate. Nambah key baru di kamus: `today.*`, `habitToggle.*`,
   `calendar.*`, `dayHistory.*`, plus `common.delete`/`edit`/`archive`
   (dipake berkali-kali lintas file, jadi ditaro di `common` bukan
@@ -272,7 +286,7 @@ bertahap.
   bukan di `app/goal/add.tsx`/`app/habit/add.tsx` (yang udah dimigrasi
   Checkpoint 19-20), tapi di **`app/_layout.tsx`** (ROOT layout, beda
   dari `app/(tabs)/_layout.tsx`), di `<Stack.Screen name="goal/add"
-  options={{ title: ... }}>` — title header native Stack itu didefinisi
+options={{ title: ... }}>` — title header native Stack itu didefinisi
   SEKALI di layout, BUKAN dari dalam screen component-nya, jadi kelewat
   pas nyisir file yang "isinya" goal/habit form. Fix: `RootLayoutContent`
   (yang emang udah komponen function, punya akses hook) manggil
@@ -292,8 +306,7 @@ bertahap.
   gak ikut berubah pas ganti bahasa — key yang nempel ke teks
   terjemahan itu rapuh). `(tabs)/_layout.tsx` juga punya beberapa
   `title: "Today"/"Goals"/dst` tapi itu VESTIGIAL (gak pernah
-  ditampilkan, custom tab bar pake `TAB_META`/`t.tabs.*` dari checkpoint
-  20) — sengaja gak disentuh.
+  ditampilkan, custom tab bar pake `TAB_META`/`t.tabs.*` dari checkpoint 20) — sengaja gak disentuh.
 - **22** (i18n History tab + notifikasi — MIGRASI I18N INTI SELESAI):
   `app/(tabs)/history.tsx` + `HabitConsistencyHeatmap.tsx` full
   ditranslate (nambah namespace `history.*`), termasuk akhirnya
@@ -301,7 +314,7 @@ bertahap.
   (sebelumnya default `"id"` doang dari checkpoint 18-20). Notifikasi
   terjadwal (`src/utils/notifications.ts`) juga full ditranslate —
   `REMINDER_COPY` konstanta lama diganti fungsi `getReminderCopy(domain,
-  language)` yang narik dari kamus i18n; `scheduleReminder`/
+language)` yang narik dari kamus i18n; `scheduleReminder`/
   `scheduleHabitReminder` sekarang terima parameter `language` (default
   `"id"` buat backward-compat, walau SEKARANG UDAH GAK ADA caller yang
   masih ngandelin default itu — semua caller ke-update explicit passing
@@ -318,7 +331,54 @@ bertahap.
   widget Android (Kotlin/Jetpack Glance) yang di luar jangkauan i18n JS
   sepenuhnya, belum dikerjain, prioritas rendah.
 
+- **23** (revert SwipeableRow ke Swipeable klasik — BUG FIX): User laporan
+  tombol aksi hasil swipe (Edit/Arsip/Hapus di Habit, Hapus di Todo) GAK
+  BISA DI-TEKEN di Android — nge-reveal tapi `onPress` gak pernah fire.
+  Investigasi nemuin ini BUKAN bug di kode project, tapi bug KONFIRMASI
+  di upstream `react-native-gesture-handler` (issue #3223, dikonfirmasi
+  reproducible di Android): container aksi kiri/kanan `ReanimatedSwipeable`
+  itu absolute-fill overlay yang di-animate ke `opacity: 0` pas hidden —
+  TAPI di Android, View opacity-0 TETAP nerima sentuhan, jadi sisi yang
+  HIDDEN nutupin z-order & nyegat tap yang seharusnya nyampe ke sisi
+  keliatan (kejadian walau cuma 1 sisi yang dipake — sisi yang gak
+  dipake tetep bikin container kosong yang nyegat, makanya Habit MAUPUN
+  Todo sama-sama kena). Fix resminya (PR #4192) merged ke `main` GH 16
+  Juni 2026 — TAPI `2.32.0` (versi yang kepasang, PERSIS yang di-bundle
+  SDK 57) di-publish 11 Juni 2026, 5 HARI SEBELUM fix itu ada. Dicek ke
+  npm registry (`npm view react-native-gesture-handler versions/time`):
+  belum ada `2.32.x` patch yang bawa fix ini balik, baru masuk seri v3.x
+  yang project ini sengaja gak mau bump (belum ke-test Expo buat SDK
+  57). **Keputusan: `SwipeableRow.tsx` DI-REVERT balik ke `Swipeable`
+  klasik** (yang emang gak kena bug ini — arsitektur action container-nya
+  beda). Konsekuensi: warning deprecation console balik lagi — SENGAJA
+  diterima, itu cosmetic doang (gak ngaruh ke user), jauh lebih ringan
+  dari swipe action yang beneran gak jalan.
+
 ## Hard-won technical lessons
+
+- **JANGAN migrasi ke API/library baru cuma buat nutup DEPRECATION
+  WARNING doang, tanpa cek stabilitas versi yang bakal dipake** —
+  `ReanimatedSwipeable` (Checkpoint 16) diambil buat nutup warning
+  console dari `Swipeable` klasik yang deprecated, TAPI ternyata versi
+  yang kepasang (`2.32.0`) punya bug fungsional beneran (tombol gak bisa
+  ditekan di Android) yang FIX-nya baru ada di rilis SETELAHNYA. Warning
+  deprecation itu COSMETIC (cuma keliatan developer di console/log, gak
+  ngaruh ke pengalaman user) — jauh lebih ringan dari REGRESI FUNGSIONAL
+  (fitur beneran rusak buat user). Prioritas yang bener: functional
+  correctness dulu, baru cosmetic dev-experience. Kalau ke depan nemu
+  warning deprecation serupa, JANGAN buru-buru migrasi API baru — cek
+  dulu apa versi library yang kepasang SEKARANG (bukan versi terbaru di
+  npm) beneran udah stabil buat API baru itu, idealnya cek GitHub issues
+  resmi si library buat versi spesifik yang dipake, bukan cuma baca
+  dokumentasi API-nya doang.
+- **Cara ngecek "apa fix suatu bug library udah ke-publish di versi yang
+  kepasang": `npm view <package> versions --json` (list semua versi) +
+  `npm view <package> time --json` (tanggal publish tiap versi), terus
+  bandingin tanggal publish versi yang kepasang vs tanggal PR fix-nya
+  di-merge (dari GitHub, cari issue/PR number-nya)**. Kalau versi
+  kepasang di-publish SEBELUM tanggal merge fix, fix itu BELUM ada di
+  situ walau kelihatannya udah versi "terbaru yang stabil" — jangan
+  asumsi cuma dari nomor versi mayor/minor doang.
 
 - **Setelah migrasi util function ke parameter `language`, WAJIB
   `grep -rn` ULANG buat semua pemanggilnya SEBELUM nganggep checkpoint
@@ -349,7 +409,7 @@ bertahap.
   dst) gak punya akses hook, jadi butuh parameter `language` eksplisit +
   default `"id"` biar caller yang belum dimigrasi tetep jalan kayak
   sebelumnya (lihat lesson checkpoint 18). Komponen React (`TransactionRow
-  .tsx`, `GoalCard.tsx`) BEDA — dia bisa manggil `useTranslation()`
+.tsx`, `GoalCard.tsx`) BEDA — dia bisa manggil `useTranslation()`
   LANGSUNG sendiri, otomatis dapet bahasa aktif TERKINI, gak butuh
   parameter/default sama sekali. Efeknya: begitu komponen kayak gini
   dimigrasi, dia langsung reaktif ke toggle bahasa DI MANA PUN dia
@@ -378,20 +438,20 @@ bertahap.
   (dari objek `as const`) infer LITERAL string type per leaf (misal
   `"Batal"` doang, bukan `string` general) — bikin `en.ts` (yang isinya
   string BEDA, "Cancel") gak lolos type check kalau langsung pake `typeof
-  id` sebagai type-nya. Fix: mapped type rekursif `DeepStringify<T>` yang
+id` sebagai type-nya. Fix: mapped type rekursif `DeepStringify<T>` yang
   ganti tiap leaf string jadi `string` generik, TAPI tetep pertahanin
   struktur/nesting key-nya. Ini yang bikin lupa nerjemahin 1 key ke-tangkep
   tsc (struktur dipaksa sama), sementara isinya bebas beda per bahasa.
 
 - **`ReanimatedSwipeable` diimport dari SUBPATH, bukan named export dari
   root package**: `import ReanimatedSwipeable, { SwipeableMethods } from
-  "react-native-gesture-handler/ReanimatedSwipeable"` (default export,
+"react-native-gesture-handler/ReanimatedSwipeable"` (default export,
   BUKAN `import { ReanimatedSwipeable } from "react-native-gesture-
-  handler"` — itu bakal gagal, gak ke-export dari index utama). Props API-
+handler"` — itu bakal gagal, gak ke-export dari index utama). Props API-
   nya (`renderLeftActions`/`renderRightActions`, `overshootLeft/Right`,
   `friction`, dst) sama persis kayak `Swipeable` klasik, TAPI callback
   render-nya sekarang terima `(progress: SharedValue<number>, translation:
-  SharedValue<number>, swipeableMethods: SwipeableMethods)` (Reanimated
+SharedValue<number>, swipeableMethods: SwipeableMethods)` (Reanimated
   shared values, bukan `Animated.AnimatedInterpolation` dari core RN
   Animated) — aman diabaikan kalau emang gak butuh animasi progress-based
   (kayak dipake di project ini sekarang), tapi kalau nanti mau nambahin
@@ -405,7 +465,7 @@ Kumpulan gotcha yang udah ketemu & harus diinget biar gak keulang:
   `ColorProvider(Color)` dan `ColorProvider(resId:)` yang valid.
 - `GlanceModifier.defaultWeight()` scoped ke `RowScope`, gak bisa dipanggil
   dari composable yang diekstrak kecuali dideklarasiin `fun RowScope
-  .FunctionName()`.
+.FunctionName()`.
 - `withExclusiveTransactionAsync` (BUKAN `withTransactionAsync`) wajib buat
   write SQLite konkuren yang aman di expo-sqlite.
 - `LayoutAnimation.configureNext()` tiap index-crossing pas drag bikin lag
@@ -466,7 +526,7 @@ Kumpulan gotcha yang udah ketemu & harus diinget biar gak keulang:
   SENGAJA gak dipakai project ini).
 - `@expo/ui` itu native module (Jetpack Compose beneran), BUKAN library JS
   — nambah dependency ini butuh REBUILD dev client (`eas build --profile
-  development`), gak cukup reload JS bundle doang.
+development`), gak cukup reload JS bundle doang.
 - **Reanimated `useSharedValue().value = x` mutation AMAN dari
   `react-hooks/set-state-in-effect`** (bukan React state, gak nge-trigger
   re-render) — TAPI kalau di useEffect yang sama juga ada `setState` biasa
@@ -498,7 +558,7 @@ Kumpulan gotcha yang udah ketemu & harus diinget biar gak keulang:
   bersih) — kompiler-nya genuinely kebablasan nganggep SEMUA shared value
   yang nongol di useEffect manapun harus immutable selamanya, padahal
   Reanimated shared value bukan React state. Fix: `react-hooks/immutability:
-  "off"` di-scope KHUSUS ke file yang butuh (`eslint.config.js`, blok
+"off"` di-scope KHUSUS ke file yang butuh (`eslint.config.js`, blok
   `files: [...]` terpisah dengan komentar jelas) — BUKAN disable global.
   Kalau nemu file lain yang kena pola sama (shared value di-reset via
   effect + di-drive di gesture worklet), tambahin nama filenya ke array
@@ -519,7 +579,7 @@ Kumpulan gotcha yang udah ketemu & harus diinget biar gak keulang:
   diff-nya, exclude dari patch kalau emang cuma noise, instruksiin user
   `npm install` sendiri abis apply.
 - Validasi WAJIB sebelum kasih patch: `npx tsc --noEmit` bersih, `npx
-  eslint .` (scan SELURUH project, bukan per file) 0 warning 0 error,
+eslint .` (scan SELURUH project, bukan per file) 0 warning 0 error,
   `git apply --check` di clone fresh terpisah buat mastiin patch beneran
   applicable.
 - Sandbox gak bisa akses `api.expo.dev` (Maven/expo-doctor beneran), jadi
