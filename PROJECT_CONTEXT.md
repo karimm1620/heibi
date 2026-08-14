@@ -75,27 +75,14 @@ Ini list yang dikasih user buat update berikutnya, urutan bebas:
    /_layout.tsx`). **TERNYATA gak ada `app/(tabs)/target.tsx`** — tab
    "Target" itu cuma LABEL (dari `TAB_META`/`t.tabs.goals`), route-nya
    tetap `goals.tsx`, bukan file terpisah kayak dugaan checkpoint 19.
-   **File LAIN yang MASIH hardcoded Bahasa Indonesia, belum disentuh**
-   (checklist buat checkpoint lanjutan, urutan bebas):
-   - `app/(tabs)/history.tsx` + `src/components/HabitConsistencyHeatmap
-     .tsx` — **INI YANG MASIH MANGGIL
-     `buildHabitConsistencyHeatmap`/`buildHeatmapWeeks` TANPA argumen
-     `language`** (default `"id"` di util-nya nahan behavior lama,
-     JANGAN dihapus default itu sebelum file ini beneran dimigrasiin —
-     lihat lesson checkpoint 18 soal jaga 2 versi paralel, prinsip yang
-     sama masih berlaku). `TransactionRow.tsx` yang dirender DI DALEM
-     `history.tsx` JUSTRU UDAH ikut ke-translate dari checkpoint 20 (dia
-     komponen React yang manggil `useTranslation()` sendiri, otomatis
-     reaktif ke bahasa aktif) — jadi `history.tsx` bakal keliatan
-     CAMPURAN (row transaksi udah ganti bahasa, sisa layar belum) sampe
-     file ini sendiri dimigrasiin.
-   - Notifikasi terjadwal (`src/utils/notifications.ts`) — teks
-     notifikasi native
+   **Checkpoint 22: `app/(tabs)/history.tsx` + notifikasi terjadwal JUGA
+   UDAH full ditranslate** — lihat entry di bawah. **MIGRASI I18N INTI
+   (semua layar + util JS) SEKARANG LENGKAP.** Satu-satunya yang MASIH
+   di luar jangkauan:
    - Widget Android (Kotlin/Jetpack Glance, `modules/expo-home-widgets/`)
      — ini di LUAR jangkauan i18n JS, perlu string resource Android
-     terpisah kalau mau ikut ditranslate
-   - ~~Onboarding flow~~ — **UDAH ditranslate di Checkpoint 21**
-     (`app/onboarding.tsx`), lihat entry di bawah
+     terpisah kalau mau ikut ditranslate (belum dikerjain, prioritas
+     rendah — widget cuma nampilin angka/heatmap, minim teks)
 5. ~~Evaluasi pindah ke `react-native-reanimated`~~ — **KEPUTUSAN UDAH
    DIAMBIL di Checkpoint 14**: user eksplisit minta Reanimated ditambahin
    (buat animasi completion habit, lihat item baru di "Brief history").
@@ -109,30 +96,14 @@ Ini list yang dikasih user buat update berikutnya, urutan bebas:
    kerasa "disuruh update terus" walau app-nya gak ketinggalan versi
    beneran. **PanResponder drag-reorder (`useDragReorder.ts`) MASIH belum
    disentuh** — itu keputusan terpisah lagi kalau mau dimigrasiin juga.
-6. Redesign model Jar/Tabungan — **DIEKSPLOR di Checkpoint 15, DITUNDA
-   user sebelum ada kode kesentuh** (masih rounded-rectangle-fill lama).
-   2 arah udah di-preview (lewat Visualizer, bukan kode beneran):
-   (a) toples kaca mason-jar klasik dengan cairan fill mengikuti siluet —
-   **DITOLAK user**, "jangan kaya toples gitu";
-   (b) toples acar (lebih cylindrical, mulut lebar) isinya TUMPUKAN KOIN +
-   UANG KERTAS (bukan cairan) — koin kalau nabung < Rp10rb, uang kertas
-   kalau >= Rp10rb, numpuk kayak nabung beneran — preview sempet
-   ditunjukkin & keliatan diterima, TAPI user bilang skip dulu/ganti
-   pikiran sebelum sempet dikerjain beneran. **Kalau lanjut lagi nanti,
-   mulai dari arah (b) dulu (toples acar + koin/uang numpuk), JANGAN
-   balik ke arah (a) (mason jar + liquid) yang udah ditolak eksplisit.**
-   Technical note buat nanti: butuh `react-native-svg` (belum ada di
-   project, versi SDK 57 yang cocok: `15.15.4`), dan perlu diskusiin lagi
-   gimana pile item di-generate (literal 1:1 per transaksi vs prosedural
-   dari rasio history) sebelum mulai — belum diputusin.
-7. Improvement & scalability biar APK jalan mulus
-8. **Redesign icon app dari NOL** — user eksplisit bilang JANGAN pakai
+6. Improvement & scalability biar APK jalan mulus
+7. **Redesign icon app dari NOL** — user eksplisit bilang JANGAN pakai
    desain/warna icon yang sekarang (jar+checkmark lavender/mint), dan
    **JANGAN AI slop** — icon harus representasiin 3 pilar app ini (habits,
    todo, savings) dengan cara yang keliatan niat/dipikirin, bukan generik.
    Icon yang ada sekarang (dibikin Checkpoint 8, SVG vector manual, bukan
    AI-generated) mau DIBUANG TOTAL, bukan di-iterasi.
-9. Kurangin ukuran APK.
+8. Kurangin ukuran APK.
 
 ## Brief history (checkpoint-by-checkpoint)
 
@@ -323,8 +294,45 @@ bertahap.
   `title: "Today"/"Goals"/dst` tapi itu VESTIGIAL (gak pernah
   ditampilkan, custom tab bar pake `TAB_META`/`t.tabs.*` dari checkpoint
   20) — sengaja gak disentuh.
+- **22** (i18n History tab + notifikasi — MIGRASI I18N INTI SELESAI):
+  `app/(tabs)/history.tsx` + `HabitConsistencyHeatmap.tsx` full
+  ditranslate (nambah namespace `history.*`), termasuk akhirnya
+  ngirim argumen `language` eksplisit ke `buildHabitConsistencyHeatmap`
+  (sebelumnya default `"id"` doang dari checkpoint 18-20). Notifikasi
+  terjadwal (`src/utils/notifications.ts`) juga full ditranslate —
+  `REMINDER_COPY` konstanta lama diganti fungsi `getReminderCopy(domain,
+  language)` yang narik dari kamus i18n; `scheduleReminder`/
+  `scheduleHabitReminder` sekarang terima parameter `language` (default
+  `"id"` buat backward-compat, walau SEKARANG UDAH GAK ADA caller yang
+  masih ngandelin default itu — semua caller ke-update explicit passing
+  language, termasuk 1 caller yang KELEWAT pas nyisir awal:
+  `useHabitActions.ts` (`unarchiveWithReschedule`) — ketauan pas
+  double-check `grep -rn` caller SETELAH patch pertama, bukan pas
+  nulis awal. **PENTING soal notifikasi**: teks-nya "dibekukan" pas
+  reminder DIJADWALIN, bukan real-time — kalau user ganti bahasa
+  BELAKANGAN, notifikasi yang UDAH terjadwal sebelumnya TETEP pake teks
+  bahasa lama sampe di-reschedule ulang (edit jam reminder, atau
+  matiin-nyalain lagi). Ini keterbatasan inherent cara kerja scheduled
+  notification OS, bukan bug yang perlu difix. **Setelah checkpoint
+  ini, migrasi i18n inti (semua layar + util JS) LENGKAP** — sisa cuma
+  widget Android (Kotlin/Jetpack Glance) yang di luar jangkauan i18n JS
+  sepenuhnya, belum dikerjain, prioritas rendah.
 
 ## Hard-won technical lessons
+
+- **Setelah migrasi util function ke parameter `language`, WAJIB
+  `grep -rn` ULANG buat semua pemanggilnya SEBELUM nganggep checkpoint
+  kelar** — checkpoint 22 hampir kelewat 1 caller (`useHabitActions.ts`
+  manggil `scheduleHabitReminder` tanpa `language`) karena nyisir awal
+  cuma berdasarkan "file mana yang keliatan relevan" (ReminderCard.tsx,
+  habit/add.tsx), bukan systematic search ke SEMUA caller. Custom hook
+  (`use*.ts` di `src/hooks/`) gampang kelewat karena bukan "layar" atau
+  "komponen visual" yang keliatan jelas pas nyisir manual — tapi dia
+  PUNYA akses `useTranslation()` (hooks bisa manggil hooks lain), jadi
+  harus diperlakukan sama kayak komponen React biasa, bukan plain util.
+  Pola yang benar: 1) migrasi util function-nya (tambah parameter
+  `language`), 2) `grep -rn "namaFunction("` ke SELURUH codebase, 3) cek
+  SATU-SATU tiap hasil match apakah caller-nya perlu diupdate juga.
 
 - **Header title native (`Stack.Screen options.title`) hidup di LAYOUT,
   bukan di layar itu sendiri** — nyisir string buat i18n dengan cara buka

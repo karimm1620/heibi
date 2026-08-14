@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { translations, type Language } from '../i18n';
 
 export let isNotificationsAvailable = true;
 
@@ -90,32 +91,44 @@ export async function checkNotificationPermission(): Promise<boolean> {
 
 export type ReminderDomain = 'savings' | 'planner';
 
-const REMINDER_COPY: Record<
-  ReminderDomain,
-  { channelId: string; channelName: string; title: string; body: string }
-> = {
-  savings: {
-    channelId: 'savings',
-    channelName: 'Pengingat Menabung',
-    title: 'Waktunya menabung!',
-    body: 'Sisihkan sedikit buat goal tabunganmu hari ini.',
-  },
-  planner: {
-    channelId: 'planner',
-    channelName: 'Pengingat Tugas',
-    title: 'Cek tugas hari ini',
-    body: 'Masih ada tugas yang belum selesai hari ini.',
-  },
-};
+/**
+ * Diturunin dari kamus i18n (`t.notifications.*`), BUKAN hardcode
+ * Indonesia doang lagi kayak sebelum Checkpoint 22 — `language` WAJIB
+ * dioper eksplisit dari caller (`ReminderCard.tsx`/`app/habit/add.tsx`,
+ * yang punya akses `useTranslation()`) karena file ini plain util, gak
+ * punya akses hook. PENTING: notifikasi terjadwal itu native OS-level,
+ * teksnya "dibekukan" pas dijadwalin sekarang — kalau user ganti bahasa
+ * BELAKANGAN, notifikasi yang UDAH terjadwal sebelumnya TETEP pake teks
+ * bahasa lama sampe di-reschedule ulang (matiin-nyalain lagi reminder-nya,
+ * atau ganti jamnya). Ini keterbatasan inherent dari cara kerja scheduled
+ * notification OS, bukan bug.
+ */
+function getReminderCopy(domain: ReminderDomain, language: Language) {
+  const t = translations[language];
+  return domain === 'savings'
+    ? {
+        channelId: 'savings',
+        channelName: t.notifications.savingsChannelName,
+        title: t.notifications.savingsTitle,
+        body: t.notifications.savingsBody,
+      }
+    : {
+        channelId: 'planner',
+        channelName: t.notifications.plannerChannelName,
+        title: t.notifications.plannerTitle,
+        body: t.notifications.plannerBody,
+      };
+}
 
 /** Jadwalkan reminder harian buat domain savings ATAU planner, return identifier-nya (atau null kalau gagal) */
 export async function scheduleReminder(
   domain: ReminderDomain,
   hour: number,
   minute: number,
+  language: Language = 'id',
 ): Promise<string | null> {
   if (!isNotificationsAvailable) return null;
-  const copy = REMINDER_COPY[domain];
+  const copy = getReminderCopy(domain, language);
   try {
     await ensureChannel(copy.channelId, copy.channelName);
     const id = await Notifications.scheduleNotificationAsync({
@@ -149,14 +162,16 @@ export async function scheduleHabitReminder(
   habitName: string,
   hour: number,
   minute: number,
+  language: Language = 'id',
 ): Promise<string | null> {
   if (!isNotificationsAvailable) return null;
+  const t = translations[language];
   try {
-    await ensureChannel('habits', 'Pengingat Habit');
+    await ensureChannel('habits', t.notifications.habitChannelName);
     const id = await Notifications.scheduleNotificationAsync({
       content: {
-        title: `Waktunya ${habitName}`,
-        body: 'Tap buat langsung tandai selesai di Agenda.',
+        title: `${t.notifications.habitTitlePrefix} ${habitName}`,
+        body: t.notifications.habitBody,
         sound: 'default',
         color: NOTIFICATION_ACCENT_COLOR,
       },

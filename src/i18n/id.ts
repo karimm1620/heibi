@@ -191,6 +191,25 @@ export const id = {
     saveButtonEdit: "Simpan Perubahan",
     saveButtonCreate: "Buat Goal",
   },
+  notifications: {
+    savingsChannelName: "Pengingat Menabung",
+    savingsTitle: "Waktunya menabung!",
+    savingsBody: "Sisihkan sedikit buat goal tabunganmu hari ini.",
+    plannerChannelName: "Pengingat Tugas",
+    plannerTitle: "Cek tugas hari ini",
+    plannerBody: "Masih ada tugas yang belum selesai hari ini.",
+    habitChannelName: "Pengingat Habit",
+    habitTitlePrefix: "Waktunya",
+    habitBody: "Tap buat langsung tandai selesai di Agenda.",
+  },
+  history: {
+    headerTitle: "Histori",
+    subtitle: "Semua transaksi dari seluruh goal-mu",
+    deletedGoalFallback: "Goal terhapus",
+    emptyTitle: "Belum ada transaksi",
+    emptyDescription: "Riwayat menabung & menarik bakal muncul di sini.",
+    consistencyHeading: "Konsistensi Habit",
+  },
   onboarding: {
     savingsTitle: "Nabung buat goal impianmu",
     savingsDescription:

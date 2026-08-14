@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 import { spacing, withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 import type { Habit, HabitLog } from "../types";
@@ -28,11 +29,12 @@ export function HabitConsistencyHeatmap({
   habitLogs,
 }: HabitConsistencyHeatmapProps) {
   const { colors, typography, material3 } = useTheme();
+  const { t, language } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
 
   const { weeks, monthLabelByWeekIndex } = useMemo(
-    () => buildHabitConsistencyHeatmap(habits, habitLogs, WEEKS_TO_SHOW),
-    [habits, habitLogs],
+    () => buildHabitConsistencyHeatmap(habits, habitLogs, WEEKS_TO_SHOW, new Date(), language),
+    [habits, habitLogs, language],
   );
 
   useEffect(() => {
@@ -78,7 +80,7 @@ export function HabitConsistencyHeatmap({
   return (
     <View>
       <Text style={[typography.caption, { fontWeight: "700", textTransform: "uppercase", marginBottom: spacing.sm }]}>
-        Konsistensi Habit
+        {t.history.consistencyHeading}
       </Text>
       <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}>
         <View style={{ flexDirection: "row", paddingRight: spacing.xs }}>

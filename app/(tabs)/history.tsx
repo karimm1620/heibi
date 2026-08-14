@@ -9,6 +9,7 @@ import {
 import { GlassCard } from "../../src/components/GlassCard";
 import { HabitConsistencyHeatmap } from "../../src/components/HabitConsistencyHeatmap";
 import { TransactionRow } from "../../src/components/TransactionRow";
+import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
 import { spacing } from "../../src/theme/colors";
@@ -18,6 +19,7 @@ import type { Transaction } from "../../src/types";
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { colors, typography, isDark } = useTheme();
+  const { t } = useTranslation();
   const transactions = useGoalsStore((state) => state.transactions);
   const goals = useGoalsStore((state) => state.goals);
   const habits = useHabitsStore((state) => state.habits);
@@ -73,9 +75,9 @@ export default function HistoryScreen() {
       key={isDark ? "dark" : "light"}
       style={[styles.container, { paddingTop: insets.top + spacing.md }]}
     >
-      <Text style={styles.headerTitle}>Histori</Text>
+      <Text style={styles.headerTitle}>{t.history.headerTitle}</Text>
       <Text style={typography.caption}>
-        Semua transaksi dari seluruh goal-mu
+        {t.history.subtitle}
       </Text>
 
       <FlatList<Transaction>
@@ -94,15 +96,15 @@ export default function HistoryScreen() {
           <GlassCard tintColor={colors.surface} style={styles.rowCard}>
             <TransactionRow
               transaction={item}
-              goalName={goalNameById[item.goalId] ?? "Goal terhapus"}
+              goalName={goalNameById[item.goalId] ?? t.history.deletedGoalFallback}
             />
           </GlassCard>
         )}
         ListEmptyComponent={
           <EmptyState
             icon="history"
-            title="Belum ada transaksi"
-            description="Riwayat menabung & menarik bakal muncul di sini."
+            title={t.history.emptyTitle}
+            description={t.history.emptyDescription}
           />
         }
       />

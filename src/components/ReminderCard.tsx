@@ -40,7 +40,7 @@ interface ReminderCardProps {
  */
 export function ReminderCard({ domain }: ReminderCardProps) {
   const { colors, typography } = useTheme();
-  const { t, interpolate } = useTranslation();
+  const { t, interpolate, language } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
   const reminder = useSettingsStore((s) =>
     domain === "savings" ? s.savingsReminder : s.plannerReminder,
@@ -105,7 +105,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
     }
 
     await cancelReminder(reminderNotificationId);
-    const id = await scheduleReminder(domain, reminderHour, reminderMinute);
+    const id = await scheduleReminder(domain, reminderHour, reminderMinute, language);
     if (!id) {
       setBusy(false);
       showAlert(t.reminder.scheduleErrorTitle, t.reminder.scheduleErrorMessage);
@@ -119,7 +119,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
     if (!reminderEnabled || busy || !isNotificationsAvailable) return;
     setBusy(true);
     await cancelReminder(reminderNotificationId);
-    const id = await scheduleReminder(domain, hour, minute);
+    const id = await scheduleReminder(domain, hour, minute, language);
     if (id) {
       await setReminder(domain, true, hour, minute, id);
     }

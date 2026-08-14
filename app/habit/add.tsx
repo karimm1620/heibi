@@ -157,6 +157,7 @@ export default function AddHabitScreen() {
             trimmedName,
             reminderHour,
             reminderMinute,
+            language,
           );
         }
       }

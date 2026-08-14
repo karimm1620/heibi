@@ -1,3 +1,4 @@
+import { useTranslation } from "./useTranslation";
 import { useHabitsStore } from "../store/useHabitsStore";
 import type { Habit } from "../types";
 import {
@@ -16,6 +17,7 @@ import {
  * yang udah ada dari Checkpoint 1.
  */
 export function useHabitActions() {
+  const { language } = useTranslation();
   const archiveHabit = useHabitsStore((s) => s.archiveHabit);
   const unarchiveHabit = useHabitsStore((s) => s.unarchiveHabit);
   const deleteHabitPermanently = useHabitsStore((s) => s.deleteHabitPermanently);
@@ -35,7 +37,7 @@ export function useHabitActions() {
       const granted = await requestNotificationPermission();
       if (granted) {
         const [h, m] = habit.reminderTime.split(":").map(Number);
-        const newId = await scheduleHabitReminder(habit.name, h, m);
+        const newId = await scheduleHabitReminder(habit.name, h, m, language);
         if (newId) await setHabitNotificationId(habit.id, newId);
       }
     }

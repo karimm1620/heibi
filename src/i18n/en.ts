@@ -188,6 +188,25 @@ export const en: TranslationDict = {
     saveButtonEdit: "Save Changes",
     saveButtonCreate: "Create Goal",
   },
+  notifications: {
+    savingsChannelName: "Savings Reminder",
+    savingsTitle: "Time to save!",
+    savingsBody: "Set aside a little for your savings goal today.",
+    plannerChannelName: "Task Reminder",
+    plannerTitle: "Check today's tasks",
+    plannerBody: "You still have unfinished tasks for today.",
+    habitChannelName: "Habit Reminder",
+    habitTitlePrefix: "Time for",
+    habitBody: "Tap to mark it done in your Agenda.",
+  },
+  history: {
+    headerTitle: "History",
+    subtitle: "All transactions across your goals",
+    deletedGoalFallback: "Deleted goal",
+    emptyTitle: "No transactions yet",
+    emptyDescription: "Your deposit & withdrawal history will show up here.",
+    consistencyHeading: "Habit Consistency",
+  },
   onboarding: {
     savingsTitle: "Save for your dream goals",
     savingsDescription:
