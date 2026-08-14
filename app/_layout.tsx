@@ -9,6 +9,7 @@ import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { initDatabase } from "../src/db/client";
 import { migrateFromAsyncStorageIfNeeded } from "../src/db/legacyMigration";
 import { useReducedMotion } from "../src/hooks/useReducedMotion";
+import { useTranslation } from "../src/hooks/useTranslation";
 import { useGoalsStore } from "../src/store/useGoalsStore";
 import { useHabitsStore } from "../src/store/useHabitsStore";
 import { useSettingsStore } from "../src/store/useSettingsStore";
@@ -34,6 +35,7 @@ export default function RootLayout() {
 
 function RootLayoutContent() {
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
   const reducedMotion = useReducedMotion();
   const [bootError, setBootError] = useState<unknown>(null);
 
@@ -162,7 +164,7 @@ function RootLayoutContent() {
             options={{
               presentation: "modal",
               headerShown: true,
-              title: "Goal Baru",
+              title: t.goalForm.screenTitle,
               headerStyle: { backgroundColor: colors.surface },
               headerTintColor: colors.textPrimary,
               // Reduce Motion aktif -> gak ada transisi geser sama sekali.
@@ -175,7 +177,7 @@ function RootLayoutContent() {
             options={{
               presentation: "modal",
               headerShown: true,
-              title: "Habit Baru",
+              title: t.habitForm.screenTitle,
               headerStyle: { backgroundColor: colors.surface },
               headerTintColor: colors.textPrimary,
               animation: reducedMotion ? "none" : "slide_from_bottom",

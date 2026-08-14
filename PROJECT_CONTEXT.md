@@ -94,7 +94,8 @@ Ini list yang dikasih user buat update berikutnya, urutan bebas:
    - Widget Android (Kotlin/Jetpack Glance, `modules/expo-home-widgets/`)
      — ini di LUAR jangkauan i18n JS, perlu string resource Android
      terpisah kalau mau ikut ditranslate
-   - Onboarding flow (kalau ada teks di situ)
+   - ~~Onboarding flow~~ — **UDAH ditranslate di Checkpoint 21**
+     (`app/onboarding.tsx`), lihat entry di bawah
 5. ~~Evaluasi pindah ke `react-native-reanimated`~~ — **KEPUTUSAN UDAH
    DIAMBIL di Checkpoint 14**: user eksplisit minta Reanimated ditambahin
    (buat animasi completion habit, lihat item baru di "Brief history").
@@ -295,8 +296,45 @@ bertahap.
   `formatTransactionTimestamp(epochMs, language)` di `utils/date.ts`
   (ganti `toLocaleDateString("id-ID", ...)` yang lama, konsisten sama
   alasan hindari Intl/ICU yang udah didokumentasiin).
+- **21** (i18n modal title + onboarding): User laporan "Goal Baru"/"Habit
+  Baru" gak keikut ke-translate pas buka modal tambah — ternyata itu
+  bukan di `app/goal/add.tsx`/`app/habit/add.tsx` (yang udah dimigrasi
+  Checkpoint 19-20), tapi di **`app/_layout.tsx`** (ROOT layout, beda
+  dari `app/(tabs)/_layout.tsx`), di `<Stack.Screen name="goal/add"
+  options={{ title: ... }}>` — title header native Stack itu didefinisi
+  SEKALI di layout, BUKAN dari dalam screen component-nya, jadi kelewat
+  pas nyisir file yang "isinya" goal/habit form. Fix: `RootLayoutContent`
+  (yang emang udah komponen function, punya akses hook) manggil
+  `useTranslation()` juga, title-nya jadi `t.goalForm.screenTitle`/
+  `t.habitForm.screenTitle`. **Note: title ini SAMA baik mode create
+  maupun edit** (gak ada dynamic override lewat `setOptions`/nested
+  `<Stack.Screen>` di dalem `goal/add.tsx`/`habit/add.tsx`) — itu quirk
+  lama yang UDAH ADA dari sebelum i18n, BUKAN bug baru dari checkpoint
+  ini, sengaja gak diubah (di luar scope). Sekalian nyisir SEMUA
+  `title: "..."` string literal di `app/**/*.tsx` (`grep -rn 'title: "'`)
+  buat nemuin kasus serupa yang mungkin keselip — ketemu 1 lagi:
+  `app/onboarding.tsx` (4 step title/description + tombol), full
+  ditranslate juga (namespace baru `onboarding.*`). Step data yang
+  tadinya module-level constant (`FEATURE_STEPS`/`PERMISSION_STEP`)
+  DIPINDAH ke dalam komponen (`useMemo` dengan dep `[t]`) karena butuh
+  akses hook. `key={s.title}` diganti `key={s.id}` (id stabil per step,
+  gak ikut berubah pas ganti bahasa — key yang nempel ke teks
+  terjemahan itu rapuh). `(tabs)/_layout.tsx` juga punya beberapa
+  `title: "Today"/"Goals"/dst` tapi itu VESTIGIAL (gak pernah
+  ditampilkan, custom tab bar pake `TAB_META`/`t.tabs.*` dari checkpoint
+  20) — sengaja gak disentuh.
 
 ## Hard-won technical lessons
+
+- **Header title native (`Stack.Screen options.title`) hidup di LAYOUT,
+  bukan di layar itu sendiri** — nyisir string buat i18n dengan cara buka
+  "layar X" gak cukup kalau X presentation-nya modal/native-stack, karena
+  title header-nya bisa didefinisikan sekali di parent layout
+  (`app/_layout.tsx`), TERPISAH dari komponen screen (`app/goal/add.tsx`)
+  yang isinya form doang. Kalau nyari string hardcoded yang "ilang" padahal
+  udah nyisir layarnya, cek dulu SEMUA `_layout.tsx` di sepanjang path
+  route-nya (`grep -rn 'title: "' app/`) sebelum nyerah/nganggep udah
+  lengkap.
 
 - **Komponen React vs plain util function butuh strategi BEDA pas migrasi
   i18n partial**: util function (`buildHeatmapWeeks`, `formatLongDate`,

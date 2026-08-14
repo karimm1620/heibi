@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "../src/hooks/useReducedMotion";
+import { useTranslation } from "../src/hooks/useTranslation";
 import { useSettingsStore } from "../src/store/useSettingsStore";
 import { accentByKey, radius, spacing, withOpacity } from "../src/theme/colors";
 import type { AccentKey } from "../src/theme/colors";
@@ -12,6 +13,7 @@ import { useTheme } from "../src/theme/useTheme";
 import { requestNotificationPermission } from "../src/utils/notifications";
 
 interface OnboardingStep {
+  id: string;
   icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
   accentKey: AccentKey;
   title: string;
@@ -21,53 +23,56 @@ interface OnboardingStep {
 /**
  * 3 layar fitur (Savings/Habit/Planner) + 1 layar izin notifikasi di akhir
  * (spec 5e: "perkenalan fitur + minta izin notifikasi di layar terakhir").
- * Nama icon di sini SENGAJA cuma dipilih dari yang udah kepakai/terverifikasi
- * di tempat lain di app ini (`piggy-bank` di HabitIconPicker, `dumbbell` di
- * HabitIconPicker, `calendar-check-outline` di TabMeta) -- sandbox sesi ini
- * gak bisa npm install/tsc buat validasi nama icon MaterialCommunityIcons
- * (lihat catatan checkpoint), jadi diminimalkan resikonya dengan reuse yang
+ * Nama icon SENGAJA cuma dipilih dari yang udah kepakai/terverifikasi di
+ * tempat lain di app ini (`piggy-bank` di HabitIconPicker, `dumbbell` di
+ * HabitIconPicker, `calendar-check-outline` di TabMeta) -- reuse yang
  * udah pasti valid, bukan nebak nama baru.
+ *
+ * Isinya (title/description) DIBANGUN DI DALAM komponen (bukan module-level
+ * constant lagi kayak sebelum Checkpoint 21) -- butuh `t` dari
+ * `useTranslation()` yang cuma keakses lewat hook, gak bisa di module scope.
  */
-const FEATURE_STEPS: OnboardingStep[] = [
-  {
-    icon: "piggy-bank",
-    accentKey: "mint",
-    title: "Nabung buat goal impianmu",
-    description:
-      "Bikin goal tabungan, catat tiap setor atau tarik, dan lihat progresnya langsung tanpa ribet.",
-  },
-  {
-    icon: "dumbbell",
-    accentKey: "rose",
-    title: "Bangun kebiasaan baik",
-    description:
-      "Tandai habit harian dan pantau konsistensimu lewat heatmap streak dari hari ke hari.",
-  },
-  {
-    icon: "calendar-check-outline",
-    accentKey: "sky",
-    title: "Rencanain hari kamu",
-    description:
-      "Kelola tugas harian bareng tabungan dan habit, semuanya kumpul di satu tempat.",
-  },
-];
-
-const PERMISSION_STEP: OnboardingStep = {
-  icon: "bell-outline",
-  accentKey: "lavender",
-  title: "Jangan sampai kelewatan",
-  description:
-    "Aktifkan notifikasi biar bisa diingetin buat nabung, ngerjain tugas, dan jaga streak habit tiap hari.",
-};
-
-const STEPS: OnboardingStep[] = [...FEATURE_STEPS, PERMISSION_STEP];
-
 export default function OnboardingScreen() {
   const { colors, typography, material3 } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const router = useRouter();
   const completeOnboarding = useSettingsStore((state) => state.completeOnboarding);
+
+  const STEPS: OnboardingStep[] = useMemo(
+    () => [
+      {
+        id: "savings",
+        icon: "piggy-bank",
+        accentKey: "mint",
+        title: t.onboarding.savingsTitle,
+        description: t.onboarding.savingsDescription,
+      },
+      {
+        id: "habits",
+        icon: "dumbbell",
+        accentKey: "rose",
+        title: t.onboarding.habitsTitle,
+        description: t.onboarding.habitsDescription,
+      },
+      {
+        id: "planner",
+        icon: "calendar-check-outline",
+        accentKey: "sky",
+        title: t.onboarding.plannerTitle,
+        description: t.onboarding.plannerDescription,
+      },
+      {
+        id: "notifications",
+        icon: "bell-outline",
+        accentKey: "lavender",
+        title: t.onboarding.notificationsTitle,
+        description: t.onboarding.notificationsDescription,
+      },
+    ],
+    [t],
+  );
 
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -139,10 +144,10 @@ export default function OnboardingScreen() {
           hitSlop={12}
           style={styles.skipButton}
           accessibilityRole="button"
-          accessibilityLabel="Lewati onboarding"
+          accessibilityLabel={t.onboarding.skipAccessibilityLabel}
           android_ripple={{ color: colors.glassBorder, borderless: true, radius: 24 }}
         >
-          <Text style={styles.skipText}>Lewati</Text>
+          <Text style={styles.skipText}>{t.onboarding.skipButton}</Text>
         </Pressable>
       )}
 
@@ -160,7 +165,7 @@ export default function OnboardingScreen() {
         <View style={styles.dots}>
           {STEPS.map((s, index) => (
             <View
-              key={s.title}
+              key={s.id}
               style={[
                 styles.dot,
                 index === step
@@ -176,11 +181,15 @@ export default function OnboardingScreen() {
           disabled={busy}
           style={styles.primaryButton}
           accessibilityRole="button"
-          accessibilityLabel={isLastStep ? "Aktifkan notifikasi" : "Lanjut"}
+          accessibilityLabel={
+            isLastStep
+              ? t.onboarding.enableNotificationsAccessibilityLabel
+              : t.onboarding.continueAccessibilityLabel
+          }
           android_ripple={{ color: withOpacity(material3.onPrimary, 0.24) }}
         >
           <Text style={styles.primaryButtonText}>
-            {isLastStep ? "Aktifkan Notifikasi" : "Lanjut"}
+            {isLastStep ? t.onboarding.enableNotificationsButton : t.onboarding.continueButton}
           </Text>
         </Pressable>
 
@@ -191,9 +200,9 @@ export default function OnboardingScreen() {
             hitSlop={12}
             style={styles.laterButton}
             accessibilityRole="button"
-            accessibilityLabel="Lewati izin notifikasi"
+            accessibilityLabel={t.onboarding.skipPermissionAccessibilityLabel}
           >
-            <Text style={styles.laterButtonText}>Nanti aja</Text>
+            <Text style={styles.laterButtonText}>{t.onboarding.skipPermissionButton}</Text>
           </Pressable>
         )}
       </View>

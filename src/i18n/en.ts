@@ -71,6 +71,7 @@ export const en: TranslationDict = {
     markDoneAccessibilityIncomplete: "Mark {{name}} as not done for today",
   },
   habitForm: {
+    screenTitle: "New Habit",
     nameLabel: "Habit Name",
     namePlaceholder: "e.g. Drink water, Read 20 minutes",
     iconLabel: "Icon",
@@ -163,6 +164,7 @@ export const en: TranslationDict = {
     confirmButton: "Confirm",
   },
   goalForm: {
+    screenTitle: "New Goal",
     imageLabel: "Image / Icon",
     pickImageAccessibilityLabel: "Choose a goal image from gallery",
     uploadLabel: "Upload",
@@ -185,6 +187,26 @@ export const en: TranslationDict = {
     saveAccessibilityCreate: "Create new goal",
     saveButtonEdit: "Save Changes",
     saveButtonCreate: "Create Goal",
+  },
+  onboarding: {
+    savingsTitle: "Save for your dream goals",
+    savingsDescription:
+      "Create savings goals, log every deposit or withdrawal, and watch your progress without the hassle.",
+    habitsTitle: "Build good habits",
+    habitsDescription: "Check off daily habits and track your consistency with a day-by-day streak heatmap.",
+    plannerTitle: "Plan your day",
+    plannerDescription: "Manage daily tasks alongside your savings and habits, all in one place.",
+    notificationsTitle: "Never miss a beat",
+    notificationsDescription:
+      "Turn on notifications to get reminded to save, finish tasks, and keep your habit streaks going every day.",
+    skipAccessibilityLabel: "Skip onboarding",
+    skipButton: "Skip",
+    continueAccessibilityLabel: "Continue",
+    continueButton: "Continue",
+    enableNotificationsAccessibilityLabel: "Enable notifications",
+    enableNotificationsButton: "Enable Notifications",
+    skipPermissionAccessibilityLabel: "Skip notification permission",
+    skipPermissionButton: "Maybe later",
   },
   settings: {
     title: "Settings",

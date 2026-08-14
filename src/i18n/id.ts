@@ -74,6 +74,7 @@ export const id = {
     markDoneAccessibilityIncomplete: "Tandai {{name}} belum selesai hari ini",
   },
   habitForm: {
+    screenTitle: "Habit Baru",
     nameLabel: "Nama Habit",
     namePlaceholder: "Misal: Minum air, Baca 20 menit",
     iconLabel: "Ikon",
@@ -166,6 +167,7 @@ export const id = {
     confirmButton: "Konfirmasi",
   },
   goalForm: {
+    screenTitle: "Goal Baru",
     imageLabel: "Gambar / Ikon",
     pickImageAccessibilityLabel: "Pilih gambar goal dari galeri",
     uploadLabel: "Upload",
@@ -188,6 +190,26 @@ export const id = {
     saveAccessibilityCreate: "Buat goal baru",
     saveButtonEdit: "Simpan Perubahan",
     saveButtonCreate: "Buat Goal",
+  },
+  onboarding: {
+    savingsTitle: "Nabung buat goal impianmu",
+    savingsDescription:
+      "Bikin goal tabungan, catat tiap setor atau tarik, dan lihat progresnya langsung tanpa ribet.",
+    habitsTitle: "Bangun kebiasaan baik",
+    habitsDescription: "Tandai habit harian dan pantau konsistensimu lewat heatmap streak dari hari ke hari.",
+    plannerTitle: "Rencanain hari kamu",
+    plannerDescription: "Kelola tugas harian bareng tabungan dan habit, semuanya kumpul di satu tempat.",
+    notificationsTitle: "Jangan sampai kelewatan",
+    notificationsDescription:
+      "Aktifkan notifikasi biar bisa diingetin buat nabung, ngerjain tugas, dan jaga streak habit tiap hari.",
+    skipAccessibilityLabel: "Lewati onboarding",
+    skipButton: "Lewati",
+    continueAccessibilityLabel: "Lanjut",
+    continueButton: "Lanjut",
+    enableNotificationsAccessibilityLabel: "Aktifkan notifikasi",
+    enableNotificationsButton: "Aktifkan Notifikasi",
+    skipPermissionAccessibilityLabel: "Lewati izin notifikasi",
+    skipPermissionButton: "Nanti aja",
   },
   settings: {
     title: "Pengaturan",
