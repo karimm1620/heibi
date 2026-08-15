@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
+import { HeaderBackButton } from "../src/components/HeaderBackButton";
 import { initDatabase } from "../src/db/client";
 import { migrateFromAsyncStorageIfNeeded } from "../src/db/legacyMigration";
 import { useReducedMotion } from "../src/hooks/useReducedMotion";
@@ -143,6 +144,7 @@ function RootLayoutContent() {
               title: "",
               headerTransparent: true,
               headerTintColor: colors.textPrimary,
+              headerLeft: () => <HeaderBackButton />,
               // Eksplisit (bukan andelin "default") -- perilaku "default"
               // bisa beda-beda antar skin Android/OEM. slide_from_right itu
               // konvensi Material buat "push forward" dari list ke detail.
@@ -156,6 +158,7 @@ function RootLayoutContent() {
               title: "",
               headerTransparent: true,
               headerTintColor: colors.textPrimary,
+              headerLeft: () => <HeaderBackButton />,
               animation: reducedMotion ? "none" : "slide_from_right",
             }}
           />
