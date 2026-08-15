@@ -108,14 +108,21 @@ Ini list yang dikasih user buat update berikutnya, urutan bebas:
    dipake.** PanResponder drag-reorder (`useDragReorder.ts`) MASIH belum
    disentuh — itu keputusan terpisah lagi kalau mau dimigrasiin juga.
 6. Tambahain button kecil pilihan bahasa di onboarding biar user bisa langsung milih bahasa (english/indonesia) di awal pertama kali masuk aplikasi.
-7. Improvement & scalability biar APK jalan mulus
-8. **Redesign icon app dari NOL** — user eksplisit bilang JANGAN pakai
-   desain/warna icon yang sekarang (jar+checkmark lavender/mint), dan
-   **JANGAN AI slop** — icon harus representasiin 3 pilar app ini (habits,
-   todo, savings) dengan cara yang keliatan niat/dipikirin, bukan generik.
-   Icon yang ada sekarang (dibikin Checkpoint 8, SVG vector manual, bukan
-   AI-generated) mau DIBUANG TOTAL, bukan di-iterasi.
-9. Kurangin ukuran APK.
+7. Kita bakal pakai predictive back gesture. supaya kerasa feel material android nya. Layaknya UI Google pixel.
+8. Tambahin background di tanda panah kembali/back (tanya dulu ke user mana gambarnya).
+9. Tambahin animasi tab bar kayak playstore. (Liat video yang user kirim, tanya dulu mana videonya). Sekalian fix ripple flash nya, masih kotak terang saat tab nya dipencet. 
+10. Kita bakal bikin feel aplikasi ini kaya Material UI 3 expresive, layaknya UI Android 17 di Google Pixel. Dari font dan sebagainya. Layaknya aplikasi-aplikasi buatan google.
+11. Bikin animasi swipeable kayak di aplikasi Gmail dan Google message, yang dimana kerasa smooth like a butter dan sticky nya enak banget. jangan lupa haptic nya.
+12. Use Material-inspired interaction patterns where they improve native familiarity.
+13. Buat list nomor 6 - 12. Masukin ke bagian UI update di (list nomor 3).
+14. Improvement & scalability biar APK jalan mulus.
+15. **Redesign icon app dari NOL** — user eksplisit bilang JANGAN pakai
+    desain/warna icon yang sekarang (jar+checkmark lavender/mint), dan
+    **JANGAN AI slop** — icon harus representasiin 3 pilar app ini (habits,
+    todo, savings) dengan cara yang keliatan niat/dipikirin, bukan generik.
+    Icon yang ada sekarang (dibikin Checkpoint 8, SVG vector manual, bukan
+    AI-generated) mau DIBUANG TOTAL, bukan di-iterasi. nanti pakai icon-theme skill tapi user hanya punya gemini api key, tanya lagi.
+16. Kurangin ukuran APK.
 
 ## Brief history (checkpoint-by-checkpoint)
 

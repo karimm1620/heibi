@@ -5,6 +5,7 @@ import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-nativ
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "../src/hooks/useReducedMotion";
 import { useTranslation } from "../src/hooks/useTranslation";
+import type { Language } from "../src/i18n";
 import { useSettingsStore } from "../src/store/useSettingsStore";
 import { accentByKey, radius, spacing, withOpacity } from "../src/theme/colors";
 import type { AccentKey } from "../src/theme/colors";
@@ -34,11 +35,12 @@ interface OnboardingStep {
  */
 export default function OnboardingScreen() {
   const { colors, typography, material3 } = useTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const router = useRouter();
   const completeOnboarding = useSettingsStore((state) => state.completeOnboarding);
+  const setLanguage = useSettingsStore((state) => state.setLanguage);
 
   const STEPS: OnboardingStep[] = useMemo(
     () => [
@@ -138,20 +140,30 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.container}>
-      {!isLastStep && (
-        <Pressable
-          onPress={finish}
-          hitSlop={12}
-          style={styles.skipButton}
-          accessibilityRole="button"
-          accessibilityLabel={t.onboarding.skipAccessibilityLabel}
-          android_ripple={{ color: colors.glassBorder, borderless: true, radius: 24 }}
-        >
-          <Text style={styles.skipText}>{t.onboarding.skipButton}</Text>
-        </Pressable>
-      )}
+      <View style={styles.headerRow}>
+        <LanguageToggle
+          language={language}
+          onSelect={setLanguage}
+          idLabel={t.settings.language.id}
+          enLabel={t.settings.language.en}
+          styles={styles}
+          material3={material3}
+        />
+        {!isLastStep && (
+          <Pressable
+            onPress={finish}
+            hitSlop={12}
+            style={styles.skipButton}
+            accessibilityRole="button"
+            accessibilityLabel={t.onboarding.skipAccessibilityLabel}
+            android_ripple={{ color: colors.glassBorder, borderless: true, radius: 24 }}
+          >
+            <Text style={styles.skipText}>{t.onboarding.skipButton}</Text>
+          </Pressable>
+        )}
+      </View>
 
-      <View style={[styles.content, isLastStep && styles.contentNoSkipOffset]}>
+      <View style={styles.content}>
         <Animated.View style={[styles.stepBody, { opacity, transform: [{ translateY }] }]}>
           <View style={[styles.iconWrap, { backgroundColor: accent.base }]}>
             <MaterialCommunityIcons name={current.icon} size={56} color={accent.deep} />
@@ -210,6 +222,73 @@ export default function OnboardingScreen() {
   );
 }
 
+interface LanguageToggleProps {
+  language: Language;
+  onSelect: (language: Language) => Promise<void> | void;
+  idLabel: string;
+  enLabel: string;
+  styles: ReturnType<typeof createStyles>;
+  material3: ReturnType<typeof useTheme>["material3"];
+}
+
+/**
+ * Toggle bahasa versi kompak (segmented pill "ID | EN") -- beda dari
+ * `LanguageOption` 2-chip lebar penuh di Settings, di sini butuh yang
+ * lebih kecil biar gak ganggu fokus konten onboarding. Accessibility
+ * label per segmen REUSE `t.settings.language.id`/`.en` ("Indonesia"/
+ * "English") yang udah ada, bukan bikin key baru duplikat -- teks
+ * visible-nya sendiri ("ID"/"EN") sengaja gak diterjemahin, kode bahasa
+ * itu universal/gak butuh terjemahan.
+ */
+function LanguageToggle({ language, onSelect, idLabel, enLabel, styles, material3 }: LanguageToggleProps) {
+  return (
+    <View style={styles.languageToggle}>
+      <LanguageSegment
+        code="ID"
+        active={language === "id"}
+        accessibilityLabel={idLabel}
+        onPress={() => onSelect("id")}
+        styles={styles}
+        material3={material3}
+      />
+      <LanguageSegment
+        code="EN"
+        active={language === "en"}
+        accessibilityLabel={enLabel}
+        onPress={() => onSelect("en")}
+        styles={styles}
+        material3={material3}
+      />
+    </View>
+  );
+}
+
+interface LanguageSegmentProps {
+  code: string;
+  active: boolean;
+  accessibilityLabel: string;
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+  material3: ReturnType<typeof useTheme>["material3"];
+}
+
+function LanguageSegment({ code, active, accessibilityLabel, onPress, styles, material3 }: LanguageSegmentProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ selected: active }}
+      style={[styles.languageSegment, active && { backgroundColor: material3.primary }]}
+      android_ripple={{ color: withOpacity(material3.onPrimary, 0.16) }}
+    >
+      <Text style={[styles.languageSegmentText, active && { color: material3.onPrimary }]}>
+        {code}
+      </Text>
+    </Pressable>
+  );
+}
+
 function createStyles(
   colors: ReturnType<typeof useTheme>["colors"],
   typography: ReturnType<typeof useTheme>["typography"],
@@ -223,23 +302,46 @@ function createStyles(
       paddingTop: insets.top,
       paddingBottom: insets.bottom + spacing.lg,
     },
-    skipButton: {
-      alignSelf: "flex-end",
+    // Header row SELALU render (language toggle minimal ada di semua step,
+    // skip cuma di step non-terakhir) -- beda dari sebelumnya yang bikin
+    // header ilang total pas step terakhir & butuh compensation margin di
+    // content. Sekarang tinggi header konsisten tiap step, gak perlu hack
+    // "contentNoSkipOffset" lagi.
+    headerRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.xs,
+    },
+    skipButton: {
       paddingVertical: spacing.md,
     },
     skipText: { ...typography.body, color: colors.textSecondary, fontWeight: "600" },
+    languageToggle: {
+      flexDirection: "row",
+      borderRadius: m3Shape.full,
+      borderWidth: 1.5,
+      borderColor: colors.glassBorder,
+      overflow: "hidden",
+    },
+    languageSegment: {
+      paddingHorizontal: spacing.sm + 4,
+      paddingVertical: spacing.xs + 2,
+      minWidth: 44,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    languageSegmentText: {
+      ...typography.caption,
+      fontWeight: "700",
+      color: colors.textSecondary,
+    },
     content: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: spacing.xl,
-    },
-    // Step terakhir gak punya tombol Lewati di atas (lihat komentar di
-    // render) -- kompensasi biar konten gak keliatan "melorot" ke bawah
-    // dibanding 3 step sebelumnya yang punya ruang tombol Lewati di atas.
-    contentNoSkipOffset: {
-      marginTop: spacing.xl + spacing.md,
     },
     stepBody: { alignItems: "center" },
     iconWrap: {
