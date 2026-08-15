@@ -1,10 +1,10 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "expo-router/js-tabs";
+import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { m3ElevationStyle, m3Motion, m3Shape } from "../theme/material3/tokens";
-import { withOpacity } from "../theme/colors";
 import { buildM3FullTypeScale } from "../theme/material3/typography";
 import { useTheme } from "../theme/useTheme";
 import { useTranslation } from "../hooks/useTranslation";
@@ -34,12 +34,31 @@ export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) 
   const [anims] = useState(() =>
     state.routes.map((_, i) => new Animated.Value(state.index === i ? 1 : 0)),
   );
+  // State layer press feedback (checkpoint <next>) -- GANTI total dari
+  // `android_ripple` bawaan. `android_ripple` sebelumnya diclip ke bounds
+  // `styles.tab` (satu kolom PENUH icon+label, gak ada borderRadius) jadi
+  // ripple-nya keliatan kotak nutupin label juga -- bukan ngikutin bentuk
+  // pill bulat di belakang icon. Solusinya: matiin ripple native-nya sama
+  // sekali, ganti Animated.View sendiri yang di-absolute-position PAS di
+  // ukuran+bentuk pill (64x32, radius full) -- tap area (`styles.tab`)
+  // tetep sekolom penuh biar gampang dipencet, visual feedback-nya doang
+  // yang dikecilin. Bonus: opacity di-animate manual (bukan RippleDrawable
+  // native), jadi genuinely fade-in halus dari 0, gak ada "flash" opaque
+  // instan kayak masalah warna solid mentah yang udah dicatet di komentar
+  // `android_ripple` versi lama.
+  const [pressAnims] = useState(() => state.routes.map(() => new Animated.Value(0)));
 
   useEffect(() => {
     state.routes.forEach((_, i) => {
-      Animated.timing(anims[i], {
+      // Animated.spring (bukan .timing lagi) -- kasih efek "pop" dikit pas
+      // tab kepencet (overshoot dikit ngelewatin scale 1 sebelum settle),
+      // ngikutin feel Play Store yang lebih snappy dibanding fade linear
+      // biasa. bounciness/speed dipilih moderat -- overshoot KERASA tapi
+      // gak norak/berlebihan.
+      Animated.spring(anims[i], {
         toValue: state.index === i ? 1 : 0,
-        duration: m3Motion.duration.medium2,
+        bounciness: 6,
+        speed: 14,
         useNativeDriver: true,
       }).start();
     });
@@ -71,48 +90,50 @@ export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) 
             canPreventDefault: true,
           });
           if (!isFocused && !event.defaultPrevented) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
             navigation.navigate(route.name);
           }
+        };
+
+        const onPressIn = () => {
+          Animated.timing(pressAnims[index], {
+            toValue: 1,
+            duration: m3Motion.duration.short2,
+            useNativeDriver: true,
+          }).start();
+        };
+
+        const onPressOut = () => {
+          Animated.timing(pressAnims[index], {
+            toValue: 0,
+            duration: m3Motion.duration.medium1,
+            useNativeDriver: true,
+          }).start();
         };
 
         const pillScale = anims[index].interpolate({
           inputRange: [0, 1],
           outputRange: [0.6, 1],
         });
+        const iconScale = anims[index].interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.85, 1],
+        });
+        const stateLayerOpacity = pressAnims[index].interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 0.12],
+        });
 
         return (
           <Pressable
             key={route.key}
             onPress={onPress}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
             style={styles.tab}
             accessibilityRole="tab"
             accessibilityLabel={label}
             accessibilityState={{ selected: isFocused }}
-            android_ripple={{
-              color: withOpacity(material3.onSurfaceVariant, 0.12),
-              // Checkpoint <next>: `material3.onSurfaceVariant` dipakai MENTAH
-              // (tanpa opacity) sebelumnya -- itu warna teks kontras-tinggi
-              // (dirancang buat DIBACA di atas surface, bukan buat overlay
-              // tembus pandang). RippleDrawable Android nge-render highlight
-              // state OPAQUE penuh sesaat pas jari NYENTUH (sebelum lingkaran
-              // ripple-nya sempat animasi keluar) -- itu yang keliatan kayak
-              // "flash" terang pas ditekan. Warna solid apapun bakal kena ini;
-              // fix-nya WAJIB di-`withOpacity(...)`, bukan ganti warna doang.
-              // Follow-up: 0.24 masih kerasa "samar" keliatan, diturunin ke
-              // 0.12 (masih ada feedback taktil dikit, gak didisable total --
-              // ripple sepenuhnya transparan bikin tombol kerasa "mati" gak
-              // ada respons pas ditekan, itu keluar dari konvensi Material).
-              // Checkpoint 6: dulu `borderless: true, radius: 32` -- ripple-nya
-              // jadi lingkaran penuh (diameter 64) yang gak diclip ke bentuk
-              // pill oval 64x32 ATAU ke batas tab, jadi nongol kayak bayangan
-              // gelap gak wajar pas transisi (borderless ripple di RN memang
-              // sengaja "kabur" dari bounds view, cocok buat icon-button kecil,
-              // tapi bukan buat area setinggi tab ini). Indikator "aktif" udah
-              // ditangani full sama Animated pill di bawah (warna+scale), jadi
-              // ripple bawaan cukup jadi feedback taktil biasa yang diclip ke
-              // area tab (borderless: false, default).
-              borderless: false,
-            }}
           >
             <View style={styles.iconRow}>
               <Animated.View
@@ -125,10 +146,22 @@ export function MaterialNavigationBar({ state, navigation }: BottomTabBarProps) 
                   },
                 ]}
               />
-              <MaterialCommunityIcons
-                name={iconName}
-                size={22}
-                color={isFocused ? colors.textPrimary : colors.textSecondary}
+              <Animated.View style={{ transform: [{ scale: iconScale }] }}>
+                <MaterialCommunityIcons
+                  name={iconName}
+                  size={22}
+                  color={isFocused ? colors.textPrimary : colors.textSecondary}
+                />
+              </Animated.View>
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.stateLayer,
+                  {
+                    backgroundColor: material3.onSurfaceVariant,
+                    opacity: stateLayerOpacity,
+                  },
+                ]}
               />
             </View>
             <Text
@@ -171,6 +204,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   pill: {
+    position: "absolute",
+    width: 64,
+    height: 32,
+    borderRadius: m3Shape.full,
+  },
+  // Ukuran & posisi SAMA PERSIS sama `pill` -- ini yang bikin state layer
+  // press-feedback ngikutin bentuk pill (bulat), bukan kotak kolom tab.
+  stateLayer: {
     position: "absolute",
     width: 64,
     height: 32,
