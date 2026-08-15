@@ -53,6 +53,23 @@
           "defaultChannel": "savings"
         }
       ],
+      [
+        "expo-font",
+        {
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "RobotoFlex",
+                "fontDefinitions": [
+                  { "path": "./assets/fonts/RobotoFlex-Regular.ttf", "weight": 400 },
+                  { "path": "./assets/fonts/RobotoFlex-Medium.ttf", "weight": 500 },
+                  { "path": "./assets/fonts/RobotoFlex-Bold.ttf", "weight": 700 }
+                ]
+              }
+            ]
+          }
+        }
+      ],
       "expo-image",
       "expo-sharing"
     ],
