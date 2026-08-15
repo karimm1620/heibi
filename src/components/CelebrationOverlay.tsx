@@ -6,6 +6,7 @@ import { useReducedMotion } from "../hooks/useReducedMotion";
 import { spacing } from "../theme/colors";
 import { m3ElevationStyle, m3Motion, m3Shape } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
+import { OrganicBadge } from "./OrganicBadge";
 
 interface CelebrationOverlayProps {
   visible: boolean;
@@ -109,7 +110,9 @@ export function CelebrationOverlay({
       <Animated.View
         style={[styles.card, { opacity, transform: [{ scale }] }]}
       >
-        <MaterialCommunityIcons name="check" size={20} color={material3.onPrimaryContainer} />
+        <OrganicBadge size={28} color={material3.primary}>
+          <MaterialCommunityIcons name="check" size={16} color={material3.onPrimary} />
+        </OrganicBadge>
         <Text style={styles.text}>Semua beres hari ini</Text>
       </Animated.View>
     </Animated.View>
