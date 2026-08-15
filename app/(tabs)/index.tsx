@@ -349,6 +349,7 @@ function HabitRow({
               color: habit.color,
               onPress: () => void archiveWithCleanup(habit),
             }}
+            quickActionAutoExecute
             menuActions={[
               {
                 label: t.common.edit,
