@@ -19,47 +19,15 @@ interface SwipeableRowProps {
   children: React.ReactNode;
   /** Aksi cepat pas swipe KIRI (row digeser ke kiri, tombol muncul dari kanan) — 1 aksi utama. */
   quickAction?: SwipeAction;
-  /**
-   * Swipe JAUH ngelewatin COMMIT_DISTANCE + DILEPAS = `quickAction` auto-
-   * jalan (ala Gmail archive), gak perlu tap tombol. Default `false` --
-   * WAJIB opt-in eksplisit per pemakaian, JANGAN nyalain ke SEMUA quickAction
-   * tanpa mikir: kalau quickAction-nya destructive (misal Hapus, lihat Todo
-   * row di `app/(tabs)/index.tsx`) auto-eksekusi via swipe jauh itu resiko
-   * gak sengaja ke-trigger tanpa konfirmasi. Cuma cocok buat aksi yang aman/
-   * reversible (Arsip di Habit row).
-   */
-  quickActionAutoExecute?: boolean;
   /** Menu lengkap pas swipe KANAN (row digeser ke kanan, menu muncul dari kiri) — bisa >1 aksi. */
   menuActions?: SwipeAction[];
 }
 
 const ACTION_WIDTH = 68;
 // Titik reveal (sama kayak rightThreshold/leftThreshold) -- lewatin ini
-// tombol keliatan penuh + haptic tick pertama.
+// tombol keliatan penuh + haptic tick.
 const REVEAL_DISTANCE = 40;
-// Checkpoint <next>: titik "commit" ala Gmail archive -- lewatin jarak ini
-// terus DILEPAS, quickAction LANGSUNG jalan otomatis (gak perlu nge-tap
-// tombol lagi). ~1.8x lebar tombol -- cukup jauh biar gak ke-trigger gak
-// sengaja, tapi masih kepegang natural (gak kejauhan sampe kerasa berat).
-// SENGAJA cuma di quickAction (1 aksi jelas, ala "archive") -- BUKAN di
-// menuActions (>1 pilihan kayak Edit/Arsip/Hapus, auto-eksekusi salah
-// satu di situ ambigu & beresiko -- misal gak sengaja "Hapus" ke-trigger).
-// Checkpoint <next> (fix): SEBELUMNYA `ACTION_WIDTH * 2.6` (~177) dikombinasi
-// `overshootFriction: 8` -- dites user, sama sekali gak bisa ke-trigger.
-// Ternyata formula overshoot RNGH itu COMPOUND: `overshootFriction` DAN
-// `friction` (2) berlaku BARENGAN buat jarak di atas reveal natural, bukan
-// cuma salah satunya (lihat source `Swipeable.tsx`, method
-// `updateAnimatedEvent` -- overshoot region cuma 1-unit-lebar di
-// inputRange-nya, terus di-extrapolate `overshootFriction` OUTPUT-per-INPUT,
-// dan input itu SENDIRI udah melalui pembagian `friction` dari raw pixel).
-// Hasilnya: raw pixel jari yang WAJIB ditarik = extraDistance * overshootFriction
-// * friction. Dengan angka lama itu ~1485px -- ngelewatin lebar layar
-// manapun, mustahil ke-trigger secara fisik. Diitung ulang biar reachable
-// (~150px extra drag, sekitar 1/3 lebar layar -- kerasa "sengaja narik
-// jauh" tapi masih nyaman 1 gesture).
-const COMMIT_DISTANCE = ACTION_WIDTH * 1.8;
 
-type SwipeStage = "idle" | "revealed" | "committed";
 type AnimInterp = Animated.AnimatedInterpolation<number>;
 type ListenerHandle = { value: AnimInterp; id: string };
 
@@ -87,36 +55,36 @@ type ListenerHandle = { value: AnimInterp; id: string };
  * Juni 2026, 5 HARI SEBELUM fix itu ke-merge. Belum ada rilis `2.32.x`
  * yang bawa fix ini balik (backport) -- fix-nya baru masuk di seri v3.x,
  * dan project ini SENGAJA gak mau bump ke v3 (belum ke-test Expo buat SDK
- * 57, keputusan yang udah didiskusiin & ditolak beberapa kali). Checkpoint
- * <next>: DICEK ULANG changelog GH (per Agustus 2026) -- rilis abis 2.32.0
- * langsung lompat ke v3.0.1/v3.0.2/v3.1.0, GAK ADA patch 2.32.x/2.33.x yang
- * bawa fix ini balik. Jadi TETEP di `Swipeable` klasik, bug-nya masih ada.
- * `Swipeable` klasik gak kena bug ini sama sekali (arsitektur action
- * container-nya beda) -- konsekuensinya cuma warning deprecation di
- * console (COSMETIC doang, gak ngaruh ke user, bukan fungsional).
+ * 57, keputusan yang udah didiskusiin & ditolak beberapa kali). Dicek ulang
+ * per Agustus 2026 -- rilis abis 2.32.0 langsung lompat ke v3.0.1/v3.0.2/
+ * v3.1.0, GAK ADA patch 2.32.x/2.33.x yang bawa fix ini balik. Jadi TETEP
+ * di `Swipeable` klasik, bug-nya masih ada. `Swipeable` klasik gak kena bug
+ * ini sama sekali (arsitektur action container-nya beda) -- konsekuensinya
+ * cuma warning deprecation di console (COSMETIC doang, gak ngaruh ke user).
  *
  * Checkpoint 5b: aksi yang kereveal chip ROUNDED dengan inset (bukan blok
  * kotak full-height nempel ke tepi row) -- ada backdrop warna
  * `colors.surface` di belakangnya biar transisi ke row list yang flat
  * (gak ada card individual, cuma divider) gak kerasa "cutout" tiba-tiba.
  *
- * Checkpoint <next>: nambah animasi reveal (icon pop-in ngikutin jarak
- * drag) + haptic 2-stage (tick ringan pas lewatin REVEAL_DISTANCE, tick
- * lebih tegas pas lewatin COMMIT_DISTANCE) + mode "swipe jauh = auto-
- * eksekusi" ala Gmail archive KHUSUS quickAction. Dibangun di atas
- * `Swipeable` klasik yang sama (gak butuh Reanimated/v3) -- `transX` yang
- * dipassing render-prop itu `AnimatedInterpolation` STABIL (dicek langsung
- * dari source RNGH: dibikin sekali di constructor, cuma di-`setValue(0)`
- * pas nutup, BUKAN diciptain ulang tiap gesture) jadi aman di-`addListener`.
+ * Checkpoint 29-31: sempet nyoba nambah animasi pop-in + haptic 2-stage +
+ * mode "swipe jauh = auto-eksekusi" ala Gmail archive. Animasi pop-in +
+ * haptic reveal-nya KEBUKTI jalan bagus (confirmed via video). Tapi mode
+ * auto-eksekusi-nya DIBATALIN setelah 2 ronde percobaan gagal: percobaan
+ * pertama COMMIT_DISTANCE-nya gak reachable secara fisik (butuh ~1485px
+ * tarikan jari -- salah itung formula overshoot RNGH yang compound sama
+ * `friction`). Percobaan kedua abis angkanya dibenerin TETEP gak jalan --
+ * dugaan kuat race condition antara `dragX.addListener` (JS thread) yang
+ * nentuin status "committed" vs `onSwipeableOpen` (native gesture callback)
+ * yang bisa aja kepanggil duluan sebelum listener sempet update, apalagi
+ * buat swipe cepat/flick. Daripada trial-error lebih jauh buat fitur yang
+ * sifatnya nice-to-have, USER MINTA DI-DROP -- balik ke behavior aman
+ * (WAJIB tap tombol buat semua aksi, gak ada auto-eksekusi sama sekali),
+ * pop-in animasi + haptic reveal-nya TETEP dipertahanin karena udah
+ * confirmed bagus.
  */
-export function SwipeableRow({
-  children,
-  quickAction,
-  quickActionAutoExecute = false,
-  menuActions,
-}: SwipeableRowProps) {
+export function SwipeableRow({ children, quickAction, menuActions }: SwipeableRowProps) {
   const swipeableRef = useRef<Swipeable>(null);
-  const hasCommittedRef = useRef(false);
   const quickActionListenerRef = useRef<ListenerHandle | null>(null);
   const menuListenerRef = useRef<ListenerHandle | null>(null);
 
@@ -125,40 +93,25 @@ export function SwipeableRow({
     action.onPress();
   };
 
-  // `getDistance` beda formula tergantung sisi -- transX NEGATIF pas
-  // renderRightActions (row digeser ke KIRI), POSITIF pas renderLeftActions
-  // (row digeser ke KANAN). `isCommitTracked` cuma true buat quickAction
-  // (satu-satunya sisi yang boleh auto-eksekusi).
-  const attachStageListener = (
+  // Haptic tick ringan pas lewatin REVEAL_DISTANCE -- `getDistance` beda
+  // formula tergantung sisi (transX NEGATIF pas renderRightActions, POSITIF
+  // pas renderLeftActions).
+  const attachRevealListener = (
     dragX: AnimInterp,
     listenerRef: React.MutableRefObject<ListenerHandle | null>,
     getDistance: (value: number) => number,
-    isCommitTracked: boolean,
   ) => {
     if (listenerRef.current) {
       listenerRef.current.value.removeListener(listenerRef.current.id);
     }
-    let stage: SwipeStage = "idle";
+    let revealed = false;
     const id = dragX.addListener(({ value }) => {
       const distance = getDistance(value);
-      let nextStage: SwipeStage = "idle";
-      if (isCommitTracked && distance >= COMMIT_DISTANCE) {
-        nextStage = "committed";
-      } else if (distance >= REVEAL_DISTANCE) {
-        nextStage = "revealed";
+      const nextRevealed = distance >= REVEAL_DISTANCE;
+      if (nextRevealed && !revealed) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       }
-
-      if (nextStage !== stage) {
-        if (nextStage === "revealed" && stage === "idle") {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-        } else if (nextStage === "committed") {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-        }
-        stage = nextStage;
-      }
-      if (isCommitTracked) {
-        hasCommittedRef.current = nextStage === "committed";
-      }
+      revealed = nextRevealed;
     });
     listenerRef.current = { value: dragX, id };
   };
@@ -166,25 +119,15 @@ export function SwipeableRow({
   return (
     <Swipeable
       ref={swipeableRef}
-      overshootRight={quickActionAutoExecute}
+      overshootRight={false}
       overshootLeft={false}
-      overshootFriction={2}
       friction={2}
       rightThreshold={REVEAL_DISTANCE}
       leftThreshold={REVEAL_DISTANCE}
-      onSwipeableOpen={(direction) => {
-        // Swipe jauh ngelewatin COMMIT_DISTANCE terus DILEPAS -- daripada
-        // dibiarin "kebuka" (nunggu di-tap), langsung jalanin quickAction
-        // & tutup lagi, ala Gmail full-swipe-to-archive.
-        if (direction === "right" && quickActionAutoExecute && hasCommittedRef.current && quickAction) {
-          hasCommittedRef.current = false;
-          closeAndRun(quickAction);
-        }
-      }}
       renderRightActions={
         quickAction
           ? (_progress, dragX) => {
-              attachStageListener(dragX, quickActionListenerRef, (v) => -v, quickActionAutoExecute);
+              attachRevealListener(dragX, quickActionListenerRef, (v) => -v);
               return (
                 <View style={styles.actionsBackdrop}>
                   <ActionButton action={quickAction} onPress={closeAndRun} dragX={dragX} isRightSide />
@@ -196,7 +139,7 @@ export function SwipeableRow({
       renderLeftActions={
         menuActions && menuActions.length > 0
           ? (_progress, dragX) => {
-              attachStageListener(dragX, menuListenerRef, (v) => v, false);
+              attachRevealListener(dragX, menuListenerRef, (v) => v);
               return (
                 <View style={[styles.actionsBackdrop, styles.leftActionsRow]}>
                   {menuActions.map((action) => (
