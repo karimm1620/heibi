@@ -39,12 +39,25 @@ const ACTION_WIDTH = 68;
 const REVEAL_DISTANCE = 40;
 // Checkpoint <next>: titik "commit" ala Gmail archive -- lewatin jarak ini
 // terus DILEPAS, quickAction LANGSUNG jalan otomatis (gak perlu nge-tap
-// tombol lagi). ~2.6x lebar tombol -- cukup jauh biar gak ke-trigger gak
+// tombol lagi). ~1.8x lebar tombol -- cukup jauh biar gak ke-trigger gak
 // sengaja, tapi masih kepegang natural (gak kejauhan sampe kerasa berat).
 // SENGAJA cuma di quickAction (1 aksi jelas, ala "archive") -- BUKAN di
 // menuActions (>1 pilihan kayak Edit/Arsip/Hapus, auto-eksekusi salah
 // satu di situ ambigu & beresiko -- misal gak sengaja "Hapus" ke-trigger).
-const COMMIT_DISTANCE = ACTION_WIDTH * 2.6;
+// Checkpoint <next> (fix): SEBELUMNYA `ACTION_WIDTH * 2.6` (~177) dikombinasi
+// `overshootFriction: 8` -- dites user, sama sekali gak bisa ke-trigger.
+// Ternyata formula overshoot RNGH itu COMPOUND: `overshootFriction` DAN
+// `friction` (2) berlaku BARENGAN buat jarak di atas reveal natural, bukan
+// cuma salah satunya (lihat source `Swipeable.tsx`, method
+// `updateAnimatedEvent` -- overshoot region cuma 1-unit-lebar di
+// inputRange-nya, terus di-extrapolate `overshootFriction` OUTPUT-per-INPUT,
+// dan input itu SENDIRI udah melalui pembagian `friction` dari raw pixel).
+// Hasilnya: raw pixel jari yang WAJIB ditarik = extraDistance * overshootFriction
+// * friction. Dengan angka lama itu ~1485px -- ngelewatin lebar layar
+// manapun, mustahil ke-trigger secara fisik. Diitung ulang biar reachable
+// (~150px extra drag, sekitar 1/3 lebar layar -- kerasa "sengaja narik
+// jauh" tapi masih nyaman 1 gesture).
+const COMMIT_DISTANCE = ACTION_WIDTH * 1.8;
 
 type SwipeStage = "idle" | "revealed" | "committed";
 type AnimInterp = Animated.AnimatedInterpolation<number>;
@@ -155,7 +168,7 @@ export function SwipeableRow({
       ref={swipeableRef}
       overshootRight={quickActionAutoExecute}
       overshootLeft={false}
-      overshootFriction={8}
+      overshootFriction={2}
       friction={2}
       rightThreshold={REVEAL_DISTANCE}
       leftThreshold={REVEAL_DISTANCE}
