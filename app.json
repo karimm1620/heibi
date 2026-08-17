@@ -73,7 +73,8 @@
       ],
       "expo-image",
       "expo-sharing",
-      "./plugins/withAndroidApkSize"
+      "./plugins/withAndroidApkSize",
+      "./plugins/withDynamicNotificationColor"
     ],
     "experiments": {
       "typedRoutes": true,
