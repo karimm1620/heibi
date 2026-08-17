@@ -72,7 +72,8 @@
         }
       ],
       "expo-image",
-      "expo-sharing"
+      "expo-sharing",
+      "./plugins/withAndroidApkSize"
     ],
     "experiments": {
       "typedRoutes": true,
