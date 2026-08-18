@@ -7,6 +7,16 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="/">
+    <img alt="Onboarding" height="340" src="./mock/onboarding.png">
+    <img alt="Habit" height="340" src="./mock/habit-screen.png">
+    <img alt="Onboarding" height="340" src="./mock/calendar.png">
+    <img alt="Saving" height="340" src="./mock/saving-screen.png">
+    <img alt="History" height="340" src="./mock/history-screen.png">
+  </a>
+</p>
+
   <a aria-label="Heibi is free to use" href="https://github.com/karimm1620/heibi/blob/main/LICENSE" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-success.svg?style=flat-square&color=33CC12" target="_blank" />
   </a>
