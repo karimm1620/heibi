@@ -38,6 +38,7 @@ import {
 
 const GITHUB_URL = "https://github.com/karimm1620/heibi";
 const SAWERIA_URL = "https://saweria.co/immu";
+const PRIVACY_POLICY = "https://karimm1620.github.io/heibi-privacy-policy/privacy-policy.html"
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -251,6 +252,24 @@ export default function SettingsScreen() {
                   {t.settings.about.coffeeSubtitle}
                 </Text>
               </View>
+            </View>
+            <MaterialCommunityIcons
+              name="open-in-new"
+              size={16}
+              color={colors.textSecondary}
+            />
+          </Pressable>
+
+          <Pressable
+            onPress={() => Linking.openURL(PRIVACY_POLICY).catch(() => {})}
+            style={styles.aboutRow}
+            accessibilityRole="link"
+            accessibilityLabel={t.settings.about.privacyPolicyAccessibilityLabel}
+            android_ripple={{ color: colors.glassBorder }}
+          >
+            <View style={styles.aboutRowLabel}>
+              <MaterialCommunityIcons name="license" size={20} color={colors.textPrimary} />
+              <Text style={typography.body}>{t.settings.about.privacyPolicy}</Text>
             </View>
             <MaterialCommunityIcons
               name="open-in-new"

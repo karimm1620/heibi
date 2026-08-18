@@ -277,6 +277,8 @@ export const id = {
       coffee: "Traktir Kopi",
       coffeeSubtitle: "via Saweria",
       coffeeAccessibilityLabel: "Buka halaman donasi Saweria",
+      privacyPolicy: "Kebijakan Privasi",
+      privacyPolicyAccessibilityLabel: "Buka halaman Kebijakan Privasi",
       appVersion: "Versi aplikasi",
     },
   },

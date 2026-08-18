@@ -274,6 +274,8 @@ export const en: TranslationDict = {
       coffee: "Buy me a coffee",
       coffeeSubtitle: "via Saweria",
       coffeeAccessibilityLabel: "Open the Saweria donation page",
+      privacyPolicy: "Privacy Policy",
+      privacyPolicyAccessibilityLabel: "Open the Privacy Policy Page",
       appVersion: "App version",
     },
   },
