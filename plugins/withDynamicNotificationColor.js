@@ -19,12 +19,21 @@ const path = require("path");
  * - `values-v31/colors.xml` (Android 12+, tema TERANG): reference ke
  *   `@android:color/system_accent1_600` -- tone medium-gelap, kontras
  *   pas di notification tray terang.
- * - `values-v31-night/colors.xml` (Android 12+, tema GELAP): reference
+ * - `values-night-v31/colors.xml` (Android 12+, tema GELAP): reference
  *   ke `@android:color/system_accent1_200` -- tone lebih terang, kontras
  *   pas di notification tray gelap. Konvensi index 600/200 ini SAMA
  *   persis kayak yang dipakai Material Components sendiri buat resolve
  *   `colorPrimary` di `ThemeOverlay.Material3.DynamicColors.Light/Dark`
  *   -- bukan angka asal, ngikutin pattern resmi Google.
+ *
+ * Checkpoint <next> (FIX): nama folder pertama (`values-v31-night`) SALAH
+ * -- build gagal ("Invalid resource directory name"). Root cause: Android
+ * qualifier resource itu WAJIB urutan tertentu, night mode (posisi ~12 di
+ * tabel resmi) harus di SEBELUM platform version (`-vXX`, WAJIB paling
+ * akhir kalau dipakai). Urutan bener: `values-night-v31`, BUKAN
+ * `values-v31-night`. Dikonfirmasi ulang dari dokumentasi resmi Android
+ * ("App resources overview") + contoh nyata project lain yang commit
+ * folder `values-night-v31` persis buat alasan yang sama.
  */
 module.exports = function withDynamicNotificationColor(config) {
   return withDangerousMod(config, [
@@ -37,7 +46,7 @@ module.exports = function withDynamicNotificationColor(config) {
 
       const variants = [
         { dir: "values-v31", tone: "system_accent1_600" },
-        { dir: "values-v31-night", tone: "system_accent1_200" },
+        { dir: "values-night-v31", tone: "system_accent1_200" },
       ];
 
       for (const { dir, tone } of variants) {
