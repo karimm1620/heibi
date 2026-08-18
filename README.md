@@ -9,11 +9,11 @@
 
 <p align="center">
   <a href="/">
-    <img alt="Onboarding" height="340" src="./mock/onboarding.png">
-    <img alt="Habit" height="340" src="./mock/habit-screen.png">
-    <img alt="Onboarding" height="340" src="./mock/calendar.png">
-    <img alt="Saving" height="340" src="./mock/saving-screen.png">
-    <img alt="History" height="340" src="./mock/history-screen.png">
+    <img alt="Onboarding" height="340" src="./banner/onboarding.png">
+    <img alt="Habit" height="340" src="./banner/habit-screen.png">
+    <img alt="Onboarding" height="340" src="./banner/calendar.png">
+    <img alt="Saving" height="340" src="./banner/saving-screen.png">
+    <img alt="History" height="340" src="./banner/history-screen.png">
   </a>
 </p>
 
