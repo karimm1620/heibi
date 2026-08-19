@@ -15,8 +15,9 @@ import {
 import { rowToTodo, type TodoRow } from "../store/useTodosStore";
 import type { Goal, Habit, HabitLog, Todo, Transaction } from "../types";
 import { getLocalDateKey } from "./date";
+import { readGoalImageAsBase64, writeGoalImageFromBase64 } from "./imageStorage";
 
-export const BACKUP_FORMAT_VERSION = 1;
+export const BACKUP_FORMAT_VERSION = 2;
 
 /**
  * Key di tabel `settings` yang SENGAJA gak ikut backup/restore — ini state
@@ -34,6 +35,19 @@ interface SettingRow {
   value: string;
 }
 
+/**
+ * Gambar goal, di-embed langsung sebagai base64 di dalam backup JSON (bukan
+ * file terpisah/zip) — biar export/import tetap 1 file `.json` kayak
+ * sekarang, gak nambah dependency zip baru. Dipisah dari `Goal` (bukan field
+ * di objek goal-nya) biar `Goal` di `src/types` tetap bersih dari concern
+ * backup-only ini.
+ */
+export interface BackupGoalImage {
+  goalId: string;
+  base64: string;
+  extension: string;
+}
+
 export interface BackupPayload {
   formatVersion: number;
   exportedAt: number;
@@ -44,6 +58,13 @@ export interface BackupPayload {
     habitLogs: HabitLog[];
     todos: Todo[];
     settings: SettingRow[];
+    /**
+     * v2+. Absent di backup v1 lama (`formatVersion === 1`) — backup v1
+     * tetap bisa di-restore, cuma gambar goal-nya akan tetap nunjuk ke
+     * `imageUri` device asal (bisa broken di device lain), persis behavior
+     * lama, karena gambarnya emang gak pernah ke-backup di format v1.
+     */
+    goalImages?: BackupGoalImage[];
   };
 }
 
@@ -60,16 +81,33 @@ export async function buildBackupPayload(): Promise<BackupPayload> {
       db.getAllAsync<SettingRow>("SELECT * FROM settings"),
     ]);
 
+  const savingsGoals = goalRows.map(rowToGoal);
+
+  // Embed gambar goal sebagai base64 — bukan cuma nyimpen `imageUri` (path
+  // lokal device ini) doang, itu penyebab gambar goal broken kalau backup
+  // di-restore di device lain. Gambar yang gagal dibaca (file udah gak ada
+  // dsb) di-skip diam-diam, bukan bikin backup gagal total.
+  const goalImages: BackupGoalImage[] = [];
+  for (const g of savingsGoals) {
+    if (!g.imageUri) continue;
+    const base64 = await readGoalImageAsBase64(g.imageUri);
+    if (base64) {
+      const extension = new File(g.imageUri).extension || ".jpg";
+      goalImages.push({ goalId: g.id, base64, extension });
+    }
+  }
+
   return {
     formatVersion: BACKUP_FORMAT_VERSION,
     exportedAt: Date.now(),
     data: {
-      savingsGoals: goalRows.map(rowToGoal),
+      savingsGoals,
       savingsTransactions: txRows.map(rowToTx),
       habits: habitRows.map(rowToHabit),
       habitLogs: logRows.map(rowToLog),
       todos: todoRows.map(rowToTodo),
       settings: settingsRows.filter((r) => !INTERNAL_SETTINGS_KEYS.has(r.key)),
+      goalImages,
     },
   };
 }
@@ -145,6 +183,11 @@ export function validateBackupPayload(raw: unknown): BackupValidationResult {
     }
   }
 
+  // `goalImages` opsional (gak ada di backup v1 lama) — kalau ADA, harus array.
+  if (data.goalImages !== undefined && !Array.isArray(data.goalImages)) {
+    return { valid: false, error: `Bagian "goalImages" di backup ini rusak.` };
+  }
+
   // Cek dangkal per-record — bukan validasi tiap field exhaustive, cukup
   // buat nangkep file yang jelas-jelas bukan backup heibi atau kepotong.
   const goals = data.savingsGoals as unknown[];
@@ -184,6 +227,19 @@ export async function restoreFromBackup(payload: BackupPayload): Promise<void> {
   const db = await getDb();
   const { data } = payload;
 
+  // Tulis ulang gambar goal dari base64 DULUAN, di luar transaction DB (ini
+  // I/O filesystem, bukan operasi SQLite). Hasilnya map goalId -> URI lokal
+  // BARU yang valid di device ini. Kalau nulis satu gambar gagal, goal itu
+  // tetap direstore (cuma tanpa gambar) — bukan bikin restore gagal total.
+  const goalIdToImageUri = new Map<string, string | null>();
+  for (const img of data.goalImages ?? []) {
+    try {
+      goalIdToImageUri.set(img.goalId, writeGoalImageFromBase64(img.base64, img.extension));
+    } catch {
+      goalIdToImageUri.set(img.goalId, null);
+    }
+  }
+
   await db.withExclusiveTransactionAsync(async (txn) => {
     // Urutan hapus: anak dulu baru induk gak masalah di sini karena semua
     // FK udah ON DELETE CASCADE — tapi tetap eksplisit hapus semua tabel
@@ -202,10 +258,16 @@ export async function restoreFromBackup(payload: BackupPayload): Promise<void> {
     );
 
     for (const g of data.savingsGoals) {
+      // Kalau goalImages punya entry buat goal ini, pake URI baru yang udah
+      // ditulis ulang di device ini. Kalau gak ada entry (backup v1 lama
+      // tanpa `goalImages`, atau gambarnya gagal dibaca pas export) fallback
+      // ke `g.imageUri` apa adanya — sama kayak behavior lama.
+      const imageUri =
+        (goalIdToImageUri.has(g.id) ? goalIdToImageUri.get(g.id) : g.imageUri) ?? null;
       await txn.runAsync(
         `INSERT INTO savings_goals (id, name, target_amount, current_amount, image_uri, emoji, accent, created_at, sort_order)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [g.id, g.name, g.targetAmount, g.currentAmount, g.imageUri ?? null, g.emoji ?? null, g.accent, g.createdAt, g.sortOrder],
+        [g.id, g.name, g.targetAmount, g.currentAmount, imageUri, g.emoji ?? null, g.accent, g.createdAt, g.sortOrder],
       );
     }
     for (const t of data.savingsTransactions) {

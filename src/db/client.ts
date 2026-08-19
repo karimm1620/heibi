@@ -39,13 +39,20 @@ export function initDatabase(): Promise<void> {
 
       for (const migration of MIGRATIONS) {
         if (migration.version > version) {
-          await db.execAsync(migration.sql);
+          // Migration SQL + bump `user_version` dalam SATU transaction —
+          // `user_version` ikut aturan transaction SQLite (bagian dari
+          // header DB), jadi kalau app mati/error di tengah migration,
+          // SEMUA (schema change + version bump) ke-rollback bareng. Tanpa
+          // ini, migration multi-statement yang mati di tengah bisa
+          // ninggalin schema udah berubah tapi `user_version` masih versi
+          // lama → migration yang sama dicoba ulang launch berikutnya →
+          // "duplicate column name" dst.
+          await db.withExclusiveTransactionAsync(async (txn) => {
+            await txn.execAsync(migration.sql);
+            await txn.execAsync(`PRAGMA user_version = ${migration.version}`);
+          });
           version = migration.version;
         }
-      }
-
-      if (version !== (row?.user_version ?? 0)) {
-        await db.execAsync(`PRAGMA user_version = ${version}`);
       }
     })();
   }

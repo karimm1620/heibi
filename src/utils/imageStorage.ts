@@ -63,3 +63,34 @@ export function deleteGoalImage(uri?: string) {
     // Aman diabaikan — file mungkin sudah tidak ada
   }
 }
+
+/**
+ * Baca isi file gambar goal sebagai base64 — dipakai buat embed gambar ke
+ * dalam backup JSON (bukan cuma nyimpen `imageUri`-nya doang, itu path lokal
+ * device ini yang gak akan valid lagi kalau backup di-restore di device
+ * lain). Return null kalau file gak ada / gagal dibaca, biar backup tetap
+ * jalan buat goal lain — bukan bikin backup gagal total.
+ */
+export async function readGoalImageAsBase64(uri: string): Promise<string | null> {
+  try {
+    const file = new File(uri);
+    if (!file.exists) return null;
+    return await file.base64();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Tulis ulang gambar goal dari base64 (dipanggil pas restore backup). Selalu
+ * bikin file BARU dengan id baru — sengaja gak dipaksa reuse nama file dari
+ * device asal backup, biar gak collision sama gambar goal yang mungkin udah
+ * ada duluan di device ini. Return URI lokal yang baru & valid di device ini.
+ */
+export function writeGoalImageFromBase64(base64: string, extension: string): string {
+  ensureGoalImagesDir();
+  const destinationFile = new File(goalImagesDir, `${generateId('img')}${extension || '.jpg'}`);
+  destinationFile.create({ overwrite: true, intermediates: true });
+  destinationFile.write(base64, { encoding: 'base64' });
+  return destinationFile.uri;
+}

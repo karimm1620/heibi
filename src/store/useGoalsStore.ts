@@ -182,12 +182,8 @@ export const useGoalsStore = create<GoalsState>()((set, get) => ({
     const existing = get().goals.find((g) => g.id === id);
     if (!existing) return;
 
-    if (
-      patch.imageUri !== undefined &&
-      patch.imageUri !== existing.imageUri
-    ) {
-      deleteGoalImage(existing.imageUri);
-    }
+    const imageChanged =
+      patch.imageUri !== undefined && patch.imageUri !== existing.imageUri;
 
     const updated: Goal = {
       ...existing,
@@ -209,6 +205,13 @@ export const useGoalsStore = create<GoalsState>()((set, get) => ({
         id,
       ],
     );
+
+    // Hapus file gambar LAMA baru setelah DB write sukses — kalau urutannya
+    // kebalik (hapus dulu baru UPDATE), DB write yang gagal bakal ninggalin
+    // `image_uri` nunjuk ke file yang udah gak ada.
+    if (imageChanged) {
+      deleteGoalImage(existing.imageUri);
+    }
 
     set((state) => ({
       goals: state.goals.map((g) => (g.id === id ? updated : g)),
