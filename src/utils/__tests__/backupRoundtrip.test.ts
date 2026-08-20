@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- sama alasannya kayak
    `db/__tests__/client.test.ts`: `jest.resetModules()` cuma berefek kalau
    modul di-require() ULANG per test, bukan di-`import` statis 1x di atas. */
-import { createTestSqliteDb, type TestSqliteDb } from "../../db/__tests__/sqliteTestAdapter";
+import { createTestSqliteDb, type TestSqliteDb } from "../../testUtils/sqliteTestAdapter";
 import type { BackupPayload } from "../backup";
 
 // `readGoalImageAsBase64`/`writeGoalImageFromBase64` itu wrapper tipis di

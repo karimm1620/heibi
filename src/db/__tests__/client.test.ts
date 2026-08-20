@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- `jest.resetModules()`
    di bawah cuma berefek kalau modul-nya di-require() ULANG di dalem tiap
    `it()` (bukan `import` statis di atas, yang cuma jalan sekali pas file di-load). */
-import { createTestSqliteDb, type TestSqliteDb } from "./sqliteTestAdapter";
+import { createTestSqliteDb, type TestSqliteDb } from "../../testUtils/sqliteTestAdapter";
 
 /**
  * `getDb()`/`initDatabase()` di `client.ts` nyimpen singleton di module-level
