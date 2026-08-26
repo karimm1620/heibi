@@ -2,6 +2,16 @@ export interface ThemeColors {
   background: string;
   surface: string;
   surfaceMuted: string;
+  surfaceElevated: string;
+  surfaceInteractive: string;
+  primary: string;
+  onPrimary: string;
+  primaryContainer: string;
+  onPrimaryContainer: string;
+  selected: string;
+  onSelected: string;
+  outline: string;
+  divider: string;
   glassTintLight: string;
   glassTintLavender: string;
   glassBorder: string;

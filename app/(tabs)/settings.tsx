@@ -27,9 +27,11 @@ import { useGoalsStore } from "../../src/store/useGoalsStore";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
 import { useSettingsStore } from "../../src/store/useSettingsStore";
 import { useTodosStore } from "../../src/store/useTodosStore";
-import { spacing } from "../../src/theme/colors";
+import { spacing, withOpacity } from "../../src/theme/colors";
+import { visualThemePreviewShapes } from "../../src/theme/adapters";
 import { m3Shape } from "../../src/theme/material3/tokens";
 import { useTheme } from "../../src/theme/useTheme";
+import type { VisualTheme } from "../../src/theme/visualTheme";
 import {
   exportBackupToFile,
   restoreFromBackup,
@@ -42,11 +44,13 @@ const PRIVACY_POLICY = "https://karimm1620.github.io/heibi-privacy-policy/privac
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const { colors, typography, isDark, material3 } = useTheme();
+  const { colors, typography, isDark, material3, shapes, visualTheme } = useTheme();
   const { t, interpolate, language } = useTranslation();
   const setLanguage = useSettingsStore((s) => s.setLanguage);
+  const setVisualTheme = useSettingsStore((s) => s.setVisualTheme);
   const { alertState, showAlert, hideAlert } = useAppAlert();
   const [busy, setBusy] = useState<"export" | "import" | null>(null);
+  const [themeBusy, setThemeBusy] = useState(false);
 
   const hydrateGoals = useGoalsStore((s) => s.hydrate);
   const hydrateSettings = useSettingsStore((s) => s.hydrate);
@@ -54,9 +58,22 @@ export default function SettingsScreen() {
   const hydrateTodos = useTodosStore((s) => s.hydrate);
 
   const styles = useMemo(
-    () => createStyles(colors, typography, material3, insets.top),
-    [colors, typography, material3, insets.top],
+    () => createStyles(colors, typography, material3, shapes, insets.top),
+    [colors, typography, material3, shapes, insets.top],
   );
+
+  const handleThemeChange = async (nextTheme: VisualTheme) => {
+    if (nextTheme === visualTheme || themeBusy) return;
+
+    setThemeBusy(true);
+    try {
+      await setVisualTheme(nextTheme);
+    } catch {
+      showAlert(t.settings.theme.changeErrorTitle, t.settings.theme.changeErrorMessage);
+    } finally {
+      setThemeBusy(false);
+    }
+  };
 
   const handleExport = async () => {
     setBusy("export");
@@ -157,6 +174,39 @@ export default function SettingsScreen() {
     <View key={isDark ? "dark" : "light"} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.headerTitle}>{t.settings.title}</Text>
+
+        <Text style={styles.sectionTitle}>{t.settings.sections.theme}</Text>
+        <GlassCard style={styles.card} elevationLevel="level1">
+          <Text style={[typography.body, { color: colors.textSecondary }]}>
+            {t.settings.theme.description}
+          </Text>
+          <View style={styles.themeRow}>
+            <ThemeOption
+              visualTheme="material3"
+              title={t.settings.theme.material3Title}
+              description={t.settings.theme.material3Description}
+              accessibilityLabel={t.settings.theme.material3AccessibilityLabel}
+              active={visualTheme === "material3"}
+              disabled={themeBusy}
+              onPress={() => void handleThemeChange("material3")}
+              styles={styles}
+              colors={colors}
+              material3={material3}
+            />
+            <ThemeOption
+              visualTheme="liquid"
+              title={t.settings.theme.liquidTitle}
+              description={t.settings.theme.liquidDescription}
+              accessibilityLabel={t.settings.theme.liquidAccessibilityLabel}
+              active={visualTheme === "liquid"}
+              disabled={themeBusy}
+              onPress={() => void handleThemeChange("liquid")}
+              styles={styles}
+              colors={colors}
+              material3={material3}
+            />
+          </View>
+        </GlassCard>
 
         <Text style={styles.sectionTitle}>{t.settings.sections.language}</Text>
         <GlassCard style={styles.card} elevationLevel="level1">
@@ -298,6 +348,113 @@ export default function SettingsScreen() {
   );
 }
 
+interface ThemeOptionProps {
+  visualTheme: VisualTheme;
+  title: string;
+  description: string;
+  accessibilityLabel: string;
+  active: boolean;
+  disabled: boolean;
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+  colors: ReturnType<typeof useTheme>["colors"];
+  material3: ReturnType<typeof useTheme>["material3"];
+}
+
+function ThemeOption({
+  visualTheme,
+  title,
+  description,
+  accessibilityLabel,
+  active,
+  disabled,
+  onPress,
+  styles,
+  colors,
+  material3,
+}: ThemeOptionProps) {
+  const previewShape = visualThemePreviewShapes[visualTheme];
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="radio"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ selected: active, disabled }}
+      android_ripple={{ color: withOpacity(colors.primary, 0.12) }}
+      style={({ pressed }) => [
+        styles.themeOption,
+        {
+          backgroundColor: active ? colors.selected : colors.surfaceElevated,
+          borderColor: active ? colors.primary : colors.outline,
+          borderRadius: previewShape.card,
+        },
+        pressed && styles.themeOptionPressed,
+      ]}
+    >
+      <View
+        accessible={false}
+        importantForAccessibility="no-hide-descendants"
+        style={[
+          styles.themePreview,
+          {
+            backgroundColor: material3.surfaceContainerHighest,
+            borderRadius: previewShape.floating,
+          },
+        ]}
+      >
+        {visualTheme === "material3" ? (
+          <>
+            <View
+              style={[
+                styles.materialPreviewDot,
+                { backgroundColor: material3.primary },
+              ]}
+            />
+            <View
+              style={[
+                styles.materialPreviewBar,
+                { backgroundColor: material3.secondaryContainer },
+              ]}
+            />
+          </>
+        ) : (
+          <View
+            style={[
+              styles.liquidPreviewChrome,
+              {
+                backgroundColor: withOpacity(material3.surfaceBright, 0.84),
+                borderColor: withOpacity(material3.outline, 0.5),
+              },
+            ]}
+          >
+            <View style={[styles.liquidPreviewDot, { backgroundColor: material3.onSurfaceVariant }]} />
+            <View
+              style={[
+                styles.liquidPreviewSelection,
+                { backgroundColor: withOpacity(material3.primaryContainer, 0.9) },
+              ]}
+            />
+            <View style={[styles.liquidPreviewDot, { backgroundColor: material3.onSurfaceVariant }]} />
+          </View>
+        )}
+      </View>
+      <Text style={[styles.themeOptionTitle, active && { color: colors.onSelected }]}>
+        {title}
+      </Text>
+      <Text
+        style={[
+          styles.themeOptionDescription,
+          active && { color: withOpacity(colors.onSelected, 0.76) },
+        ]}
+      >
+        {description}
+      </Text>
+    </Pressable>
+  );
+}
+
 interface LanguageOptionProps {
   label: string;
   active: boolean;
@@ -330,6 +487,7 @@ function createStyles(
   colors: ReturnType<typeof useTheme>["colors"],
   typography: ReturnType<typeof useTheme>["typography"],
   material3: ReturnType<typeof useTheme>["material3"],
+  shapes: ReturnType<typeof useTheme>["shapes"],
   paddingTop: number,
 ) {
   return StyleSheet.create({
@@ -359,6 +517,69 @@ function createStyles(
       padding: spacing.lg,
       gap: spacing.md,
       marginBottom: spacing.md,
+    },
+    themeRow: {
+      flexDirection: "row",
+      gap: spacing.sm,
+    },
+    themeOption: {
+      flex: 1,
+      minHeight: 148,
+      padding: spacing.sm + spacing.xs,
+      borderWidth: 1,
+      overflow: "hidden",
+    },
+    themeOptionPressed: {
+      opacity: 0.76,
+    },
+    themePreview: {
+      height: 52,
+      marginBottom: spacing.sm,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.sm,
+      overflow: "hidden",
+    },
+    materialPreviewDot: {
+      width: 24,
+      height: 24,
+      borderRadius: m3Shape.full,
+    },
+    materialPreviewBar: {
+      width: 42,
+      height: 20,
+      borderRadius: m3Shape.small,
+    },
+    liquidPreviewChrome: {
+      width: "100%",
+      height: 34,
+      paddingHorizontal: spacing.sm,
+      borderRadius: m3Shape.full,
+      borderWidth: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    liquidPreviewDot: {
+      width: 6,
+      height: 6,
+      borderRadius: m3Shape.full,
+    },
+    liquidPreviewSelection: {
+      width: 32,
+      height: 22,
+      borderRadius: m3Shape.full,
+    },
+    themeOptionTitle: {
+      ...typography.subtitle,
+      color: colors.textPrimary,
+      marginBottom: spacing.xs,
+    },
+    themeOptionDescription: {
+      ...typography.caption,
+      color: colors.textSecondary,
     },
     primaryButton: {
       marginTop: spacing.sm,
@@ -409,7 +630,7 @@ function createStyles(
     languageChip: {
       flex: 1,
       paddingVertical: spacing.sm,
-      borderRadius: m3Shape.full,
+      borderRadius: shapes.control,
       borderWidth: 1.5,
       borderColor: colors.glassBorder,
       alignItems: "center",

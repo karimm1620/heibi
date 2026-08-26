@@ -188,7 +188,7 @@ do not make every existing card translucent merely because the old name says
 
 ## D-014 — Convx is concept evidence, not reusable MIT implementation code
 
-**Status:** proposed
+**Status:** accepted
 
 ### Finding
 
@@ -229,7 +229,11 @@ graphics dependency.
 
 ### User decision
 
-Pending.
+On 2026-08-26 the user approved continuing with the recommendation after the
+Checkpoint 0 report. This approval is intentionally narrow: Convx remains
+concept-only, Checkpoint 1 may proceed without a renderer, and Checkpoint 4
+must ask again before GPL source adoption, an Android API-floor change, a
+graphics dependency, or a custom optical renderer.
 
 ---
 
@@ -271,6 +275,54 @@ Checkpoint 8 must reproduce the launcher behavior and distinguish horizontal
 days from vertical habit rows, then inspect snapshot freshness and date
 rollover. Checkpoint 9 must clarify whether the requested savings widget is a
 new variant or a redesign of GoalBalance.
+
+---
+
+## D-017 — Visual theme is a validated generic setting, not a schema migration
+
+**Status:** accepted
+
+### Finding
+
+The existing `settings` table already persists arbitrary key/value data. A
+theme preference does not require a new column, table, or migration. Missing,
+malformed, or future values can occur on an older database or through a
+hand-edited/imported backup.
+
+### Decision
+
+Persist JSON-encoded `material3 | liquid` under `visual_theme`. Missing,
+malformed, unknown, or wrong-type values resolve to `material3` without
+rewriting the database during hydration. The setter remains write-through:
+SQLite succeeds before the in-memory theme changes.
+
+This preserves existing users and avoids persisted-data migration risk. The
+setting participates in the existing backup/restore path like other user
+preferences.
+
+---
+
+## D-018 — Semantic adapters own theme branching; raw M3 is temporary compatibility
+
+**Status:** accepted
+
+### Finding
+
+Many existing components still consume the raw Material 3 palette. Removing
+that surface in Checkpoint 1 would turn a bounded foundation change into the
+shared-component migration planned for Checkpoint 2.
+
+### Decision
+
+`useTheme()` now selects one centralized semantic contract containing colors,
+typography, shapes, motion, and effects. Android dynamic color and system
+light/dark feed both adapters. The raw `material3` scheme remains available as
+a compatibility field until Checkpoint 2 migrates shared primitives.
+
+The Liquid contract deliberately declares `backdropRenderer: "none"` and
+keeps content surfaces opaque-tonal. It may express selective translucent
+chrome intent, but it does not claim blur/refraction before the Checkpoint 4
+feasibility gate.
 
 ---
 
