@@ -68,17 +68,23 @@ renderer adoption still requires a new Checkpoint 4 decision.
 
 ## Checkpoint 2 — Shared primitives
 
-- [ ] Define semantic surface abstraction.
-- [ ] Decide `GlassCard` migration/compat strategy.
-- [ ] Refine shared button.
-- [ ] Refine shared chip.
-- [ ] Refine FAB.
-- [ ] Refine rows.
-- [ ] Refine dividers/outlines.
-- [ ] Refine press feedback.
-- [ ] Refine selected state.
-- [ ] Refine alert/snackbar surfaces.
-- [ ] Validate checkpoint.
+- [x] Define semantic surface abstraction.
+- [x] Decide `GlassCard` migration/compat strategy.
+- [x] Refine shared button.
+- [x] Refine shared chip.
+- [x] Refine FAB.
+- [x] Refine rows.
+- [x] Refine dividers/outlines.
+- [x] Refine press feedback.
+- [x] Refine selected state.
+- [x] Refine alert/snackbar surfaces.
+- [x] Validate checkpoint (`tsc`, root ESLint, 88 Jest tests, Android export).
+
+Checkpoint 2 adds semantic `AppSurface`, `AppButton`, `AppListRow`, and
+`AppDivider` contracts, then moves the highest-drift shared interactions onto
+them. `GlassCard` remains a compatibility wrapper; content surfaces stay
+opaque/tonal in both themes. Native toggles/pickers and full screen styling
+remain owned by their later checkpoints.
 
 ## Checkpoint 3 — M3 Expressive
 

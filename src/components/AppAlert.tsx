@@ -10,9 +10,11 @@ import {
 } from "react-native";
 import type { AppAlertButton } from "../hooks/useAppAlert";
 import { useReducedMotion } from "../hooks/useReducedMotion";
-import { radius, spacing } from "../theme/colors";
-import { m3Motion, m3Shape } from "../theme/material3/tokens";
+import { spacing } from "../theme/colors";
+import { m3Motion } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
+import { AppButton } from "./AppButton";
+import { AppSurface } from "./AppSurface";
 
 interface AppAlertProps {
   visible: boolean;
@@ -29,7 +31,7 @@ export function AppAlert({
   buttons,
   onClose,
 }: AppAlertProps) {
-  const { colors, typography, material3 } = useTheme();
+  const { colors, typography } = useTheme();
   const reducedMotion = useReducedMotion();
   // Checkpoint 9: useState(() => ...) gantiin useRef(...).current buat
   // Animated.Value (hindari react-hooks/refs) -- restore rule ke "error".
@@ -93,8 +95,8 @@ export function AppAlert({
         card: {
           width: "100%",
           maxWidth: 340,
-          backgroundColor: colors.surface,
-          borderRadius: radius.lg,
+        },
+        cardContent: {
           padding: spacing.lg,
         },
         title: {
@@ -113,32 +115,14 @@ export function AppAlert({
           gap: spacing.sm,
           marginTop: spacing.lg,
           justifyContent: "center",
+          flexWrap: "wrap",
         },
         button: {
           minWidth: 96,
-          borderRadius: m3Shape.full,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.lg,
-          alignItems: "center",
-          backgroundColor: colors.surfaceMuted,
-          overflow: "hidden",
-        },
-        buttonDefault: {
-          backgroundColor: material3.primary,
-        },
-        buttonDestructive: {
-          backgroundColor: colors.danger,
-        },
-        buttonTextGhost: {
-          ...typography.subtitle,
-          color: colors.textPrimary,
-        },
-        buttonTextSolid: {
-          ...typography.subtitle,
-          color: "#FFFFFF",
+          flexGrow: 1,
         },
       }),
-    [colors, typography, material3],
+    [colors, typography],
   );
 
   const handlePress = (button: AppAlertButton) => {
@@ -162,46 +146,37 @@ export function AppAlert({
         <Animated.View
           style={[styles.card, { transform: [{ scale }], opacity }]}
         >
-          <Text style={styles.title}>{title}</Text>
-          {message ? <Text style={styles.message}>{message}</Text> : null}
+          <AppSurface variant="elevated" elevation="medium" style={styles.cardContent}>
+            <Text style={styles.title} selectable>
+              {title}
+            </Text>
+            {message ? (
+              <Text style={styles.message} selectable>
+                {message}
+              </Text>
+            ) : null}
 
-          <View style={styles.buttonRow}>
-            {buttons.map((btn, index) => {
-              const isDestructive = btn.style === "destructive";
-              const isCancel =
-                btn.style === "cancel" ||
-                (!btn.style && buttons.length > 1 && index === 0);
-              const isDefault = !isDestructive && !isCancel;
+            <View style={styles.buttonRow}>
+              {buttons.map((btn, index) => {
+                const isDestructive = btn.style === "destructive";
+                const isCancel =
+                  btn.style === "cancel" ||
+                  (!btn.style && buttons.length > 1 && index === 0);
 
-              return (
-                <Pressable
-                  key={index}
-                  onPress={() => handlePress(btn)}
-                  style={[
-                    styles.button,
-                    isDestructive && styles.buttonDestructive,
-                    isDefault && styles.buttonDefault,
-                  ]}
-                  android_ripple={{
-                    color:
-                      isDestructive || isDefault
-                        ? "rgba(255,255,255,0.24)"
-                        : colors.glassBorder,
-                  }}
-                >
-                  <Text
-                    style={
-                      isDestructive || isDefault
-                        ? styles.buttonTextSolid
-                        : styles.buttonTextGhost
-                    }
-                  >
-                    {btn.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+                return (
+                  <AppButton
+                    key={`${btn.label}-${index}`}
+                    label={btn.label}
+                    variant={isDestructive ? "danger" : isCancel ? "ghost" : "primary"}
+                    size="compact"
+                    style={styles.button}
+                    accessibilityLabel={btn.label}
+                    onPress={() => handlePress(btn)}
+                  />
+                );
+              })}
+            </View>
+          </AppSurface>
         </Animated.View>
       </View>
     </Modal>

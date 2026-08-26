@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { useFocusEffect } from "expo-router/react-navigation";
 import React, { useCallback, useMemo, useState } from "react";
-import { Linking, Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { Linking, StyleSheet, Switch, Text, View } from "react-native";
 import { useAppAlert } from "../hooks/useAppAlert";
 import { useTranslation } from "../hooks/useTranslation";
 import { type ReminderDomain, useSettingsStore } from "../store/useSettingsStore";
@@ -16,6 +16,7 @@ import {
   scheduleReminder,
 } from "../utils/notifications";
 import { AppAlert } from "./AppAlert";
+import { Chip } from "./Chip";
 import { GlassCard } from "./GlassCard";
 
 const TIME_PRESETS = [
@@ -176,24 +177,6 @@ export function ReminderCard({ domain }: ReminderCardProps) {
           gap: spacing.sm,
           marginTop: spacing.md,
         },
-        timeChip: {
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.sm,
-          borderRadius: radius.pill,
-          backgroundColor: colors.surfaceMuted,
-          borderWidth: 1.5,
-          borderColor: "transparent",
-        },
-        timeChipActive: {
-          borderColor: colors.deposit,
-          backgroundColor: withOpacity(colors.deposit, 0.15),
-        },
-        timeChipText: {
-          ...typography.caption,
-          fontWeight: "600",
-          color: colors.textSecondary,
-        },
-        timeChipTextActive: { color: colors.textPrimary },
       }),
     [colors, typography],
   );
@@ -229,44 +212,24 @@ export function ReminderCard({ domain }: ReminderCardProps) {
             const isActive =
               reminderHour === preset.hour && reminderMinute === preset.minute;
             return (
-              <Pressable
+              <Chip
                 key={preset.label}
+                label={preset.label}
+                selected={isActive}
                 onPress={() => handlePickTime(preset.hour, preset.minute)}
                 disabled={busy}
-                style={[styles.timeChip, isActive && styles.timeChipActive]}
-                accessibilityRole="button"
                 accessibilityLabel={interpolate(t.reminder.presetAccessibilityLabel, { time: preset.label })}
-                accessibilityState={{ selected: isActive }}
-              >
-                <Text
-                  style={[
-                    styles.timeChipText,
-                    isActive && styles.timeChipTextActive,
-                  ]}
-                >
-                  {preset.label}
-                </Text>
-              </Pressable>
+              />
             );
           })}
-          <Pressable
+          <Chip
             key="custom"
+            label={customChipLabel}
+            selected={!matchesPreset}
             onPress={() => setShowTimePicker(true)}
             disabled={busy}
-            style={[styles.timeChip, !matchesPreset && styles.timeChipActive]}
-            accessibilityRole="button"
             accessibilityLabel={t.reminder.customChipAccessibilityLabel}
-            accessibilityState={{ selected: !matchesPreset }}
-          >
-            <Text
-              style={[
-                styles.timeChipText,
-                !matchesPreset && styles.timeChipTextActive,
-              ]}
-            >
-              {customChipLabel}
-            </Text>
-          </Pressable>
+          />
         </View>
       )}
 

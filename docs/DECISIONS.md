@@ -326,6 +326,54 @@ feasibility gate.
 
 ---
 
+## D-019 — AppSurface is the semantic content foundation; GlassCard is compatibility
+
+**Status:** accepted
+
+### Finding
+
+`GlassCard` is used widely, but its name no longer describes the intended
+architecture. Renaming every call site would create a large mechanical diff,
+while making every card translucent would violate the selective Liquid
+material direction.
+
+### Decision
+
+`AppSurface` owns semantic tone, shape, outline, and elevation variants.
+`GlassCard` delegates to it and preserves its tint, radius, and M3 elevation
+props for incremental migration. Both themes keep content surfaces opaque and
+tonal. Any future backdrop/optical treatment must be a separate chrome-focused
+primitive after the Checkpoint 4 evidence gate.
+
+This adds no dependency, native code, renderer, or expected APK growth.
+
+---
+
+## D-020 — Shared interaction state lives in the semantic contract
+
+**Status:** accepted
+
+### Finding
+
+Buttons, chips, FABs, and rows repeated raw Material colors, ripple alpha,
+disabled opacity, and touch-target decisions. That made Liquid behavior drift
+and left some fixed rows below the 48dp Android target.
+
+### Decision
+
+Theme adapters now provide disabled/pressed/ripple/scale and minimum-target
+state tokens plus semantic shadows. Shared buttons, chips, the FAB, list rows,
+alerts, snackbar, and common form actions consume those roles. Material uses
+bounded Android ripple feedback; Liquid uses opacity and a restrained FAB
+scale without claiming blur or refraction. Reduced motion disables the FAB
+scale transition.
+
+`@expo/ui` continues to own existing native date/time controls. Existing
+screen-specific toggles and selectors are not wrapped or redesigned in this
+checkpoint; those remain part of the screen and transient-UI checkpoints.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.

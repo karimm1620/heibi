@@ -50,6 +50,12 @@ export function mapMaterial3ToThemeColors(
     textInverse: scheme.onPrimary,
 
     danger: scheme.error,
+    onDanger: scheme.onError,
+    dangerContainer: scheme.errorContainer,
+    onDangerContainer: scheme.onErrorContainer,
+    inverseSurface: scheme.inverseSurface,
+    inverseText: scheme.inverseOnSurface,
+    inverseAction: scheme.inversePrimary,
     overlayScrim: withOpacity(scheme.scrim, isDark ? 0.6 : 0.35),
   };
 }

@@ -23,6 +23,12 @@ const scheme = {
   outline: "#777680",
   outlineVariant: "#C7C5D0",
   error: "#BA1A1A",
+  onError: "#FFFFFF",
+  errorContainer: "#FFDAD6",
+  onErrorContainer: "#410002",
+  inverseSurface: "#303034",
+  inverseOnSurface: "#F3F0F7",
+  inversePrimary: "#BAC3FF",
   scrim: "#000000",
 } as Material3Scheme;
 
@@ -33,11 +39,19 @@ describe("buildSemanticTheme", () => {
     expect(theme.visualTheme).toBe("material3");
     expect(theme.colors.background).toBe(scheme.surface);
     expect(theme.colors.selected).toBe(scheme.secondaryContainer);
+    expect(theme.colors.onDanger).toBe(scheme.onError);
+    expect(theme.colors.inverseSurface).toBe(scheme.inverseSurface);
+    expect(theme.states).toMatchObject({
+      disabledOpacity: 0.38,
+      rippleOpacity: 0.12,
+      minTouchTarget: 48,
+    });
     expect(theme.effects).toMatchObject({
       contentSurface: "opaque-tonal",
       chromeSurface: "opaque-tonal",
       backdropRenderer: "none",
     });
+    expect(theme.effects.shadows.medium).not.toBe("none");
   });
 
   it("switches centralized Liquid intent without changing content semantics", () => {
@@ -50,6 +64,11 @@ describe("buildSemanticTheme", () => {
     expect(liquid.typography.body).toEqual(material.typography.body);
     expect(liquid.shapes.floating).not.toBe(material.shapes.floating);
     expect(liquid.motion.selectionSpring).not.toEqual(material.motion.selectionSpring);
+    expect(liquid.states).toMatchObject({
+      pressedOpacity: 0.82,
+      rippleOpacity: 0,
+      minTouchTarget: 48,
+    });
     expect(liquid.effects).toMatchObject({
       contentSurface: "opaque-tonal",
       chromeSurface: "translucent-tonal",

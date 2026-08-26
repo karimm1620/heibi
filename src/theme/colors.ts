@@ -21,6 +21,12 @@ export interface ThemeColors {
   textSecondary: string;
   textInverse: string;
   danger: string;
+  onDanger: string;
+  dangerContainer: string;
+  onDangerContainer: string;
+  inverseSurface: string;
+  inverseText: string;
+  inverseAction: string;
   overlayScrim: string;
 }
 

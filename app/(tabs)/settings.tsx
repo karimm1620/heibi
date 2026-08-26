@@ -5,7 +5,6 @@ import * as DocumentPicker from "expo-document-picker";
 import * as Sharing from "expo-sharing";
 import React, { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Linking,
   Pressable,
   ScrollView,
@@ -15,6 +14,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppAlert } from "../../src/components/AppAlert";
+import { AppButton } from "../../src/components/AppButton";
+import { AppListRow } from "../../src/components/AppListRow";
 import { GlassCard } from "../../src/components/GlassCard";
 import {
   FLOATING_TAB_BAR_HEIGHT,
@@ -236,104 +237,77 @@ export default function SettingsScreen() {
         <GlassCard style={styles.card} elevationLevel="level1">
           <Text style={typography.body}>{t.settings.backup.description}</Text>
 
-          <Pressable
+          <AppButton
+            label={t.settings.backup.exportButton}
             onPress={handleExport}
             disabled={busy !== null}
-            style={[styles.primaryButton, busy === "export" && styles.buttonDisabled]}
-            accessibilityRole="button"
+            loading={busy === "export"}
+            style={styles.backupButton}
             accessibilityLabel={t.settings.backup.exportAccessibilityLabel}
-            android_ripple={{ color: colors.glassBorder }}
-          >
-            {busy === "export" ? (
-              <ActivityIndicator color={material3.onPrimary} />
-            ) : (
-              <Text style={styles.primaryButtonText}>{t.settings.backup.exportButton}</Text>
-            )}
-          </Pressable>
+          />
 
-          <Pressable
+          <AppButton
+            label={t.settings.backup.importButton}
+            variant="secondary"
             onPress={handleImport}
             disabled={busy !== null}
-            style={[styles.secondaryButton, busy === "import" && styles.buttonDisabled]}
-            accessibilityRole="button"
+            loading={busy === "import"}
+            style={styles.backupButton}
             accessibilityLabel={t.settings.backup.importAccessibilityLabel}
-            android_ripple={{ color: colors.glassBorder }}
-          >
-            {busy === "import" ? (
-              <ActivityIndicator color={material3.primary} />
-            ) : (
-              <Text style={styles.secondaryButtonText}>{t.settings.backup.importButton}</Text>
-            )}
-          </Pressable>
+          />
         </GlassCard>
 
         <Text style={styles.sectionTitle}>{t.settings.sections.about}</Text>
-        <GlassCard style={styles.card} elevationLevel="level1">
-          <Pressable
+        <GlassCard style={[styles.card, styles.aboutCard]} elevationLevel="level1">
+          <AppListRow
             onPress={() => Linking.openURL(GITHUB_URL).catch(() => {})}
-            style={styles.aboutRow}
             accessibilityRole="link"
             accessibilityLabel={t.settings.about.githubAccessibilityLabel}
-            android_ripple={{ color: colors.glassBorder }}
+            divider
+            leading={<MaterialCommunityIcons name="github" size={20} color={colors.textPrimary} />}
+            trailing={
+              <MaterialCommunityIcons name="open-in-new" size={16} color={colors.textSecondary} />
+            }
           >
-            <View style={styles.aboutRowLabel}>
-              <MaterialCommunityIcons name="github" size={20} color={colors.textPrimary} />
-              <Text style={typography.body}>{t.settings.about.github}</Text>
-            </View>
-            <MaterialCommunityIcons
-              name="open-in-new"
-              size={16}
-              color={colors.textSecondary}
-            />
-          </Pressable>
+            <Text style={typography.body}>{t.settings.about.github}</Text>
+          </AppListRow>
 
-          <Pressable
+          <AppListRow
             onPress={() => Linking.openURL(SAWERIA_URL).catch(() => {})}
-            style={styles.aboutRow}
             accessibilityRole="link"
             accessibilityLabel={t.settings.about.coffeeAccessibilityLabel}
-            android_ripple={{ color: colors.glassBorder }}
+            divider
+            leading={<MaterialCommunityIcons name="coffee" size={20} color={colors.textPrimary} />}
+            trailing={
+              <MaterialCommunityIcons name="open-in-new" size={16} color={colors.textSecondary} />
+            }
           >
-            <View style={styles.aboutRowLabel}>
-              <MaterialCommunityIcons name="coffee" size={20} color={colors.textPrimary} />
-              <View>
-                <Text style={typography.body}>{t.settings.about.coffee}</Text>
-                <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                  {t.settings.about.coffeeSubtitle}
-                </Text>
-              </View>
-            </View>
-            <MaterialCommunityIcons
-              name="open-in-new"
-              size={16}
-              color={colors.textSecondary}
-            />
-          </Pressable>
+            <Text style={typography.body}>{t.settings.about.coffee}</Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>
+              {t.settings.about.coffeeSubtitle}
+            </Text>
+          </AppListRow>
 
-          <Pressable
+          <AppListRow
             onPress={() => Linking.openURL(PRIVACY_POLICY).catch(() => {})}
-            style={styles.aboutRow}
             accessibilityRole="link"
             accessibilityLabel={t.settings.about.privacyPolicyAccessibilityLabel}
-            android_ripple={{ color: colors.glassBorder }}
+            divider
+            leading={<MaterialCommunityIcons name="license" size={20} color={colors.textPrimary} />}
+            trailing={
+              <MaterialCommunityIcons name="open-in-new" size={16} color={colors.textSecondary} />
+            }
           >
-            <View style={styles.aboutRowLabel}>
-              <MaterialCommunityIcons name="license" size={20} color={colors.textPrimary} />
-              <Text style={typography.body}>{t.settings.about.privacyPolicy}</Text>
-            </View>
-            <MaterialCommunityIcons
-              name="open-in-new"
-              size={16}
-              color={colors.textSecondary}
-            />
-          </Pressable>
+            <Text style={typography.body}>{t.settings.about.privacyPolicy}</Text>
+          </AppListRow>
 
-          <View style={styles.aboutRow}>
+          <AppListRow
+            trailing={
+              <Text style={[typography.body, { color: colors.textSecondary }]}>{appVersion}</Text>
+            }
+          >
             <Text style={typography.body}>{t.settings.about.appVersion}</Text>
-            <Text style={[typography.body, { color: colors.textSecondary }]}>
-              {appVersion}
-            </Text>
-          </View>
+          </AppListRow>
         </GlassCard>
       </ScrollView>
 
@@ -581,47 +555,13 @@ function createStyles(
       ...typography.caption,
       color: colors.textSecondary,
     },
-    primaryButton: {
+    backupButton: {
       marginTop: spacing.sm,
       width: "100%",
-      backgroundColor: material3.primary,
-      borderRadius: m3Shape.full,
-      paddingVertical: spacing.md,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
     },
-    primaryButtonText: {
-      ...typography.subtitle,
-      textAlign: "center",
-      color: material3.onPrimary,
-    },
-    secondaryButton: {
-      width: "100%",
-      backgroundColor: material3.secondaryContainer,
-      borderRadius: m3Shape.full,
-      paddingVertical: spacing.md,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-    },
-    secondaryButtonText: {
-      ...typography.subtitle,
-      textAlign: "center",
-      color: material3.onSecondaryContainer,
-    },
-    buttonDisabled: {
-      opacity: 0.7,
-    },
-    aboutRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    aboutRowLabel: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
+    aboutCard: {
+      gap: 0,
+      paddingVertical: spacing.sm,
     },
     languageRow: {
       flexDirection: "row",

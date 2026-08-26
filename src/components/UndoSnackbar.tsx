@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { UNDO_WINDOW_MS, useGoalsStore } from "../store/useGoalsStore";
 import { spacing } from "../theme/colors";
 import { m3Motion } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
 import { useReducedMotion } from "../hooks/useReducedMotion";
-import { GlassCard } from "./GlassCard";
+import { AppButton } from "./AppButton";
+import { AppSurface } from "./AppSurface";
 
 // Harus konsisten sama ukuran nyata di Fab.tsx (56dp tombol + jarak aman)
 // -- dulu UndoSnackbar & Fab dapet `bottomOffset` yang SAMA persis, jadi
@@ -96,12 +97,9 @@ export function UndoSnackbar({ bottomOffset = 0 }: { bottomOffset?: number }) {
         },
         text: {
           ...typography.body,
+          color: colors.inverseText,
           flex: 1,
           marginRight: spacing.md,
-        },
-        undoText: {
-          ...typography.subtitle,
-          color: colors.deposit,
         },
       }),
     [colors, typography, bottomOffset],
@@ -112,19 +110,18 @@ export function UndoSnackbar({ bottomOffset = 0 }: { bottomOffset?: number }) {
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <Animated.View style={{ transform: [{ translateY }] }}>
-        <GlassCard tintColor={colors.surface} style={styles.card}>
+        <AppSurface variant="inverse" elevation="medium" style={styles.card}>
           <Text style={styles.text} numberOfLines={1}>
             {pendingDeletion?.goal.name} dihapus
           </Text>
-          <Pressable
+          <AppButton
+            label="Undo"
+            variant="inverse"
+            size="compact"
             onPress={() => void undoDelete()}
-            hitSlop={8}
-            accessibilityRole="button"
             accessibilityLabel="Batalkan penghapusan goal"
-          >
-            <Text style={styles.undoText}>Undo</Text>
-          </Pressable>
-        </GlassCard>
+          />
+        </AppSurface>
       </Animated.View>
     </View>
   );

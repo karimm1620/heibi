@@ -44,6 +44,23 @@ theme foundation without a native dependency or database schema migration:
 - Settings exposes an accessible live selector with compact previews.
 - Convx remains concept-only; no backdrop/blur/refraction renderer is claimed.
 
+### Checkpoint 2 shared primitives (2026-08-26)
+
+Checkpoint 2 starts from merged `main` commit
+`ae7451cdad257e0270b33edb2390149355f3a173` and adds the shared component
+architecture without dependencies or native/config changes:
+
+- `AppSurface` owns opaque semantic content surfaces; `GlassCard` remains a
+  compatibility wrapper for incremental migration.
+- `AppButton`, `AppListRow`, and `AppDivider` standardize accessible Android
+  targets, variants, selected/disabled state, and theme-aware feedback.
+- shared chips, FAB, empty state, alerts, snackbar, reminder time choices, and
+  repeated form/backup actions consume the semantic contracts.
+- Material uses restrained ripple feedback; Liquid uses opacity and a subtle
+  reduced-motion-aware FAB scale. No optical renderer is claimed.
+- full screen redesign, native-control migration, navigation, and sheets stay
+  in their planned later checkpoints.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

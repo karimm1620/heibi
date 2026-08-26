@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Animated, Pressable, StyleSheet, Text } from "react-native";
-import { m3ElevationStyle, m3Motion, m3Shape } from "../theme/material3/tokens";
+import { Pressable, StyleSheet, Text } from "react-native";
+import Animated from "react-native-reanimated";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 import { withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 
@@ -12,38 +13,42 @@ interface FabProps {
 }
 
 export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: FabProps) {
-  const { material3 } = useTheme();
-  // Checkpoint 9: useState(() => ...) gantiin useRef(...).current.
-  const [scale] = useState(() => new Animated.Value(1));
-
-  const handlePressIn = () => {
-    Animated.timing(scale, { toValue: 0.92, duration: m3Motion.duration.short2, useNativeDriver: true }).start();
-  };
-  const handlePressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, damping: 14, stiffness: 250 }).start();
-  };
+  const { colors, effects, motion, shapes, states } = useTheme();
+  const reducedMotion = useReducedMotion();
+  const [pressed, setPressed] = useState(false);
 
   return (
-    <Animated.View style={[styles.wrapper, { bottom: bottomOffset, transform: [{ scale }] }]} pointerEvents="box-none">
+    <Animated.View
+      style={[
+        styles.wrapper,
+        {
+          bottom: bottomOffset,
+          transform: [{ scale: reducedMotion || !pressed ? 1 : states.pressedScale }],
+          transitionProperty: "transform",
+          transitionDuration: reducedMotion ? "0ms" : `${motion.feedbackMs}ms`,
+          transitionTimingFunction: "ease-out",
+        },
+      ]}
+      pointerEvents="box-none"
+    >
       <Pressable
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPressIn={() => setPressed(true)}
+        onPressOut={() => setPressed(false)}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        android_ripple={{ color: withOpacity(material3.onPrimaryContainer, 0.12) }}
-        // Checkpoint <next>: sama kayak fix flash di MaterialNavigationBar --
-        // warna "on*" Material3 itu warna teks kontras-tinggi, dipakai MENTAH
-        // sebagai ripple bikin RippleDrawable Android nge-flash opaque pas
-        // ditekan. Selalu bungkus `withOpacity(...)` buat warna ripple yang
-        // sumbernya token "on*Container"/"onSurfaceVariant".
+        android_ripple={{ color: withOpacity(colors.onPrimaryContainer, states.rippleOpacity) }}
         style={[
           styles.fab,
-          m3ElevationStyle("level3"),
-          { backgroundColor: material3.primaryContainer, borderRadius: m3Shape.large },
+          {
+            backgroundColor: colors.primaryContainer,
+            borderRadius: shapes.floating,
+            boxShadow: effects.shadows.medium,
+            opacity: pressed ? states.pressedOpacity : 1,
+          },
         ]}
       >
-        <Text style={[styles.icon, { color: material3.onPrimaryContainer }]}>{icon}</Text>
+        <Text style={[styles.icon, { color: colors.onPrimaryContainer }]}>{icon}</Text>
       </Pressable>
     </Animated.View>
   );
@@ -51,9 +56,6 @@ export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: F
 
 const styles = StyleSheet.create({
   wrapper: { position: "absolute", right: 16 },
-  // Checkpoint 13: fix KEDUA buat bug flash (lihat komentar sama di
-  // Chip.tsx) -- overflow:hidden biar ripple clip ke bentuk rounded FAB,
-  // bukan ke bounding-box persegi.
   fab: { width: 56, height: 56, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   icon: { fontSize: 28, fontWeight: "400", marginTop: -2 },
 });

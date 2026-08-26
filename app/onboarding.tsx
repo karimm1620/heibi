@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppButton } from "../src/components/AppButton";
 import { useReducedMotion } from "../src/hooks/useReducedMotion";
 import { useTranslation } from "../src/hooks/useTranslation";
 import type { Language } from "../src/i18n";
@@ -188,34 +189,29 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        <Pressable
+        <AppButton
+          label={isLastStep ? t.onboarding.enableNotificationsButton : t.onboarding.continueButton}
+          size="large"
           onPress={handlePrimaryPress}
           disabled={busy}
           style={styles.primaryButton}
-          accessibilityRole="button"
           accessibilityLabel={
             isLastStep
               ? t.onboarding.enableNotificationsAccessibilityLabel
               : t.onboarding.continueAccessibilityLabel
           }
-          android_ripple={{ color: withOpacity(material3.onPrimary, 0.24) }}
-        >
-          <Text style={styles.primaryButtonText}>
-            {isLastStep ? t.onboarding.enableNotificationsButton : t.onboarding.continueButton}
-          </Text>
-        </Pressable>
+        />
 
         {isLastStep && (
-          <Pressable
+          <AppButton
+            label={t.onboarding.skipPermissionButton}
+            variant="ghost"
+            size="compact"
             onPress={finish}
             disabled={busy}
-            hitSlop={12}
             style={styles.laterButton}
-            accessibilityRole="button"
             accessibilityLabel={t.onboarding.skipPermissionAccessibilityLabel}
-          >
-            <Text style={styles.laterButtonText}>{t.onboarding.skipPermissionButton}</Text>
-          </Pressable>
+          />
         )}
       </View>
     </View>
@@ -372,18 +368,10 @@ function createStyles(
     },
     dot: { height: 8, width: 8, borderRadius: radius.pill },
     primaryButton: {
-      backgroundColor: material3.primary,
-      borderRadius: m3Shape.full,
-      paddingVertical: spacing.md,
-      alignItems: "center",
-      overflow: "hidden",
+      width: "100%",
     },
-    primaryButtonText: { ...typography.subtitle, color: material3.onPrimary },
     laterButton: {
-      alignItems: "center",
       marginTop: spacing.md,
-      paddingVertical: spacing.sm,
     },
-    laterButtonText: { ...typography.body, color: colors.textSecondary, fontWeight: "600" },
   });
 }
