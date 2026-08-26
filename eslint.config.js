@@ -5,7 +5,10 @@ const expoConfig = require('eslint-config-expo/flat');
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*'],
+    // Repository-local agent/plugin bundles are development inputs, not app
+    // source. Keeping them outside the app lint boundary lets the mandatory
+    // `npx eslint .` command remain stable when those tools are installed.
+    ignores: ['dist/*', '.expo/**', '.agents/**', '.codex/**'],
   },
   {
     // Checkpoint 15: react-hooks/immutability (React Compiler) false-positive
