@@ -1,4 +1,6 @@
-// Checkpoint <next> (M3 Expressive): dulu `sans-serif`/`sans-serif-medium`,
+import type { TextStyle } from "react-native";
+
+// Checkpoint 3 (M3 Expressive): dulu `sans-serif`/`sans-serif-medium`,
 // alias sistem Android polos -- di Android <16 itu jadi Roboto klasik biasa
 // (BUKAN look "Expressive" yang dimaksud). Roboto Flex di-bundle sendiri
 // (bukan Google Sans -- itu font proprietary Google, gak boleh di-bundle ke
@@ -48,25 +50,43 @@ export function buildM3FullTypeScale(onSurface: string, onSurfaceVariant: string
 export type M3FullTypeScale = ReturnType<typeof buildM3FullTypeScale>;
 
 /**
- * Mapping ke 7 role semantik yang UDAH DIPAKAI di seluruh komponen app ini
- * (display/title/subtitle/body/caption/label/amount) — supaya di Checkpoint 1
- * ini gak ada satupun komponen yang perlu diubah kodenya.
+ * Mapping ke role semantik yang dipakai komponen app. Checkpoint 3 menambah
+ * role section dan mempertegas display/amount tanpa membuat screen memilih
+ * raw type-scale M3 sendiri.
  */
 function buildTypographyFromScale(scale: M3FullTypeScale) {
   return {
-    display: scale.headlineMedium,
-    title: scale.titleLarge,
-    subtitle: scale.titleMedium,
+    display: {
+      ...scale.headlineLarge,
+      fontWeight: "700" as const,
+      letterSpacing: -0.4,
+    },
+    title: { ...scale.titleLarge, fontWeight: "700" as const },
+    subtitle: {
+      ...scale.titleMedium,
+      fontWeight: "600" as const,
+      lineHeight: 22,
+    },
     body: scale.bodyMedium,
     caption: scale.bodySmall,
-    label: { ...scale.labelMedium, textTransform: "uppercase" as const },
-    amount: scale.headlineSmall,
+    label: { ...scale.labelMedium, letterSpacing: 0.4 },
+    section: {
+      ...scale.labelLarge,
+      fontWeight: "700" as const,
+      letterSpacing: 0.2,
+    },
+    amount: {
+      ...scale.headlineMedium,
+      fontWeight: "700" as const,
+      letterSpacing: -0.3,
+      fontVariant: ["tabular-nums"] as TextStyle["fontVariant"],
+    },
   };
 }
 
 /**
- * 7 role semantik yang dipakai di seluruh komponen app ini
- * (display/title/subtitle/body/caption/label/amount) — mapping dari full
+ * Role semantik yang dipakai di seluruh komponen app ini
+ * (display/title/subtitle/body/caption/label/section/amount) — mapping dari full
  * M3 type scale di atas. Satu-satunya sumber tipe `Typography` sekarang
  * (dulu ada versi terpisah di `theme/typography.ts` buat iOS, sudah
  * dihapus di Checkpoint 0 — lihat ui-registry.md).

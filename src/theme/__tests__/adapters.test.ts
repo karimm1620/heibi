@@ -12,12 +12,16 @@ const scheme = {
   onPrimaryContainer: "#10164B",
   secondaryContainer: "#E0E1F2",
   onSecondaryContainer: "#191A2C",
+  tertiary: "#8A4962",
+  onTertiary: "#FFFFFF",
   tertiaryContainer: "#FFD9E5",
   onTertiaryContainer: "#3E001D",
   surface: "#FBF8FF",
+  surfaceContainerLowest: "#FFFFFF",
   surfaceContainerLow: "#F5F2FA",
   surfaceContainer: "#EFECF4",
   surfaceContainerHigh: "#E9E6EE",
+  surfaceContainerHighest: "#E3E0E8",
   onSurface: "#1B1B20",
   onSurfaceVariant: "#46464F",
   outline: "#777680",
@@ -38,7 +42,10 @@ describe("buildSemanticTheme", () => {
 
     expect(theme.visualTheme).toBe("material3");
     expect(theme.colors.background).toBe(scheme.surface);
+    expect(theme.colors.surface).toBe(scheme.surfaceContainerLowest);
+    expect(theme.colors.surfaceInteractive).toBe(scheme.surfaceContainerHighest);
     expect(theme.colors.selected).toBe(scheme.secondaryContainer);
+    expect(theme.colors.expressiveContainer).toBe(scheme.tertiaryContainer);
     expect(theme.colors.onDanger).toBe(scheme.onError);
     expect(theme.colors.inverseSurface).toBe(scheme.inverseSurface);
     expect(theme.states).toMatchObject({
@@ -52,6 +59,14 @@ describe("buildSemanticTheme", () => {
       backdropRenderer: "none",
     });
     expect(theme.effects.shadows.medium).not.toBe("none");
+    expect(theme.shapes.selected).toMatchObject({
+      borderRadius: 16,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 12,
+    });
+    expect(theme.typography.display.fontWeight).toBe("700");
+    expect(theme.typography.section.fontWeight).toBe("700");
+    expect(theme.typography.amount.fontVariant).toContain("tabular-nums");
   });
 
   it("switches centralized Liquid intent without changing content semantics", () => {

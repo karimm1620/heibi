@@ -218,6 +218,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
                 selected={isActive}
                 onPress={() => handlePickTime(preset.hour, preset.minute)}
                 disabled={busy}
+                accessibilityRole="radio"
                 accessibilityLabel={interpolate(t.reminder.presetAccessibilityLabel, { time: preset.label })}
               />
             );
@@ -228,6 +229,7 @@ export function ReminderCard({ domain }: ReminderCardProps) {
             selected={!matchesPreset}
             onPress={() => setShowTimePicker(true)}
             disabled={busy}
+            accessibilityRole="radio"
             accessibilityLabel={t.reminder.customChipAccessibilityLabel}
           />
         </View>

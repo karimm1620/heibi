@@ -374,6 +374,58 @@ checkpoint; those remain part of the screen and transient-UI checkpoints.
 
 ---
 
+## D-021 — Material surface and accent roles keep dynamic color pairings intact
+
+**Status:** accepted
+
+### Finding
+
+The first semantic mapping used a secondary accent container for both neutral
+interactive surfaces and selected state, while the legacy `glassTintLight`
+role added transparency to ordinary content. That flattened neutral hierarchy
+and left the tertiary dynamic palette without a deliberate purpose.
+
+### Decision
+
+Material maps neutral hierarchy directly to the M3 surface-container ladder:
+background uses `surface`, base content uses `surfaceContainerLowest`, elevated
+content uses `surfaceContainerLow`, muted grouping uses `surfaceContainer`, and
+high-emphasis neutral interaction uses `surfaceContainerHighest`. Selected
+controls keep the secondary container pair; rare expressive highlights use the
+tertiary container pair. Foreground colors always use the matching `on*` role.
+
+The compatibility tint is now opaque. Fixed deposit/withdraw colors remain
+unchanged because their financial meaning must not follow wallpaper color.
+
+---
+
+## D-022 — Expressive geometry is original SVG and remains selective
+
+**Status:** accepted
+
+### Finding
+
+The app already had an original rounded-polygon badge implemented with
+`react-native-svg`, but its geometry was private to one celebration. Adding a
+second cookie implementation or Android graphics library would duplicate the
+system and create unjustified APK/runtime cost.
+
+### Decision
+
+Checkpoint 3 promotes that original geometry into a tested `CookieShape` and
+adds a tested `WaveShape` using the already-installed SVG runtime. Material
+selected controls use a reusable asymmetric corner token; they do not morph or
+animate because these controls are used frequently and Android ripple already
+provides immediate feedback.
+
+Cookie use is limited to the existing celebration and Material theme preview.
+Wave use is limited to that preview and the representative Goals summary.
+Ordinary cards remain rounded rectangles, and Settings groups use tonal depth
+without shadows. No dependency, native code, copied Material path data, API
+floor change, Liquid renderer, or expected APK growth is introduced.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.

@@ -49,8 +49,8 @@ export function AppListRow({
 
   const semanticStyle = {
     minHeight: states.minTouchTarget,
-    borderRadius: selected ? shapes.content : 0,
-    backgroundColor: selected ? colors.surfaceInteractive : "transparent",
+    ...(selected ? shapes.selected : { borderRadius: 0 }),
+    backgroundColor: selected ? colors.selected : "transparent",
   };
 
   if (!onPress) {

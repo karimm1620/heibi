@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppSurface } from "../../src/components/AppSurface";
 import { Chip } from "../../src/components/Chip";
 import { DragReorderRow } from "../../src/components/DragReorderRow";
 import { EmptyState } from "../../src/components/EmptyState";
@@ -10,12 +11,12 @@ import {
   FLOATING_TAB_BAR_HEIGHT,
   FLOATING_TAB_BAR_MARGIN,
 } from "../../src/components/FloatingTabBar";
-import { GlassCard } from "../../src/components/GlassCard";
 import { GoalCard } from "../../src/components/GoalCard";
+import { WaveShape } from "../../src/components/WaveShape";
 import { useDragReorder } from "../../src/hooks/useDragReorder";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
-import { spacing } from "../../src/theme/colors";
+import { spacing, withOpacity } from "../../src/theme/colors";
 import { useTheme } from "../../src/theme/useTheme";
 import type { Goal } from "../../src/types";
 import { clampPercent, formatIDR } from "../../src/utils/currency";
@@ -113,25 +114,28 @@ export default function GoalsScreen() {
         scrollEnabled={draggingKey === null}
       >
         <View style={styles.header}>
-          <View>
-            <Text style={typography.caption}>{t.goalsList.totalSavingsLabel}</Text>
-            <Text style={styles.headerTitle}>{t.goalsList.headerTitle}</Text>
-          </View>
+          <Text style={styles.headerTitle}>{t.goalsList.headerTitle}</Text>
         </View>
 
-        <GlassCard
-          tintColor={colors.glassTintLavender}
-          elevationLevel="level2"
+        <AppSurface
+          variant="expressive"
+          elevation="none"
           style={styles.summaryCard}
         >
-          <Text style={styles.summaryAmount}>{formatIDR(totalSaved)}</Text>
-          <Text style={styles.summaryTarget}>
+          <Text style={styles.summaryLabel}>{t.goalsList.totalSavingsLabel}</Text>
+          <Text style={styles.summaryAmount} selectable>{formatIDR(totalSaved)}</Text>
+          <Text style={styles.summaryTarget} selectable>
             {interpolate(t.goalsList.summaryTargetSuffix, {
               target: formatIDR(totalTarget),
               count: goals.length,
             })}
           </Text>
-        </GlassCard>
+          <WaveShape
+            color={withOpacity(colors.expressive, 0.18)}
+            height={18}
+            style={styles.summaryWave}
+          />
+        </AppSurface>
 
         {goals.length > 0 && (
           <View style={styles.androidChipRow}>
@@ -141,6 +145,7 @@ export default function GoalsScreen() {
                 label={option.label}
                 selected={sortOption === option.key}
                 onPress={() => setSortOption(option.key)}
+                accessibilityRole="radio"
                 accessibilityLabel={interpolate(t.goalsList.sortAccessibilityLabel, { label: option.label })}
               />
             ))}
@@ -228,7 +233,7 @@ function createStyles(
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: spacing.md,
     },
     header: {
       flexDirection: "row",
@@ -238,19 +243,27 @@ function createStyles(
     },
     headerTitle: {
       ...typography.display,
-      fontSize: 28,
-      marginTop: 2,
     },
     summaryCard: {
-      padding: spacing.lg,
+      padding: spacing.md,
       marginBottom: spacing.lg,
     },
+    summaryLabel: {
+      ...typography.section,
+      color: colors.onExpressiveContainer,
+      marginBottom: spacing.xs,
+    },
     summaryAmount: {
-      ...typography.display,
+      ...typography.amount,
+      color: colors.onExpressiveContainer,
     },
     summaryTarget: {
       ...typography.caption,
+      color: withOpacity(colors.onExpressiveContainer, 0.76),
       marginTop: spacing.xs,
+    },
+    summaryWave: {
+      marginTop: spacing.sm,
     },
     androidChipRow: {
       flexDirection: "row",

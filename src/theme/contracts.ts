@@ -6,7 +6,13 @@ export interface ThemeShapeTokens {
   content: number;
   card: number;
   control: number;
-  selected: number;
+  selected: {
+    borderRadius: number;
+    borderTopLeftRadius?: number;
+    borderTopRightRadius?: number;
+    borderBottomRightRadius?: number;
+    borderBottomLeftRadius?: number;
+  };
   floating: number;
   sheet: number;
   full: number;

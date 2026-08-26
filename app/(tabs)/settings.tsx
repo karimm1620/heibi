@@ -16,12 +16,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppAlert } from "../../src/components/AppAlert";
 import { AppButton } from "../../src/components/AppButton";
 import { AppListRow } from "../../src/components/AppListRow";
-import { GlassCard } from "../../src/components/GlassCard";
+import { AppSurface } from "../../src/components/AppSurface";
+import { CookieShape } from "../../src/components/CookieShape";
 import {
   FLOATING_TAB_BAR_HEIGHT,
   FLOATING_TAB_BAR_MARGIN,
 } from "../../src/components/FloatingTabBar";
 import { ReminderCard } from "../../src/components/ReminderCard";
+import { WaveShape } from "../../src/components/WaveShape";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
@@ -45,7 +47,7 @@ const PRIVACY_POLICY = "https://karimm1620.github.io/heibi-privacy-policy/privac
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const { colors, typography, isDark, material3, shapes, visualTheme } = useTheme();
+  const { colors, typography, isDark, material3, visualTheme } = useTheme();
   const { t, interpolate, language } = useTranslation();
   const setLanguage = useSettingsStore((s) => s.setLanguage);
   const setVisualTheme = useSettingsStore((s) => s.setVisualTheme);
@@ -59,8 +61,8 @@ export default function SettingsScreen() {
   const hydrateTodos = useTodosStore((s) => s.hydrate);
 
   const styles = useMemo(
-    () => createStyles(colors, typography, material3, shapes, insets.top),
-    [colors, typography, material3, shapes, insets.top],
+    () => createStyles(colors, typography, material3, insets.top),
+    [colors, typography, material3, insets.top],
   );
 
   const handleThemeChange = async (nextTheme: VisualTheme) => {
@@ -177,7 +179,7 @@ export default function SettingsScreen() {
         <Text style={styles.headerTitle}>{t.settings.title}</Text>
 
         <Text style={styles.sectionTitle}>{t.settings.sections.theme}</Text>
-        <GlassCard style={styles.card} elevationLevel="level1">
+        <AppSurface variant="muted" elevation="none" style={styles.card}>
           <Text style={[typography.body, { color: colors.textSecondary }]}>
             {t.settings.theme.description}
           </Text>
@@ -207,34 +209,32 @@ export default function SettingsScreen() {
               material3={material3}
             />
           </View>
-        </GlassCard>
+        </AppSurface>
 
         <Text style={styles.sectionTitle}>{t.settings.sections.language}</Text>
-        <GlassCard style={styles.card} elevationLevel="level1">
+        <AppSurface variant="muted" elevation="none" style={styles.card}>
           <View style={styles.languageRow}>
             <LanguageOption
               label={t.settings.language.id}
               active={language === "id"}
               onPress={() => setLanguage("id")}
               styles={styles}
-              material3={material3}
             />
             <LanguageOption
               label={t.settings.language.en}
               active={language === "en"}
               onPress={() => setLanguage("en")}
               styles={styles}
-              material3={material3}
             />
           </View>
-        </GlassCard>
+        </AppSurface>
 
         <Text style={styles.sectionTitle}>{t.settings.sections.notifications}</Text>
         <ReminderCard domain="savings" />
         <ReminderCard domain="planner" />
 
         <Text style={styles.sectionTitle}>{t.settings.sections.backup}</Text>
-        <GlassCard style={styles.card} elevationLevel="level1">
+        <AppSurface variant="muted" elevation="none" style={styles.card}>
           <Text style={typography.body}>{t.settings.backup.description}</Text>
 
           <AppButton
@@ -255,10 +255,10 @@ export default function SettingsScreen() {
             style={styles.backupButton}
             accessibilityLabel={t.settings.backup.importAccessibilityLabel}
           />
-        </GlassCard>
+        </AppSurface>
 
         <Text style={styles.sectionTitle}>{t.settings.sections.about}</Text>
-        <GlassCard style={[styles.card, styles.aboutCard]} elevationLevel="level1">
+        <AppSurface variant="muted" elevation="none" style={[styles.card, styles.aboutCard]}>
           <AppListRow
             onPress={() => Linking.openURL(GITHUB_URL).catch(() => {})}
             accessibilityRole="link"
@@ -308,7 +308,7 @@ export default function SettingsScreen() {
           >
             <Text style={typography.body}>{t.settings.about.appVersion}</Text>
           </AppListRow>
-        </GlassCard>
+        </AppSurface>
       </ScrollView>
 
       <AppAlert
@@ -380,12 +380,14 @@ function ThemeOption({
       >
         {visualTheme === "material3" ? (
           <>
-            <View
-              style={[
-                styles.materialPreviewDot,
-                { backgroundColor: material3.primary },
-              ]}
+            <WaveShape
+              color={material3.secondaryContainer}
+              height={18}
+              style={styles.materialPreviewWave}
             />
+            <CookieShape size={28} color={material3.primary}>
+              <View style={[styles.materialPreviewDot, { backgroundColor: material3.onPrimary }]} />
+            </CookieShape>
             <View
               style={[
                 styles.materialPreviewBar,
@@ -434,22 +436,32 @@ interface LanguageOptionProps {
   active: boolean;
   onPress: () => void;
   styles: ReturnType<typeof createStyles>;
-  material3: ReturnType<typeof useTheme>["material3"];
 }
 
-function LanguageOption({ label, active, onPress, styles, material3 }: LanguageOptionProps) {
+function LanguageOption({ label, active, onPress, styles }: LanguageOptionProps) {
+  const { colors, shapes, states } = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
-      accessibilityRole="button"
+      accessibilityRole="radio"
       accessibilityState={{ selected: active }}
-      style={[
+      pressRetentionOffset={12}
+      android_ripple={{ color: withOpacity(colors.onSelected, states.rippleOpacity) }}
+      style={({ pressed }) => [
         styles.languageChip,
-        active && { backgroundColor: material3.primary, borderColor: material3.primary },
+        active
+          ? {
+              ...shapes.selected,
+              backgroundColor: colors.selected,
+              borderColor: colors.selected,
+            }
+          : { borderRadius: shapes.control },
+        { opacity: pressed ? states.pressedOpacity : 1 },
       ]}
     >
       <Text
-        style={[styles.languageChipText, active && { color: material3.onPrimary }]}
+        style={[styles.languageChipText, active && { color: colors.onSelected }]}
       >
         {label}
       </Text>
@@ -461,7 +473,6 @@ function createStyles(
   colors: ReturnType<typeof useTheme>["colors"],
   typography: ReturnType<typeof useTheme>["typography"],
   material3: ReturnType<typeof useTheme>["material3"],
-  shapes: ReturnType<typeof useTheme>["shapes"],
   paddingTop: number,
 ) {
   return StyleSheet.create({
@@ -471,24 +482,21 @@ function createStyles(
     },
     content: {
       paddingTop: paddingTop + spacing.md,
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: spacing.md,
       paddingBottom:
         FLOATING_TAB_BAR_MARGIN + FLOATING_TAB_BAR_HEIGHT + spacing.xl,
     },
     headerTitle: {
       ...typography.display,
-      fontSize: 28,
       marginBottom: spacing.md,
     },
     sectionTitle: {
-      ...typography.caption,
-      fontWeight: "700",
-      textTransform: "uppercase",
-      marginTop: spacing.md,
+      ...typography.section,
+      marginTop: spacing.lg,
       marginBottom: spacing.sm,
     },
     card: {
-      padding: spacing.lg,
+      padding: spacing.md,
       gap: spacing.md,
       marginBottom: spacing.md,
     },
@@ -517,9 +525,15 @@ function createStyles(
       overflow: "hidden",
     },
     materialPreviewDot: {
-      width: 24,
-      height: 24,
+      width: 8,
+      height: 8,
       borderRadius: m3Shape.full,
+    },
+    materialPreviewWave: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
     },
     materialPreviewBar: {
       width: 42,
@@ -569,8 +583,8 @@ function createStyles(
     },
     languageChip: {
       flex: 1,
+      minHeight: 48,
       paddingVertical: spacing.sm,
-      borderRadius: shapes.control,
       borderWidth: 1.5,
       borderColor: colors.glassBorder,
       alignItems: "center",

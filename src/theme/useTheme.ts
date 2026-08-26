@@ -14,8 +14,8 @@ export interface AppTheme extends SemanticThemeContract {
 /**
  * Runtime theme entry point. Both visual languages inherit Android dynamic
  * color and system light/dark, then diverge only through centralized semantic
- * adapters. `material3` remains exposed temporarily for components that have
- * not yet moved to semantic roles; Checkpoint 2 handles that migration.
+ * adapters. `material3` remains exposed temporarily for screen-specific code
+ * that will move to semantic roles during the bounded screen checkpoints.
  */
 export function useTheme(): AppTheme {
   const scheme = useColorScheme();

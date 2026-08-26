@@ -8,6 +8,7 @@ export type AppSurfaceVariant =
   | "elevated"
   | "interactive"
   | "selected"
+  | "expressive"
   | "inverse";
 
 export type AppSurfaceElevation = "none" | "low" | "medium" | "high";
@@ -39,10 +40,11 @@ export function AppSurface({
       elevated: colors.surfaceElevated,
       interactive: colors.surfaceInteractive,
       selected: colors.selected,
+      expressive: colors.expressiveContainer,
       inverse: colors.inverseSurface,
     }[variant];
 
-    const outlined = variant === "interactive" || variant === "selected";
+    const outlined = variant === "interactive";
 
     return {
       backgroundColor,

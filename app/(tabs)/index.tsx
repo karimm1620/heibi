@@ -529,11 +529,9 @@ function createStyles(
       borderRadius: m3Shape.small,
       // Checkpoint 6: dulu `colors.background` (scheme.surface, putih/terang)
       // -- opak buat nutupin action button pas swipe (fix lama), TAPI beda
-      // warna sama tint GlassCard pembungkus (`listCard` pakai default
-      // `colors.glassTintLight`), jadi row keliatan kotak putih nongol di
-      // atas card pink. `glassTintLight` tetap opak (alpha 0.92, sama kayak
-      // yang dipakai GlassCard sendiri) jadi masih nutupin action button,
-      // tapi sekarang nyatu sama card di sekelilingnya.
+      // warna sama surface elevated GlassCard pembungkus. Compatibility role
+      // `glassTintLight` sekarang opak (`surfaceContainerLow`), jadi tetap
+      // nutup action button saat swipe tanpa bikin kotak tone yang berbeda.
       backgroundColor: colors.glassTintLight,
       // Checkpoint 13: fix KEDUA buat bug flash (lihat komentar sama di
       // Chip.tsx) -- overflow:hidden biar ripple clip ke bentuk rounded

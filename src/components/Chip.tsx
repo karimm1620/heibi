@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text, type AccessibilityRole } from "react-native";
 import { spacing, withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 
@@ -8,16 +8,24 @@ interface ChipProps {
   selected: boolean;
   onPress: () => void;
   accessibilityLabel?: string;
+  accessibilityRole?: AccessibilityRole;
   disabled?: boolean;
 }
 
-export function Chip({ label, selected, onPress, accessibilityLabel, disabled = false }: ChipProps) {
+export function Chip({
+  label,
+  selected,
+  onPress,
+  accessibilityLabel,
+  accessibilityRole = "button",
+  disabled = false,
+}: ChipProps) {
   const { colors, shapes, states, typography } = useTheme();
 
   return (
     <Pressable
       onPress={onPress}
-      accessibilityRole="button"
+      accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected, disabled }}
       disabled={disabled}
@@ -27,7 +35,7 @@ export function Chip({ label, selected, onPress, accessibilityLabel, disabled = 
       style={({ pressed }) => [
         styles.chip,
         {
-          borderRadius: shapes.content,
+          ...(selected ? shapes.selected : { borderRadius: shapes.content }),
           backgroundColor: selected ? colors.selected : "transparent",
           borderColor: selected ? "transparent" : colors.outline,
           opacity: disabled

@@ -14,9 +14,15 @@ import type { VisualTheme } from "./visualTheme";
 
 const material3Shapes: ThemeShapeTokens = {
   content: m3Shape.medium,
-  card: m3Shape.extraLarge,
+  card: m3Shape.large,
   control: m3Shape.full,
-  selected: m3Shape.full,
+  selected: {
+    borderRadius: m3Shape.large,
+    borderTopLeftRadius: m3Shape.extraLarge,
+    borderTopRightRadius: m3Shape.medium,
+    borderBottomRightRadius: m3Shape.extraLarge,
+    borderBottomLeftRadius: m3Shape.medium,
+  },
   floating: m3Shape.large,
   sheet: m3Shape.extraLarge,
   full: m3Shape.full,
@@ -26,7 +32,7 @@ const liquidShapes: ThemeShapeTokens = {
   content: m3Shape.medium,
   card: m3Shape.large,
   control: m3Shape.full,
-  selected: m3Shape.full,
+  selected: { borderRadius: m3Shape.full },
   floating: m3Shape.extraLarge2,
   sheet: m3Shape.extraLarge2,
   full: m3Shape.full,

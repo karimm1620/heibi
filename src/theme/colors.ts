@@ -10,6 +10,10 @@ export interface ThemeColors {
   onPrimaryContainer: string;
   selected: string;
   onSelected: string;
+  expressive: string;
+  onExpressive: string;
+  expressiveContainer: string;
+  onExpressiveContainer: string;
   outline: string;
   divider: string;
   glassTintLight: string;
