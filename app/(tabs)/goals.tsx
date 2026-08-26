@@ -1,9 +1,10 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
-import { Animated, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Chip } from "../../src/components/Chip";
+import { DragReorderRow } from "../../src/components/DragReorderRow";
 import { EmptyState } from "../../src/components/EmptyState";
 import {
   FLOATING_TAB_BAR_HEIGHT,
@@ -88,28 +89,13 @@ export default function GoalsScreen() {
   // sebenarnya ke-persist.
   const canReorder = sortOption === "newest" && !showCompletedOnly;
 
-  const { order, draggingKey, dragY, getHandlePanResponder } = useDragReorder<Goal>({
+  const { order, draggingKey, controller } = useDragReorder<Goal>({
     items: displayedGoals,
     keyExtractor: (g) => g.id,
-    itemHeight: rowHeight,
-    onReorderCommit: (newOrder) => void reorderGoals(newOrder),
+    onReorderCommit: reorderGoals,
   });
 
   const listToRender = canReorder ? order : displayedGoals;
-
-  // Item yang lagi di-drag dipindah ke urutan RENDER paling akhir (bukan
-  // ngubah data/`order`, cuma buat JSX) -- di Android, `zIndex` gak selalu
-  // reliable buat nentuin tumpukan gambar antar sibling View. Sibling yang
-  // di-render PALING TERAKHIR yang keliatan paling atas, itu yang lebih
-  // konsisten. Tanpa ini, card yang lagi di-drag bisa keliatan "kepotong"
-  // pas transform-nya numpuk ke row tetangga di tengah gesture.
-  const renderOrder =
-    draggingKey === null
-      ? listToRender
-      : [
-          ...listToRender.filter((item) => item.id !== draggingKey),
-          ...listToRender.filter((item) => item.id === draggingKey),
-        ];
 
   const styles = useMemo(
     () => createStyles(colors, typography, insets.bottom),
@@ -189,35 +175,26 @@ export default function GoalsScreen() {
             }
           />
         ) : (
-          renderOrder.map((item) => {
-            const isDragging = draggingKey === item.id;
-            return (
-              <Animated.View
-                key={item.id}
-                onLayout={(e) => setRowHeight(e.nativeEvent.layout.height)}
-                style={[
-                  styles.row,
-                  isDragging && {
-                    transform: [{ translateY: dragY }, { scale: 1.03 }],
-                    zIndex: 10,
-                    elevation: 8,
-                    opacity: 0.96,
-                  },
-                ]}
-              >
-                <View style={{ flex: 1 }}>
-                  <GoalCard
-                    goal={item}
-                    onPress={() => router.push(`/goal/${item.id}`)}
-                  />
-                </View>
-                {canReorder && (
+          listToRender.map((item, index) => (
+            <DragReorderRow
+              key={item.id}
+              itemKey={item.id}
+              index={index}
+              itemHeight={rowHeight}
+              itemCount={listToRender.length}
+              controller={controller}
+              enabled={canReorder && (draggingKey === null || draggingKey === item.id)}
+              onLayout={setRowHeight}
+              style={styles.row}
+              handle={
+                canReorder ? (
                   <View
-                    {...getHandlePanResponder(item).panHandlers}
                     style={styles.dragHandle}
                     hitSlop={8}
                     accessibilityRole="adjustable"
-                    accessibilityLabel={interpolate(t.goalsList.reorderAccessibilityLabel, { name: item.name })}
+                    accessibilityLabel={interpolate(t.goalsList.reorderAccessibilityLabel, {
+                      name: item.name,
+                    })}
                   >
                     <MaterialCommunityIcons
                       name="drag-vertical"
@@ -225,10 +202,17 @@ export default function GoalsScreen() {
                       color={colors.textSecondary}
                     />
                   </View>
-                )}
-              </Animated.View>
-            );
-          })
+                ) : undefined
+              }
+            >
+              <View style={{ flex: 1 }}>
+                <GoalCard
+                  goal={item}
+                  onPress={() => router.push(`/goal/${item.id}`)}
+                />
+              </View>
+            </DragReorderRow>
+          ))
         )}
       </ScrollView>
     </View>

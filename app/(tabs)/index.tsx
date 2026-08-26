@@ -3,8 +3,6 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Animated,
-  type GestureResponderHandlers,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppAlert } from "../../src/components/AppAlert";
 import { CelebrationOverlay } from "../../src/components/CelebrationOverlay";
 import { DayHistorySheet } from "../../src/components/DayHistorySheet";
+import { DragReorderRow } from "../../src/components/DragReorderRow";
 import { EmptyState } from "../../src/components/EmptyState";
 import {
   FLOATING_TAB_BAR_HEIGHT,
@@ -27,6 +26,7 @@ import { SwipeableRow } from "../../src/components/SwipeableRow";
 import { WeekCalendarStrip } from "../../src/components/WeekCalendarStrip";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import {
+  type DragReorderController,
   mergeReorderedSubsetIntoFullList,
   useDragReorder,
 } from "../../src/hooks/useDragReorder";
@@ -103,19 +103,17 @@ export default function TodayScreen() {
   const {
     order: orderedTodayHabits,
     draggingKey: draggingHabitKey,
-    dragY: habitDragY,
-    getHandlePanResponder: getHabitDragHandle,
+    controller: habitDragController,
   } = useDragReorder<Habit>({
     items: todayHabits,
     keyExtractor: (h) => h.id,
-    itemHeight: habitRowHeight,
     onReorderCommit: (newSubsetOrder) => {
       const merged = mergeReorderedSubsetIntoFullList(
         habits,
         (h) => h.id,
         newSubsetOrder,
       );
-      void reorderHabits(merged);
+      return reorderHabits(merged);
     },
   });
 
@@ -123,18 +121,6 @@ export default function TodayScreen() {
     completedHabitIdsToday.has(h.id),
   ).length;
 
-  // Item yang lagi di-drag dipindah ke urutan RENDER paling akhir (data
-  // urutan asli, `orderedTodayHabits`, gak berubah) -- di Android, sibling
-  // yang di-render TERAKHIR yang konsisten kegambar paling atas. Tanpa
-  // ini, card yang lagi di-drag bisa keliatan "kepotong" pas transform-nya
-  // numpuk ke row tetangga (sama pola fix-nya kayak Goals di checkpoint 5c).
-  const renderOrderedTodayHabits =
-    draggingHabitKey === null
-      ? orderedTodayHabits
-      : [
-          ...orderedTodayHabits.filter((h) => h.id !== draggingHabitKey),
-          ...orderedTodayHabits.filter((h) => h.id === draggingHabitKey),
-        ];
   const todosDoneCount = todayTodos.filter((t) => t.completedAt).length;
   const totalCount = todayHabits.length + todayTodos.length;
   const doneCount = habitsDoneCount + todosDoneCount;
@@ -207,27 +193,32 @@ export default function TodayScreen() {
             {todayHabits.length > 0 && (
               <>
                 <Text style={styles.sectionTitle}>{t.today.habitsSection}</Text>
-                <GlassCard elevationLevel="level1" style={styles.listCard}>
-                  {renderOrderedTodayHabits.map((habit) => {
-                    const trueIndex = orderedTodayHabits.findIndex(
-                      (h) => h.id === habit.id,
-                    );
-                    return (
-                      <HabitRow
-                        key={habit.id}
-                        habit={habit}
-                        done={completedHabitIdsToday.has(habit.id)}
-                        streak={streakByHabitId.get(habit.id) ?? 0}
-                        isLast={trueIndex === orderedTodayHabits.length - 1}
-                        onPress={() => router.push(`/habit/${habit.id}`)}
-                        onToggle={() => handleToggleHabit(habit.id)}
-                        onLayout={(h) => setHabitRowHeight(h)}
-                        isDragging={draggingHabitKey === habit.id}
-                        dragY={habitDragY}
-                        dragHandlers={getHabitDragHandle(habit).panHandlers}
-                      />
-                    );
-                  })}
+                <GlassCard
+                  elevationLevel="level1"
+                  style={[
+                    styles.listCard,
+                    draggingHabitKey !== null && styles.listCardDragging,
+                  ]}
+                >
+                  {orderedTodayHabits.map((habit, index) => (
+                    <HabitRow
+                      key={habit.id}
+                      habit={habit}
+                      done={completedHabitIdsToday.has(habit.id)}
+                      streak={streakByHabitId.get(habit.id) ?? 0}
+                      isLast={index === orderedTodayHabits.length - 1}
+                      onPress={() => router.push(`/habit/${habit.id}`)}
+                      onToggle={() => handleToggleHabit(habit.id)}
+                      onLayout={setHabitRowHeight}
+                      dragIndex={index}
+                      dragItemHeight={habitRowHeight}
+                      dragItemCount={orderedTodayHabits.length}
+                      dragController={habitDragController}
+                      dragEnabled={
+                        draggingHabitKey === null || draggingHabitKey === habit.id
+                      }
+                    />
+                  ))}
                 </GlassCard>
               </>
             )}
@@ -288,9 +279,11 @@ interface HabitRowProps {
   onPress: () => void;
   onToggle: () => void;
   onLayout: (height: number) => void;
-  isDragging: boolean;
-  dragY: Animated.Value;
-  dragHandlers: GestureResponderHandlers;
+  dragIndex: number;
+  dragItemHeight: number;
+  dragItemCount: number;
+  dragController: DragReorderController;
+  dragEnabled: boolean;
 }
 
 function HabitRow({
@@ -301,9 +294,11 @@ function HabitRow({
   onPress,
   onToggle,
   onLayout,
-  isDragging,
-  dragY,
-  dragHandlers,
+  dragIndex,
+  dragItemHeight,
+  dragItemCount,
+  dragController,
+  dragEnabled,
 }: HabitRowProps) {
   const router = useRouter();
   const { colors, typography } = useTheme();
@@ -329,17 +324,31 @@ function HabitRow({
 
   return (
     <>
-      <Animated.View
-        onLayout={(e) => onLayout(e.nativeEvent.layout.height)}
-        style={[
-          styles.dragRow,
-          isDragging && {
-            transform: [{ translateY: dragY }, { scale: 1.03 }],
-            zIndex: 10,
-            elevation: 8,
-            opacity: 0.96,
-          },
-        ]}
+      <DragReorderRow
+        itemKey={habit.id}
+        index={dragIndex}
+        itemHeight={dragItemHeight}
+        itemCount={dragItemCount}
+        controller={dragController}
+        enabled={dragEnabled}
+        onLayout={onLayout}
+        style={styles.dragRow}
+        handle={
+          <View
+            style={styles.dragHandle}
+            hitSlop={8}
+            accessibilityRole="adjustable"
+            accessibilityLabel={interpolate(t.today.reorderAccessibilityLabel, {
+              name: habit.name,
+            })}
+          >
+            <MaterialCommunityIcons
+              name="drag-vertical"
+              size={22}
+              color={colors.textSecondary}
+            />
+          </View>
+        }
       >
         <View style={{ flex: 1 }}>
           <SwipeableRow
@@ -404,17 +413,7 @@ function HabitRow({
             </Pressable>
           </SwipeableRow>
         </View>
-
-        <View
-          {...dragHandlers}
-          style={styles.dragHandle}
-          hitSlop={8}
-          accessibilityRole="adjustable"
-          accessibilityLabel={interpolate(t.today.reorderAccessibilityLabel, { name: habit.name })}
-        >
-          <MaterialCommunityIcons name="drag-vertical" size={22} color={colors.textSecondary} />
-        </View>
-      </Animated.View>
+      </DragReorderRow>
 
       <AppAlert
         visible={alertState.visible}
@@ -516,6 +515,11 @@ function createStyles(
     listCard: {
       paddingHorizontal: spacing.md,
       marginBottom: spacing.md,
+    },
+    listCardDragging: {
+      overflow: "visible",
+      zIndex: 20,
+      elevation: 8,
     },
     row: {
       flexDirection: "row",

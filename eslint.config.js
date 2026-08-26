@@ -21,7 +21,11 @@ module.exports = defineConfig([
     // shared value + reset via effect), BUKAN didisable global -- kalau
     // nemu file lain yang kena ini juga, tambahin ke `files` di sini,
     // jangan taro rule override baru yang berbeda.
-    files: ['src/components/WeekCalendarStrip.tsx'],
+    files: [
+      'src/components/DragReorderRow.tsx',
+      'src/components/WeekCalendarStrip.tsx',
+      'src/hooks/useDragReorder.ts',
+    ],
     rules: {
       'react-hooks/immutability': 'off',
     },
