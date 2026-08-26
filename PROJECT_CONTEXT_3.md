@@ -31,6 +31,19 @@ The implementation is authoritative. The overhaul plan must build on these
 pieces rather than recreate them. Detailed evidence and remaining gaps are in
 `docs/CHECKPOINT_0_AUDIT.md` and `docs/DECISIONS.md`.
 
+### Checkpoint 1 semantic foundation (2026-08-26)
+
+Checkpoint 1 starts from merged `main` commit
+`7be9526d3dd3dc0edb6ba778ed9345087453d391` and adds the persisted semantic
+theme foundation without a native dependency or database schema migration:
+
+- `VisualTheme` supports `material3 | liquid` with a safe Material 3 fallback.
+- `visual_theme` uses the existing SQLite settings table.
+- `useTheme()` centralizes semantic color, typography, shape, motion, and
+  effect adapters while retaining raw M3 as temporary component compatibility.
+- Settings exposes an accessible live selector with compact previews.
+- Convx remains concept-only; no backdrop/blur/refraction renderer is claimed.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

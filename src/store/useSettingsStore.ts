@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { getDb } from "../db/client";
 import type { Language } from "../i18n";
+import {
+  DEFAULT_VISUAL_THEME,
+  parseStoredVisualTheme,
+  type VisualTheme,
+} from "../theme/visualTheme";
 
 export type ReminderDomain = "savings" | "planner";
 
@@ -33,6 +38,7 @@ const SETTINGS_KEY_BY_DOMAIN: Record<ReminderDomain, string> = {
 const ONBOARDING_KEY = "onboarding_complete";
 
 const LANGUAGE_KEY = "language";
+const VISUAL_THEME_KEY = "visual_theme";
 /** Default `id` -- user existing (belum pernah nge-set bahasa) TETAP dapet
  * Bahasa Indonesia kayak sebelumnya, gak ada perubahan behavior mendadak. */
 const DEFAULT_LANGUAGE: Language = "id";
@@ -44,6 +50,7 @@ interface SettingsState {
   hasOnboarded: boolean;
   hasHydrated: boolean;
   language: Language;
+  visualTheme: VisualTheme;
 
   /** Load setting dari SQLite ke memory. Panggil sekali di bootstrap app. */
   hydrate: () => Promise<void>;
@@ -57,6 +64,7 @@ interface SettingsState {
   /** Tandai onboarding selesai (baik lewat flow lengkap atau tombol Lewati). */
   completeOnboarding: () => Promise<void>;
   setLanguage: (language: Language) => Promise<void>;
+  setVisualTheme: (visualTheme: VisualTheme) => Promise<void>;
 }
 
 async function readReminder(
@@ -90,22 +98,41 @@ async function readLanguage(db: Awaited<ReturnType<typeof getDb>>): Promise<Lang
   return row ? (JSON.parse(row.value) as Language) : DEFAULT_LANGUAGE;
 }
 
+async function readVisualTheme(
+  db: Awaited<ReturnType<typeof getDb>>,
+): Promise<VisualTheme> {
+  const row = await db.getFirstAsync<{ value: string }>(
+    "SELECT value FROM settings WHERE key = ?",
+    [VISUAL_THEME_KEY],
+  );
+  return parseStoredVisualTheme(row?.value);
+}
+
 export const useSettingsStore = create<SettingsState>()((set) => ({
   savingsReminder: DEFAULT_REMINDER,
   plannerReminder: DEFAULT_REMINDER,
   hasOnboarded: false,
   hasHydrated: false,
   language: DEFAULT_LANGUAGE,
+  visualTheme: DEFAULT_VISUAL_THEME,
 
   hydrate: async () => {
     const db = await getDb();
-    const [savingsReminder, plannerReminder, hasOnboarded, language] = await Promise.all([
+    const [savingsReminder, plannerReminder, hasOnboarded, language, visualTheme] = await Promise.all([
       readReminder(db, "savings"),
       readReminder(db, "planner"),
       readOnboarded(db),
       readLanguage(db),
+      readVisualTheme(db),
     ]);
-    set({ savingsReminder, plannerReminder, hasOnboarded, language, hasHydrated: true });
+    set({
+      savingsReminder,
+      plannerReminder,
+      hasOnboarded,
+      language,
+      visualTheme,
+      hasHydrated: true,
+    });
   },
 
   setReminder: async (domain, enabled, hour, minute, notificationId) => {
@@ -139,5 +166,14 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
       [LANGUAGE_KEY, JSON.stringify(language)],
     );
     set({ language });
+  },
+
+  setVisualTheme: async (visualTheme) => {
+    const db = await getDb();
+    await db.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      [VISUAL_THEME_KEY, JSON.stringify(visualTheme)],
+    );
+    set({ visualTheme });
   },
 }));

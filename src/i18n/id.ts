@@ -234,6 +234,7 @@ export const id = {
   settings: {
     title: "Pengaturan",
     sections: {
+      theme: "Tampilan",
       language: "Bahasa",
       notifications: "Notifikasi",
       backup: "Backup & Restore",
@@ -242,6 +243,17 @@ export const id = {
     language: {
       id: "Indonesia",
       en: "English",
+    },
+    theme: {
+      description: "Pilih karakter visual heibi. Data, alur, dan mode terang atau gelap tetap sama.",
+      material3Title: "Material 3",
+      material3Description: "Hangat, tonal, dan khas Android.",
+      material3AccessibilityLabel: "Gunakan tema Material 3",
+      liquidTitle: "Liquid",
+      liquidDescription: "Chrome lebih ringan dan responsif.",
+      liquidAccessibilityLabel: "Gunakan tema Liquid",
+      changeErrorTitle: "Tema gagal diganti",
+      changeErrorMessage: "Pilihan tema belum tersimpan. Coba lagi.",
     },
     backup: {
       description:

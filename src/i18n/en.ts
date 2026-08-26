@@ -231,6 +231,7 @@ export const en: TranslationDict = {
   settings: {
     title: "Settings",
     sections: {
+      theme: "Appearance",
       language: "Language",
       notifications: "Notifications",
       backup: "Backup & Restore",
@@ -239,6 +240,17 @@ export const en: TranslationDict = {
     language: {
       id: "Indonesia",
       en: "English",
+    },
+    theme: {
+      description: "Choose heibi's visual character. Your data, flows, and system light or dark mode stay the same.",
+      material3Title: "Material 3",
+      material3Description: "Warm, tonal, and distinctly Android.",
+      material3AccessibilityLabel: "Use the Material 3 theme",
+      liquidTitle: "Liquid",
+      liquidDescription: "Lighter, more responsive chrome.",
+      liquidAccessibilityLabel: "Use the Liquid theme",
+      changeErrorTitle: "Couldn't change theme",
+      changeErrorMessage: "Your theme choice wasn't saved. Try again.",
     },
     backup: {
       description:

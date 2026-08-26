@@ -5,7 +5,7 @@ Codex should update this file as work progresses.
 ## Baseline
 
 - [x] Fresh clone `karimm1620/heibi` (clean local clone for verification; remote SHA checked read-only).
-- [x] Confirm current `main` HEAD (`33ceb2f3bf49beda735402eb2bd03f4309455d88`).
+- [x] Confirm Checkpoint 1 base on current `main` (`7be9526d3dd3dc0edb6ba778ed9345087453d391`).
 - [x] Run `git log --oneline -10`.
 - [x] Confirm CI checkpoint is present.
 - [x] Confirm UI-thread drag-reorder checkpoint is present.
@@ -46,27 +46,25 @@ Codex should update this file as work progresses.
 - [x] Audit native home-widget module.
 - [x] Document findings in `DECISIONS.md` and `CHECKPOINT_0_AUDIT.md`.
 
-Checkpoint 0 is complete. `heibi-checkpoint-0-audit.patch` passed
-`git apply --check` and post-apply TypeScript, root ESLint, and all 80 Jest
-tests in a separate clean clone. The next implementation checkpoint is
-Checkpoint 1, but D-014 requires user direction before any Convx/GPL renderer
-adoption in Checkpoint 4.
+Checkpoint 0 is complete and merged through PR #8. D-014 now records the
+user-approved concept-only Convx boundary: semantic work may proceed, but
+renderer adoption still requires a new Checkpoint 4 decision.
 
 ## Checkpoint 1 — Theme foundation
 
-- [ ] Add `VisualTheme` type.
-- [ ] Default to `material3`.
-- [ ] Add persistent `visual_theme` setting.
-- [ ] Hydrate theme safely for existing users.
-- [ ] Add setter.
-- [ ] Add automated tests.
-- [ ] Refactor semantic theme contract.
-- [ ] Keep system light/dark.
-- [ ] Add theme selector to Settings.
-- [ ] Verify live switching without restart.
-- [ ] Validate checkpoint.
-- [ ] Generate patch.
-- [ ] Verify patch in fresh clone.
+- [x] Add `VisualTheme` type.
+- [x] Default to `material3`.
+- [x] Add persistent `visual_theme` setting.
+- [x] Hydrate theme safely for existing users.
+- [x] Add setter.
+- [x] Add automated tests.
+- [x] Refactor semantic theme contract.
+- [x] Keep system light/dark.
+- [x] Add theme selector to Settings.
+- [x] Verify live switching without restart through the reactive store/adapter path.
+- [x] Validate checkpoint (`tsc`, root ESLint, 88 Jest tests, Android export).
+- [x] Generate patch (`heibi-checkpoint-1-semantic-theme.patch`).
+- [x] Verify patch in fresh clone (`git apply --check`, TypeScript, root ESLint, 88 Jest tests).
 
 ## Checkpoint 2 — Shared primitives
 

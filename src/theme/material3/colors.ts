@@ -26,6 +26,17 @@ export function mapMaterial3ToThemeColors(
     background: scheme.surface,
     surface: scheme.surfaceContainerLow,
     surfaceMuted: scheme.surfaceContainerHigh,
+    surfaceElevated: scheme.surfaceContainer,
+    surfaceInteractive: scheme.secondaryContainer,
+
+    primary: scheme.primary,
+    onPrimary: scheme.onPrimary,
+    primaryContainer: scheme.primaryContainer,
+    onPrimaryContainer: scheme.onPrimaryContainer,
+    selected: scheme.secondaryContainer,
+    onSelected: scheme.onSecondaryContainer,
+    outline: scheme.outline,
+    divider: scheme.outlineVariant,
 
     glassTintLight: withOpacity(scheme.surfaceContainer, 0.92),
     glassTintLavender: scheme.secondaryContainer,
