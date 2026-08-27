@@ -24,10 +24,10 @@ export function mapMaterial3ToThemeColors(
 ): ThemeColors {
   return {
     background: scheme.surface,
-    surface: scheme.surfaceContainerLow,
-    surfaceMuted: scheme.surfaceContainerHigh,
-    surfaceElevated: scheme.surfaceContainer,
-    surfaceInteractive: scheme.secondaryContainer,
+    surface: scheme.surfaceContainerLowest,
+    surfaceMuted: scheme.surfaceContainer,
+    surfaceElevated: scheme.surfaceContainerLow,
+    surfaceInteractive: scheme.surfaceContainerHighest,
 
     primary: scheme.primary,
     onPrimary: scheme.onPrimary,
@@ -35,11 +35,15 @@ export function mapMaterial3ToThemeColors(
     onPrimaryContainer: scheme.onPrimaryContainer,
     selected: scheme.secondaryContainer,
     onSelected: scheme.onSecondaryContainer,
+    expressive: scheme.tertiary,
+    onExpressive: scheme.onTertiary,
+    expressiveContainer: scheme.tertiaryContainer,
+    onExpressiveContainer: scheme.onTertiaryContainer,
     outline: scheme.outline,
     divider: scheme.outlineVariant,
 
-    glassTintLight: withOpacity(scheme.surfaceContainer, 0.92),
-    glassTintLavender: scheme.secondaryContainer,
+    glassTintLight: scheme.surfaceContainerLow,
+    glassTintLavender: scheme.tertiaryContainer,
     glassBorder: scheme.outlineVariant,
 
     deposit: keep.deposit,
@@ -50,6 +54,12 @@ export function mapMaterial3ToThemeColors(
     textInverse: scheme.onPrimary,
 
     danger: scheme.error,
+    onDanger: scheme.onError,
+    dangerContainer: scheme.errorContainer,
+    onDangerContainer: scheme.onErrorContainer,
+    inverseSurface: scheme.inverseSurface,
+    inverseText: scheme.inverseOnSurface,
+    inverseAction: scheme.inversePrimary,
     overlayScrim: withOpacity(scheme.scrim, isDark ? 0.6 : 0.35),
   };
 }

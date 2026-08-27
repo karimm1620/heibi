@@ -68,30 +68,41 @@ renderer adoption still requires a new Checkpoint 4 decision.
 
 ## Checkpoint 2 — Shared primitives
 
-- [ ] Define semantic surface abstraction.
-- [ ] Decide `GlassCard` migration/compat strategy.
-- [ ] Refine shared button.
-- [ ] Refine shared chip.
-- [ ] Refine FAB.
-- [ ] Refine rows.
-- [ ] Refine dividers/outlines.
-- [ ] Refine press feedback.
-- [ ] Refine selected state.
-- [ ] Refine alert/snackbar surfaces.
-- [ ] Validate checkpoint.
+- [x] Define semantic surface abstraction.
+- [x] Decide `GlassCard` migration/compat strategy.
+- [x] Refine shared button.
+- [x] Refine shared chip.
+- [x] Refine FAB.
+- [x] Refine rows.
+- [x] Refine dividers/outlines.
+- [x] Refine press feedback.
+- [x] Refine selected state.
+- [x] Refine alert/snackbar surfaces.
+- [x] Validate checkpoint (`tsc`, root ESLint, 88 Jest tests, Android export).
+
+Checkpoint 2 adds semantic `AppSurface`, `AppButton`, `AppListRow`, and
+`AppDivider` contracts, then moves the highest-drift shared interactions onto
+them. `GlassCard` remains a compatibility wrapper; content surfaces stay
+opaque/tonal in both themes. Native toggles/pickers and full screen styling
+remain owned by their later checkpoints.
 
 ## Checkpoint 3 — M3 Expressive
 
-- [ ] Refine dynamic-color mapping.
-- [ ] Refine typography hierarchy.
-- [ ] Refine spacing/density.
-- [ ] Add cookie/scalloped shape utility.
-- [ ] Add wave shape utility.
-- [ ] Add expressive selected-state shape.
-- [ ] Avoid heavy graphics dependency.
-- [ ] Review one reference screen.
-- [ ] Visual anti-slop review.
-- [ ] Validate checkpoint.
+- [x] Refine dynamic-color mapping.
+- [x] Refine typography hierarchy.
+- [x] Refine spacing/density.
+- [x] Add cookie/scalloped shape utility.
+- [x] Add wave shape utility.
+- [x] Add expressive selected-state shape.
+- [x] Avoid heavy graphics dependency (existing `react-native-svg` only).
+- [x] Review representative Settings and Goals surfaces without full migration.
+- [x] Visual anti-slop review (tonal hierarchy, selective motifs, no new gradients/glass/shadow stack).
+- [x] Validate checkpoint (`tsc`, root ESLint, 91 Jest tests, Android export).
+
+Checkpoint 3 keeps expressive geometry deliberately scarce: cookies appear in
+the existing celebration and Material preview; waves appear in that preview
+and the Goals summary. Settings groups use tonal surfaces without elevation,
+while full screen migration and all Liquid implementation remain deferred.
 
 ## Checkpoint 4 — Liquid research + POC
 

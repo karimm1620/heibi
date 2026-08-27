@@ -12,11 +12,12 @@ import {
   View,
 } from "react-native";
 import { AppAlert } from "../../src/components/AppAlert";
+import { AppButton } from "../../src/components/AppButton";
 import { EmojiPicker } from "../../src/components/EmojiPicker";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
-import { accentByKey, radius, spacing, withOpacity } from "../../src/theme/colors";
+import { accentByKey, radius, spacing } from "../../src/theme/colors";
 import { m3Shape } from "../../src/theme/material3/tokens";
 import { useTheme } from "../../src/theme/useTheme";
 import { formatThousands, parseThousands } from "../../src/utils/currency";
@@ -30,7 +31,7 @@ export default function AddGoalScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
-  const { colors, typography, isDark, material3 } = useTheme();
+  const { colors, typography, isDark } = useTheme();
   const { t } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
 
@@ -207,18 +208,9 @@ export default function AddGoalScreen() {
         },
         saveButton: {
           marginTop: spacing.xl,
-          backgroundColor: material3.primary,
-          borderRadius: m3Shape.full,
-          paddingVertical: spacing.md,
-          alignItems: "center",
-          overflow: "hidden",
-        },
-        saveButtonText: {
-          ...typography.subtitle,
-          color: material3.onPrimary,
         },
       }),
-    [colors, typography, material3],
+    [colors, typography],
   );
 
   return (
@@ -295,19 +287,15 @@ export default function AddGoalScreen() {
           />
         </View>
 
-        <Pressable
+        <AppButton
+          label={isEditMode ? t.goalForm.saveButtonEdit : t.goalForm.saveButtonCreate}
+          size="large"
           onPress={handleSave}
           style={styles.saveButton}
-          accessibilityRole="button"
           accessibilityLabel={
             isEditMode ? t.goalForm.saveAccessibilityEdit : t.goalForm.saveAccessibilityCreate
           }
-          android_ripple={{ color: withOpacity(material3.onPrimary, 0.24) }}
-        >
-          <Text style={styles.saveButtonText}>
-            {isEditMode ? t.goalForm.saveButtonEdit : t.goalForm.saveButtonCreate}
-          </Text>
-        </Pressable>
+        />
       </ScrollView>
 
       <AppAlert

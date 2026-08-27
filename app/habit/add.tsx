@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { AppAlert } from "../../src/components/AppAlert";
+import { AppButton } from "../../src/components/AppButton";
 import { Chip } from "../../src/components/Chip";
 import {
   HABIT_COLOR_OPTIONS,
@@ -26,7 +27,7 @@ import {
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
-import { spacing, withOpacity } from "../../src/theme/colors";
+import { spacing } from "../../src/theme/colors";
 import { m3Shape } from "../../src/theme/material3/tokens";
 import { useTheme } from "../../src/theme/useTheme";
 import type { HabitFrequencyType } from "../../src/types";
@@ -316,19 +317,15 @@ export default function AddHabitScreen() {
           />
         )}
 
-        <Pressable
+        <AppButton
+          label={isEditMode ? t.habitForm.saveButtonEdit : t.habitForm.saveButtonCreate}
+          size="large"
           onPress={handleSave}
           style={styles.saveButton}
-          accessibilityRole="button"
           accessibilityLabel={
             isEditMode ? t.habitForm.saveAccessibilityEdit : t.habitForm.saveAccessibilityCreate
           }
-          android_ripple={{ color: withOpacity(material3.onPrimary, 0.24) }}
-        >
-          <Text style={styles.saveButtonText}>
-            {isEditMode ? t.habitForm.saveButtonEdit : t.habitForm.saveButtonCreate}
-          </Text>
-        </Pressable>
+        />
       </ScrollView>
 
       <AppAlert
@@ -401,15 +398,6 @@ function createStyles(
     },
     saveButton: {
       marginTop: spacing.xl,
-      backgroundColor: material3.primary,
-      borderRadius: m3Shape.full,
-      paddingVertical: spacing.md,
-      alignItems: "center",
-      overflow: "hidden",
-    },
-    saveButtonText: {
-      ...typography.subtitle,
-      color: material3.onPrimary,
     },
   });
 }

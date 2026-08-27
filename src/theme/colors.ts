@@ -10,6 +10,10 @@ export interface ThemeColors {
   onPrimaryContainer: string;
   selected: string;
   onSelected: string;
+  expressive: string;
+  onExpressive: string;
+  expressiveContainer: string;
+  onExpressiveContainer: string;
   outline: string;
   divider: string;
   glassTintLight: string;
@@ -21,6 +25,12 @@ export interface ThemeColors {
   textSecondary: string;
   textInverse: string;
   danger: string;
+  onDanger: string;
+  dangerContainer: string;
+  onDangerContainer: string;
+  inverseSurface: string;
+  inverseText: string;
+  inverseAction: string;
   overlayScrim: string;
 }
 

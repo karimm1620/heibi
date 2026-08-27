@@ -1,10 +1,9 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { spacing, withOpacity } from "../theme/colors";
-import { m3Shape } from "../theme/material3/tokens";
-import { buildM3FullTypeScale } from "../theme/material3/typography";
+import { StyleSheet, Text, View } from "react-native";
+import { spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
+import { AppButton } from "./AppButton";
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -33,12 +32,8 @@ export function EmptyState({
   ctaLabel,
   onPressCta,
 }: EmptyStateProps) {
-  const { colors, material3, typography } = useTheme();
+  const { colors, typography } = useTheme();
   const styles = useMemo(() => createStyles(typography), [typography]);
-  const ctaLabelStyle = useMemo(
-    () => buildM3FullTypeScale(colors.textPrimary, colors.textSecondary).labelLarge,
-    [colors.textPrimary, colors.textSecondary],
-  );
   const showCta = Boolean(ctaLabel && onPressCta);
 
   return (
@@ -49,23 +44,14 @@ export function EmptyState({
         {description}
       </Text>
       {showCta && (
-        <Pressable
-          onPress={onPressCta}
-          style={[styles.cta, { backgroundColor: material3.secondaryContainer }]}
-          accessibilityRole="button"
+        <AppButton
+          label={ctaLabel!}
+          onPress={onPressCta!}
+          variant="secondary"
+          size="compact"
+          style={styles.cta}
           accessibilityLabel={ctaLabel}
-          android_ripple={{ color: withOpacity(material3.onSecondaryContainer, 0.12) }}
-          // Checkpoint <next>: fix flash yang sama kayak MaterialNavigationBar/
-          // Fab -- warna "on*Container" itu buat teks, bukan overlay, harus
-          // dibungkus withOpacity biar gak nge-flash opaque pas ditekan.
-        >
-          <Text
-            style={[ctaLabelStyle, { color: material3.onSecondaryContainer, textTransform: "none" }]}
-            numberOfLines={1}
-          >
-            {ctaLabel}
-          </Text>
-        </Pressable>
+        />
       )}
     </View>
   );
@@ -91,12 +77,6 @@ function createStyles(typography: ReturnType<typeof useTheme>["typography"]) {
     },
     cta: {
       marginTop: spacing.md,
-      paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.sm,
-      borderRadius: m3Shape.full,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
     },
   });
 }

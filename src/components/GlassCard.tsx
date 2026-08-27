@@ -1,56 +1,48 @@
-import React, { useMemo } from "react";
-import { StyleSheet, View, ViewProps } from "react-native";
-import { radius } from "../theme/colors";
-import { m3ElevationStyle, M3ElevationKey } from "../theme/material3/tokens";
-import { useTheme } from "../theme/useTheme";
+import React from "react";
+import { type ViewProps } from "react-native";
+import { type M3ElevationKey } from "../theme/material3/tokens";
+import { AppSurface, type AppSurfaceElevation } from "./AppSurface";
 
 interface GlassCardProps extends ViewProps {
-  /** Tint pastel opsional untuk membedakan card (default: colors.glassTintLight dari tema aktif) */
+  /** Optional compatibility tint; defaults to the semantic elevated surface. */
   tintColor?: string;
   radiusSize?: number;
   /** Level elevation M3 (default: level1). */
   elevationLevel?: M3ElevationKey;
 }
 
+const elevationMap: Record<M3ElevationKey, AppSurfaceElevation> = {
+  level0: "none",
+  level1: "low",
+  level2: "low",
+  level3: "medium",
+  level4: "medium",
+  level5: "high",
+};
+
 /**
- * GlassCard — satu-satunya komponen "surface" di app ini. M3 elevated
- * surface asli: warna tonal dinamis (Material You) + native elevation
- * shadow, TANPA border/translucent-hack (itu peninggalan gaya iOS Liquid
- * Glass — dihapus di Checkpoint 0, lihat ui-registry.md).
+ * Compatibility wrapper for existing card call sites. New shared work should
+ * prefer AppSurface so Material and Liquid remain semantic, not component-name
+ * branches. A GlassCard is intentionally tonal/opaque until optical Android
+ * chrome has a dedicated, measured primitive.
  */
 export function GlassCard({
   style,
   tintColor,
-  radiusSize = radius.lg,
+  radiusSize,
   elevationLevel = "level1",
   children,
   ...rest
 }: GlassCardProps) {
-  const { colors } = useTheme();
-  const resolvedTint = tintColor ?? colors.glassTintLight;
-
-  const androidStyle = useMemo(
-    () => [
-      styles.base,
-      m3ElevationStyle(elevationLevel),
-      {
-        borderRadius: radiusSize,
-        backgroundColor: resolvedTint,
-      },
-      style,
-    ],
-    [style, resolvedTint, radiusSize, elevationLevel],
-  );
-
   return (
-    <View style={androidStyle} {...rest}>
+    <AppSurface
+      variant="elevated"
+      elevation={elevationMap[elevationLevel]}
+      radiusSize={radiusSize}
+      style={[tintColor ? { backgroundColor: tintColor } : null, style]}
+      {...rest}
+    >
       {children}
-    </View>
+    </AppSurface>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    overflow: "hidden",
-  },
-});
