@@ -106,17 +106,71 @@ while full screen migration and all Liquid implementation remain deferred.
 
 ## Checkpoint 4 — Liquid research + POC
 
-- [ ] Determine what Liquid principles are implementable on Android.
-- [ ] Inspect Convx rendering method.
-- [ ] Check licensing.
-- [ ] Identify minimum Android API implications.
-- [ ] Identify fallback behavior.
-- [ ] Prototype one liquid material surface.
-- [ ] Prototype one interactive selected control.
-- [ ] Measure release performance.
-- [ ] Measure APK delta.
-- [ ] Document trade-offs.
-- [ ] Stop for user direction if trade-off is significant.
+- [x] Determine what Liquid principles are implementable on Android.
+- [x] Inspect Convx rendering method.
+- [x] Check licensing.
+- [x] Identify minimum Android API implications.
+- [x] Identify fallback behavior.
+- [x] Prototype one liquid material surface (dependency-free tonal fallback only).
+- [x] Prototype one interactive selected control (unlinked development route only).
+- [ ] Measure release performance on physical API 24, 31, and 33+ devices.
+  - The fallback POC has no backdrop capture, shader, blur, or continuous frame
+    loop. Static code review therefore finds no new rendering hot path, but a
+    release-device frame trace was not available on this host.
+- [ ] Measure an actual release APK delta.
+  - Local measurement is unavailable. A contained toolchain attempt stopped at
+    missing uncached Android Gradle Plugin artifact `builder-8.5.0.jar`; the
+    5.1 MB Expo/Hermes export bundle is not an APK substitute. Measure the EAS
+    Development/Preview artifact against the historical ~65 MB baseline.
+- [x] Document trade-offs (D-023).
+- [x] Stop for user direction because the optical renderer trade-off is significant.
+- [x] Run Impeccable deterministic audit on the isolated POC (no findings).
+- [x] Validate checkpoint (TypeScript, root ESLint, 103 Jest tests, Android export).
+
+### Authorized original Android optical renderer investigation
+
+- [x] Record the user's bounded authorization without authorizing production adoption.
+- [x] Compare View/Canvas, Compose, Expo native view, existing React Native, and dependency options.
+- [x] Select a dependency-free Android View/Canvas Expo `GroupView` architecture.
+- [x] Keep the existing tonal `LiquidMaterialSurface` as the API 24–30 and failure fallback.
+- [x] Implement one isolated reusable native optical host on the unlinked development route.
+- [x] Bound backdrop capture to the material region and exclude the host/accessible descendants.
+- [x] Implement API 31–32 cached `RenderEffect` blur tier.
+- [x] Implement API 33+ independently authored restrained `RuntimeShader` tier.
+- [x] Add low-RAM, disabled, missing-module, capture, hardware, blur, and shader fallbacks.
+- [x] Keep touch-following response native-thread driven with no idle redraw loop.
+- [x] Disable touch-following refraction under reduced motion.
+- [x] Document bitmap/effect/shader cleanup and explicit invalidation triggers.
+- [x] Add no third-party renderer dependency, config plugin, Compose UI integration, or iOS implementation/configuration.
+- [x] Document the Convx GPL-3.0 research-only boundary and original shader provenance.
+- [x] Run clean Android prebuild and confirm Expo autolinking discovers `expo-liquid-glass`.
+- [x] Align Expo SDK 57 / React Native patch versions through `npx expo install` and pass Expo Doctor (21/21).
+- [ ] Compile the generated Android project through the established EAS Development/Preview workflow.
+  - Local compilation is unavailable/incomplete. The final offline Gradle
+    failure was `Could not download builder-8.5.0.jar
+    (com.android.tools.build:builder:8.5.0): No cached version available for
+    offline mode`; further local toolchain work is explicitly out of scope.
+- [ ] Measure release APK size and delta against the historical ~65 MB baseline.
+- [ ] Measure API 31 and API 33+ release-device frame timing, jank, memory, CPU/GPU, idle, interaction, thermal, and battery behavior.
+- [x] Run final authoritative-worktree Checkpoint 4 validation (TypeScript,
+  root ESLint, 108 Jest tests, Android export, Expo Doctor 21/21, clean Android
+  prebuild/module resolution, XML parsing, and diff checks).
+- [x] Verify the isolated patch passes `git apply --check` against exact base
+  `0712e074d9efed758900981e75d2d52cf2469943`.
+- [ ] Complete cold fresh-clone command validation.
+  - Environment/network incomplete, not a source failure: the `/tmp` install
+    exhausted tmpfs quota; the disk-backed retry never created a usable local
+    `.bin/tsc` and was stopped after prolonged incomplete registry transfers.
+    Do not install the unrelated deprecated npm package named `tsc`.
+
+Checkpoint 4's bounded research and fallback POC are complete. The optical
+renderer investigation is now implemented only as a dependency-free,
+development-route Android native POC after explicit user authorization. It is
+not production-adopted or production-ready. Local checks cannot substitute for
+an EAS native build: EAS artifact size plus physical API 31/33+ visual,
+capture-stability, and performance evidence remain required. Do not begin
+Checkpoint 5 until D-024's measurement stop gate is resolved and the user makes
+a separate production-adoption decision.
 
 ## Checkpoint 5 — Bottom navigation
 
