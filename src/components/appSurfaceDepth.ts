@@ -19,6 +19,10 @@ export function resolveAndroidSurfaceDepth(
   boxShadow: string,
   androidApiLevel: number,
 ) {
+  if (elevation === "none") {
+    return {};
+  }
+
   if (androidApiLevel < ANDROID_OUTSET_BOX_SHADOW_MIN_API) {
     return { elevation: legacyAndroidElevation[elevation] };
   }

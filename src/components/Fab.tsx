@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Platform, Pressable, StyleSheet, Text } from "react-native";
 import Animated from "react-native-reanimated";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
+import { resolveAndroidSurfaceDepth } from "./appSurfaceDepth";
 
 interface FabProps {
   onPress: () => void;
@@ -16,6 +17,11 @@ export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: F
   const { colors, effects, motion, shapes, states } = useTheme();
   const reducedMotion = useReducedMotion();
   const [pressed, setPressed] = useState(false);
+  const depthStyle = resolveAndroidSurfaceDepth(
+    "medium",
+    effects.shadows.medium,
+    Number(Platform.Version),
+  );
 
   return (
     <Animated.View
@@ -43,7 +49,7 @@ export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: F
           {
             backgroundColor: colors.primaryContainer,
             borderRadius: shapes.floating,
-            boxShadow: effects.shadows.medium,
+            ...depthStyle,
             opacity: pressed ? states.pressedOpacity : 1,
           },
         ]}
