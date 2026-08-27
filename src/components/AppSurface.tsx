@@ -1,6 +1,12 @@
 import React, { useMemo } from "react";
-import { StyleSheet, View, type ViewProps } from "react-native";
+import { Platform, StyleSheet, View, type ViewProps } from "react-native";
 import { useTheme } from "../theme/useTheme";
+import {
+  resolveAndroidSurfaceDepth,
+  type AppSurfaceElevation,
+} from "./appSurfaceDepth";
+
+export type { AppSurfaceElevation } from "./appSurfaceDepth";
 
 export type AppSurfaceVariant =
   | "base"
@@ -10,8 +16,6 @@ export type AppSurfaceVariant =
   | "selected"
   | "expressive"
   | "inverse";
-
-export type AppSurfaceElevation = "none" | "low" | "medium" | "high";
 
 export interface AppSurfaceProps extends ViewProps {
   variant?: AppSurfaceVariant;
@@ -45,6 +49,11 @@ export function AppSurface({
     }[variant];
 
     const outlined = variant === "interactive";
+    const depthStyle = resolveAndroidSurfaceDepth(
+      elevation,
+      effects.shadows[elevation],
+      Number(Platform.Version),
+    );
 
     return {
       backgroundColor,
@@ -52,7 +61,7 @@ export function AppSurface({
       borderCurve: "continuous" as const,
       borderWidth: outlined ? effects.chromeBorderWidth : 0,
       borderColor: colors.outline,
-      boxShadow: effects.shadows[elevation],
+      ...depthStyle,
     };
   }, [colors, effects, elevation, radiusSize, shapes.card, variant]);
 
