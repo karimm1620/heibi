@@ -13,6 +13,7 @@ import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.graphics.RenderEffect
+import android.graphics.RenderNode
 import android.graphics.RuntimeShader
 import android.graphics.Shader
 import android.os.Build
@@ -92,6 +93,8 @@ class OriginalLiquidGlassView(
   private var cleanedUp = false
 
   private var blurEffect: Any? = null
+  private var renderNode: Any? = null
+  private var renderNodeRecordingDirty = true
   private var runtimeShader: Any? = null
   private var touchX = 0f
   private var touchY = 0f
@@ -143,6 +146,7 @@ class OriginalLiquidGlassView(
 
   fun setRefractionStrengthDp(strength: Float) {
     refractionStrengthPx = max(0f, strength * density)
+    renderNodeRecordingDirty = true
     invalidate()
   }
 
@@ -153,12 +157,14 @@ class OriginalLiquidGlassView(
   }
 
   fun setReducedMotion(reduced: Boolean) {
+    if (reducedMotion == reduced) return
     reducedMotion = reduced
     if (reduced) {
       touchPressure = 0f
       touchX = width * 0.5f
       touchY = height * 0.5f
     }
+    renderNodeRecordingDirty = true
     invalidate()
   }
 
@@ -261,18 +267,21 @@ class OriginalLiquidGlassView(
           touchX = event.x
           touchY = event.y
           touchPressure = 1f
+          renderNodeRecordingDirty = true
           requestBackdropCapture("touch-down")
           postInvalidateOnAnimation()
         }
         MotionEvent.ACTION_MOVE -> {
           touchX = event.x
           touchY = event.y
+          renderNodeRecordingDirty = true
           postInvalidateOnAnimation()
         }
         MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
           touchPressure = 0f
           touchX = width * 0.5f
           touchY = height * 0.5f
+          renderNodeRecordingDirty = true
           postInvalidateOnAnimation()
         }
       }
@@ -327,6 +336,7 @@ class OriginalLiquidGlassView(
     fallbackReason = nextReason
     blurEffect = null
     runtimeShader = null
+    renderNodeRecordingDirty = true
     if (nextTier == RendererTier.TONAL) {
       releaseBitmap()
       capturePending = false
@@ -371,6 +381,7 @@ class OriginalLiquidGlassView(
 
       backdropLuminance = sampleLuminance(bitmap)
       captureCount += 1
+      renderNodeRecordingDirty = true
       preparePlatformEffects()
       emitRendererState()
       invalidate()
@@ -398,7 +409,11 @@ class OriginalLiquidGlassView(
     }
 
     return try {
-      when (currentTier) {
+      val node = renderNode ?: Api31Renderer.createRenderNode().also {
+        renderNode = it
+        renderNodeRecordingDirty = true
+      }
+      val drewBackdrop = when (currentTier) {
         RendererTier.BLUR -> Api31Renderer.draw(
           canvas,
           materialRect,
@@ -407,6 +422,8 @@ class OriginalLiquidGlassView(
           blurEffect ?: Api31Renderer.createBlurEffect(blurRadiusPx).also {
             blurEffect = it
           },
+          node,
+          renderNodeRecordingDirty,
         )
         RendererTier.OPTICAL -> Api33Renderer.draw(
           canvas,
@@ -419,6 +436,8 @@ class OriginalLiquidGlassView(
           runtimeShader ?: Api33Renderer.createShader().also {
             runtimeShader = it
           },
+          node,
+          renderNodeRecordingDirty,
           width.toFloat(),
           height.toFloat(),
           touchX.takeIf { it > 0f } ?: width * 0.5f,
@@ -428,6 +447,10 @@ class OriginalLiquidGlassView(
         )
         RendererTier.TONAL -> false
       }
+      if (drewBackdrop) {
+        renderNodeRecordingDirty = false
+      }
+      drewBackdrop
     } catch (_: Throwable) {
       post {
         if (currentTier == RendererTier.OPTICAL) {
@@ -444,9 +467,12 @@ class OriginalLiquidGlassView(
   private fun preparePlatformEffects() {
     if (currentTier == RendererTier.TONAL) return
     try {
-      blurEffect = Api31Renderer.createBlurEffect(blurRadiusPx)
-      if (currentTier == RendererTier.OPTICAL) {
+      if (blurEffect == null) {
+        blurEffect = Api31Renderer.createBlurEffect(blurRadiusPx)
+      }
+      if (currentTier == RendererTier.OPTICAL && runtimeShader == null) {
         runtimeShader = Api33Renderer.createShader()
+        renderNodeRecordingDirty = true
       }
     } catch (_: Throwable) {
       if (currentTier == RendererTier.OPTICAL) {
@@ -565,16 +591,22 @@ class OriginalLiquidGlassView(
   }
 
   private fun releaseCaptureResources() {
+    if (Build.VERSION.SDK_INT >= 31) {
+      renderNode?.let(Api31Renderer::releaseRenderNode)
+    }
+    renderNode = null
+    renderNodeRecordingDirty = true
     releaseBitmap()
     blurEffect = null
     runtimeShader = null
     materialPaint.shader = null
-    if (Build.VERSION.SDK_INT >= 31) {
-      Api31Renderer.clearRenderEffect(materialPaint)
-    }
   }
 
   private fun releaseBitmap() {
+    if (Build.VERSION.SDK_INT >= 31) {
+      renderNode?.let(Api31Renderer::discardRecording)
+    }
+    renderNodeRecordingDirty = true
     captureBitmap?.takeIf { !it.isRecycled }?.recycle()
     captureBitmap = null
     backdropLuminance = null
@@ -583,6 +615,8 @@ class OriginalLiquidGlassView(
 
 @TargetApi(31)
 private object Api31Renderer {
+  fun createRenderNode(): Any = RenderNode("HeibiLiquidGlass")
+
   fun createBlurEffect(radius: Float): Any =
     RenderEffect.createBlurEffect(
       max(0.5f, radius),
@@ -596,15 +630,39 @@ private object Api31Renderer {
     paint: Paint,
     bitmap: Bitmap,
     effect: Any,
+    nodeValue: Any,
+    recordingDirty: Boolean,
   ): Boolean {
-    paint.shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-    paint.setRenderEffect(effect as RenderEffect)
-    canvas.drawRect(bounds, paint)
+    val node = nodeValue as RenderNode
+    val width = max(1, bounds.width().toInt())
+    val height = max(1, bounds.height().toInt())
+    node.setPosition(0, 0, width, height)
+    node.setClipToBounds(true)
+    node.setRenderEffect(effect as RenderEffect)
+
+    if (recordingDirty) {
+      val recordingCanvas = node.beginRecording(width, height)
+      try {
+        paint.shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        recordingCanvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+      } finally {
+        paint.shader = null
+        node.endRecording()
+      }
+    }
+
+    canvas.drawRenderNode(node)
     return true
   }
 
-  fun clearRenderEffect(paint: Paint) {
-    paint.setRenderEffect(null)
+  fun discardRecording(nodeValue: Any) {
+    (nodeValue as RenderNode).discardDisplayList()
+  }
+
+  fun releaseRenderNode(nodeValue: Any) {
+    val node = nodeValue as RenderNode
+    node.setRenderEffect(null)
+    node.discardDisplayList()
   }
 }
 
@@ -619,6 +677,8 @@ private object Api33Renderer {
     bitmap: Bitmap,
     effect: Any,
     shaderValue: Any,
+    nodeValue: Any,
+    recordingDirty: Boolean,
     width: Float,
     height: Float,
     touchX: Float,
@@ -626,18 +686,40 @@ private object Api33Renderer {
     pressure: Float,
     strength: Float,
   ): Boolean {
+    val node = nodeValue as RenderNode
     val shader = shaderValue as RuntimeShader
-    shader.setInputShader(
-      "content",
-      BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP),
-    )
-    shader.setFloatUniform("size", width, height)
-    shader.setFloatUniform("touch", touchX, touchY)
-    shader.setFloatUniform("press", pressure)
-    shader.setFloatUniform("strength", strength)
-    paint.shader = shader
-    paint.setRenderEffect(effect as RenderEffect)
-    canvas.drawRect(bounds, paint)
+    val nodeWidth = max(1, bounds.width().toInt())
+    val nodeHeight = max(1, bounds.height().toInt())
+    node.setPosition(0, 0, nodeWidth, nodeHeight)
+    node.setClipToBounds(true)
+    node.setRenderEffect(effect as RenderEffect)
+
+    if (recordingDirty) {
+      val recordingCanvas = node.beginRecording(nodeWidth, nodeHeight)
+      try {
+        shader.setInputShader(
+          "content",
+          BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP),
+        )
+        shader.setFloatUniform("size", width, height)
+        shader.setFloatUniform("touch", touchX, touchY)
+        shader.setFloatUniform("press", pressure)
+        shader.setFloatUniform("strength", strength)
+        paint.shader = shader
+        recordingCanvas.drawRect(
+          0f,
+          0f,
+          nodeWidth.toFloat(),
+          nodeHeight.toFloat(),
+          paint,
+        )
+      } finally {
+        paint.shader = null
+        node.endRecording()
+      }
+    }
+
+    canvas.drawRenderNode(node)
     return true
   }
 }
