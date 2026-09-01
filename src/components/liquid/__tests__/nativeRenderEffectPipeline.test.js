@@ -34,4 +34,24 @@ describe("native Liquid RenderEffect pipeline", () => {
       "interactionEnabled && !reducedMotion && currentTier == RendererTier.OPTICAL",
     );
   });
+
+  it("refreshes on bounded native scroll/layout dirtiness without an idle frame loop", () => {
+    expect(rendererSource).toContain("ACTIVE_CAPTURE_INTERVAL_MS = 32L");
+    expect(rendererSource).toContain("addOnScrollChangedListener(ancestorScrollListener)");
+    expect(rendererSource).toContain("addOnGlobalLayoutListener(ancestorLayoutListener)");
+    expect(rendererSource).toContain('requestActiveBackdropCapture("ancestor-scroll")');
+    expect(rendererSource).toContain('requestActiveBackdropCapture("ancestor-layout")');
+    expect(rendererSource).toContain("postDelayed(trailingActiveCapture");
+    expect(rendererSource).not.toMatch(/Choreographer|requestAnimationFrame|Timer\s*\(/);
+  });
+
+  it("coalesces active capture requests and removes every observer on detach", () => {
+    expect(rendererSource).toContain("if (capturePending) return");
+    expect(rendererSource).toContain("activeCaptureScheduled = false\n    capturePending = true");
+    expect(rendererSource).toContain("removeOnPreDrawListener(preDrawListener)");
+    expect(rendererSource).toContain("removeOnScrollChangedListener(ancestorScrollListener)");
+    expect(rendererSource).toContain("removeOnGlobalLayoutListener(ancestorLayoutListener)");
+    expect(rendererSource).toContain("removeCallbacks(trailingActiveCapture)");
+    expect(rendererSource).toContain("releaseCaptureResources()\n    super.onDetachedFromWindow()");
+  });
 });

@@ -238,7 +238,9 @@ all supported Android tiers.
 
 ### Checkpoint 5 theme-aware bottom navigation (2026-09-01)
 
-Checkpoint 5 starts from the authoritative PR #12 squash commit above. The
+Checkpoint 5 starts from the authoritative PR #12 squash commit above and was
+squash-merged through PR #13 at
+`ab80ed3ad1cd6d9d5feea4b92a3e8484ad5e2194`. The
 navigation architecture now has one routing/haptic dispatcher with separate
 Material and Liquid presentations:
 
@@ -281,7 +283,7 @@ after review, including capture counts, visual contrast, haptic timing, and
 performance on the API-36 device. API 31–32, release metrics, and artifact size
 remain unmeasured.
 
-Final local validation passes TypeScript, root ESLint, 14 Jest suites / 120
+Final local validation passes TypeScript, root ESLint, 14 Jest suites / 121
 tests, Android Expo export, clean Android prebuild, local-module autolinking,
 New Architecture inspection, 14/14 generated Android XML parses, diff checks,
 and fresh-base patch application plus TypeScript/lint/test validation. Expo
@@ -302,6 +304,65 @@ This QA adds no API 31–32, physical API 24–30, release-size, thermal/battery
 formal frame-time evidence. The repository and PR contain no separate archived
 EAS compile log for the Checkpoint 5 `interactionEnabled` addition, so that
 compile result is not claimed independently from the accepted device runtime.
+
+### Checkpoint 6 transient UI and navigation refinements (2026-09-01)
+
+Checkpoint 6 starts from the exact PR #13 squash commit above on
+`feat/checkpoint-6-transient-ui`. Its official scope is shared bottom-sheet and
+transient-surface behavior before Checkpoint 7 screen migration. Two accepted
+Checkpoint 5 follow-ups are carried into the same branch: restore a restrained
+rounded Material selected-navigation pill without changing the dispatcher or
+layout architecture, and investigate bounded contextual Liquid backdrop
+refresh because the user found route-only capture visually too static.
+
+The Liquid investigation must keep one bounded optical host, zero recurring
+idle capture, no JavaScript frame loop, and the existing API/failure tiers. A
+small generic renderer capability may be shared with transient control
+surfaces if its dirty-event ownership and cleanup remain explicit. Permanent
+high-frequency capture, multiple navigation hosts, whole-screen capture, new
+graphics runtimes, and general glassmorphism remain outside authorization.
+
+The stale navigation backdrop came from a narrow invalidation contract rather
+than RenderEffect or AGSL: the registered pre-draw listener captured only when
+`capturePending` was set, while production navigation disabled touch capture
+and ancestor scrolling/layout did not set that flag. The native host now adds
+view-tree scroll and global-layout dirty observers. Requests share the existing
+bounded capture path, coalesce while pending, and are limited to roughly 30fps
+during active changes. A single trailing dirty request preserves the final
+settled frame; it is removed together with all observers on detach/destruction.
+There is no Choreographer loop, JavaScript frame callback, or recurring idle
+capture. The selected-indicator transform does not scroll or lay out the host,
+so its spring does not cause backdrop capture. Paint-only animations that do
+not scroll or lay out remain an explicit-refresh limitation.
+
+The transient-UI audit found two custom production bottom sheets: day history
+and goal deposit/withdraw. Both duplicated a core-Animated/PanResponder motion
+hook. `AppAlert` remains the centralized dialog, and the add/edit route modals
+remain route-owned rather than being reclassified as sheets. The already
+installed `@expo/ui` 57.0.14 community bottom sheet is now the shared Android
+contract for the two sheets. Its native Material 3 modal owns system back,
+scrim blocking/dismissal, swipe dismissal, two-state partial/full detents,
+scroll handoff, and IME behavior; the manual JS motion hook is removed.
+
+Material sheets use an opaque semantic container. Liquid sheets use the
+existing reduced-motion-aware tonal Liquid surface. This is intentional: the
+native sheet lives in a separate dialog window, while the optical renderer can
+capture only its immediate parent in one window. Cross-window optical capture
+would require a materially heavier renderer and is not adopted or faked. The
+native Material 3 scrim remains full-screen depth separation without full-screen
+blur. A shared 48dp close action and modal accessibility boundary remain in
+React, and successful deposit/withdraw actions emit one light haptic; rejected
+actions and detent movement do not vibrate.
+
+Checkpoint 6 adds no dependency or iOS change. Final local gates pass
+TypeScript, ESLint, 16 Jest suites / 132 tests, Android Expo export, clean
+Android prebuild, local-module autolinking, New Architecture inspection, and
+14/14 generated Android XML parses. Expo Doctor remains 20/21 only for the
+pre-existing SDK 57 patch drift (`expo`, `expo-constants`, and `expo-font`).
+Local Kotlin/Gradle compilation was not performed; EAS Development/Preview and
+physical-device QA remain required for the native observer lifecycle, live
+navigation freshness, both API 31–32 and API 33+ optical tiers, sheet behavior,
+visual quality, and performance. Checkpoint 7 has not started.
 
 ## Repository
 

@@ -17,6 +17,7 @@ export const id = {
     edit: "Edit",
     archive: "Arsip",
     back: "Kembali",
+    close: "Tutup",
   },
   today: {
     headerTitle: "Agenda hari ini",

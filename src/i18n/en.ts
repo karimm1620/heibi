@@ -14,6 +14,7 @@ export const en: TranslationDict = {
     edit: "Edit",
     archive: "Archive",
     back: "Back",
+    close: "Close",
   },
   today: {
     headerTitle: "Today's agenda",
