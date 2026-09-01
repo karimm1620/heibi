@@ -77,12 +77,12 @@ describe("originalOpticalLiquidPocCapability", () => {
     ).toBe("tonal");
   });
 
-  it("records a dependency-free, non-production prototype", () => {
+  it("records dependency-free navigation-only production adoption", () => {
     expect(originalOpticalLiquidPocCapability).toMatchObject({
       capturesBoundedParent: true,
       redrawsContinuouslyWhileIdle: false,
       addsThirdPartyDependency: false,
-      productionAdopted: false,
+      productionAdoption: "navigation-only",
     });
   });
 });

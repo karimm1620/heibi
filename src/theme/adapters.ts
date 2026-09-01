@@ -49,7 +49,7 @@ const liquidMotion: ThemeMotionTokens = {
   feedbackMs: 120,
   transitionMs: m3Motion.duration.medium2,
   emphasizedMs: m3Motion.duration.long1,
-  selectionSpring: { damping: 20, stiffness: 260, mass: 0.9 },
+  selectionSpring: { damping: 26, stiffness: 340, mass: 1 },
 };
 
 const material3States: ThemeStateTokens = {
@@ -94,7 +94,7 @@ function buildLiquidEffects(isDark: boolean): ThemeEffectTokens {
       medium: "0 6px 18px rgba(0, 0, 0, 0.16)",
       high: "0 10px 28px rgba(0, 0, 0, 0.20)",
     },
-    backdropRenderer: "none",
+    backdropRenderer: "original-android",
   };
 }
 

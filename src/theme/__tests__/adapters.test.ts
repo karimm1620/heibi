@@ -87,7 +87,7 @@ describe("buildSemanticTheme", () => {
     expect(liquid.effects).toMatchObject({
       contentSurface: "opaque-tonal",
       chromeSurface: "translucent-tonal",
-      backdropRenderer: "none",
+      backdropRenderer: "original-android",
     });
   });
 });

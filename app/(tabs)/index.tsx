@@ -16,14 +16,11 @@ import { CelebrationOverlay } from "../../src/components/CelebrationOverlay";
 import { DayHistorySheet } from "../../src/components/DayHistorySheet";
 import { DragReorderRow } from "../../src/components/DragReorderRow";
 import { EmptyState } from "../../src/components/EmptyState";
-import {
-  FLOATING_TAB_BAR_HEIGHT,
-  FLOATING_TAB_BAR_MARGIN,
-} from "../../src/components/FloatingTabBar";
 import { GlassCard } from "../../src/components/GlassCard";
 import { HabitCompleteToggle } from "../../src/components/HabitCompleteToggle";
 import { SwipeableRow } from "../../src/components/SwipeableRow";
 import { WeekCalendarStrip } from "../../src/components/WeekCalendarStrip";
+import { resolveBottomNavigationLayout } from "../../src/components/navigation/bottom-navigation-layout";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import {
   type DragReorderController,
@@ -160,8 +157,8 @@ export default function TodayScreen() {
   };
 
   const styles = useMemo(
-    () => createStyles(colors, typography, insets.top),
-    [colors, typography, insets.top],
+    () => createStyles(colors, typography, insets.top, insets.bottom),
+    [colors, typography, insets.top, insets.bottom],
   );
 
   const hasNothing = todayHabits.length === 0 && todayTodos.length === 0;
@@ -305,7 +302,10 @@ function HabitRow({
   const { t, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
   const { archiveWithCleanup, deletePermanentlyWithCleanup } = useHabitActions();
-  const styles = useMemo(() => createStyles(colors, typography, 0), [colors, typography]);
+  const styles = useMemo(
+    () => createStyles(colors, typography, 0, 0),
+    [colors, typography],
+  );
 
   const handleDelete = () => {
     showAlert(
@@ -437,7 +437,10 @@ interface TodoRowProps {
 function TodoRow({ title, done, isLast, onToggle, onDelete }: TodoRowProps) {
   const { colors, typography, material3 } = useTheme();
   const { t, interpolate } = useTranslation();
-  const styles = useMemo(() => createStyles(colors, typography, 0), [colors, typography]);
+  const styles = useMemo(
+    () => createStyles(colors, typography, 0, 0),
+    [colors, typography],
+  );
 
   return (
     <SwipeableRow
@@ -483,6 +486,7 @@ function createStyles(
   colors: ReturnType<typeof useTheme>["colors"],
   typography: ReturnType<typeof useTheme>["typography"],
   paddingTop: number,
+  paddingBottom: number,
 ) {
   return StyleSheet.create({
     container: {
@@ -492,8 +496,7 @@ function createStyles(
     },
     scrollContent: {
       paddingTop: paddingTop + spacing.md,
-      paddingBottom:
-        FLOATING_TAB_BAR_MARGIN + FLOATING_TAB_BAR_HEIGHT + spacing.xl,
+      paddingBottom: resolveBottomNavigationLayout(paddingBottom).contentBottomPadding,
     },
     headerTitle: {
       ...typography.display,

@@ -7,6 +7,13 @@ const rendererPath = path.join(
   "modules/expo-liquid-glass/android/src/main/java/expo/modules/liquidglass/OriginalLiquidGlassView.kt",
 );
 const rendererSource = fs.readFileSync(rendererPath, "utf8");
+const moduleSource = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "modules/expo-liquid-glass/android/src/main/java/expo/modules/liquidglass/ExpoLiquidGlassModule.kt",
+  ),
+  "utf8",
+);
 
 describe("native Liquid RenderEffect pipeline", () => {
   it("never applies RenderEffect to Paint", () => {
@@ -19,5 +26,12 @@ describe("native Liquid RenderEffect pipeline", () => {
     expect(rendererSource).toContain("node.setRenderEffect");
     expect(rendererSource).toContain("canvas.drawRenderNode(node)");
     expect(rendererSource).toContain("node.discardDisplayList()");
+  });
+
+  it("can disable touch-following work without disabling the static optical tier", () => {
+    expect(moduleSource).toContain('Prop("interactionEnabled")');
+    expect(rendererSource).toContain(
+      "interactionEnabled && !reducedMotion && currentTier == RendererTier.OPTICAL",
+    );
   });
 });

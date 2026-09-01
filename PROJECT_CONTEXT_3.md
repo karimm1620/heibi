@@ -208,6 +208,101 @@ Development/Preview build remains the required native compile gate. The fix
 must not be merged or considered native-compile verified until that EAS build
 passes.
 
+### Checkpoint 4 EAS and API-36 runtime evidence (2026-09-01)
+
+The focused RenderNode correction was squash-merged through PR #12 at
+`4ce2cf8a76cf164582e4c343255abbde65e6c702` after the required external native
+validation completed:
+
+- an EAS Development Android build completed successfully and
+  `:expo-liquid-glass:compileDebugKotlin` passed;
+- a Poco X7 Pro running Android 16 / API 36 reported the renderer tier as
+  `optical` on the development feasibility screen;
+- the initial capture count was 1, then selection interactions advanced the
+  count through 4 and 7 while Hari ini / Minggu / Bulan continued to work;
+- the renderer did not fall back to tonal and showed no crash, black frame, or
+  obvious corrupt output;
+- background/foreground lifecycle, repeated screen entry, and basic interaction
+  remained stable and smooth, apart from minor development-build lag.
+
+This is real API-33+ optical execution and basic stability evidence on API 36.
+It is not API 31–32 device evidence, API 24–30 physical fallback evidence,
+exhaustive frame/GPU/thermal/battery profiling, or release APK size evidence.
+The historical APK baseline remains approximately 65 MB; the 90 MB warning and
+100 MB hard limit remain binding.
+
+The user separately authorized selective production adoption for Checkpoint 5
+navigation. This does not authorize optical content cards, screen migration,
+Checkpoint 6, or a general claim that the renderer is production-ready across
+all supported Android tiers.
+
+### Checkpoint 5 theme-aware bottom navigation (2026-09-01)
+
+Checkpoint 5 starts from the authoritative PR #12 squash commit above. The
+navigation architecture now has one routing/haptic dispatcher with separate
+Material and Liquid presentations:
+
+- Material keeps an opaque semantic surface, restrained asymmetric selected
+  geometry, dynamic color, Android ripple, and 48dp-or-larger destinations.
+- Liquid uses one 72dp-high navigation-bounded optical `GroupView`, inset 8dp
+  from the horizontal edges. The native host owns all tab descendants and is
+  the final overlay child required by the bounded parent-capture contract.
+- one semantic selected wash moves within that shared Liquid plane through a
+  Reanimated UI-thread spring. It is not a second optical host and it does not
+  recapture the backdrop during animation.
+- selecting a different destination performs one selection haptic at commit;
+  pressing the current destination does not navigate, animate, or vibrate
+  again. Expo Router remains the routing owner and tab scene animation is
+  explicitly `none`.
+- reduced motion makes indicator placement immediate and disables the native
+  touch-following refraction through the existing renderer contract. Static
+  optical material may remain.
+- one safe-area-aware layout resolver now owns navigation, screen padding, FAB,
+  and UndoSnackbar offsets, so theme selection does not change their geometry.
+
+Liquid uses one native optical host because a moving or per-tab host would
+either capture the wrong transformed backdrop or multiply bitmap/RenderNode
+ownership. The host captures on its existing native triggers. During a normal
+tab change, navigation disables the generic touch-following native lens and
+uses `refreshKey` once after the selected route changes. Press opacity and the
+indicator spring provide the interaction response without a pre-action capture
+or gesture-frame capture. There is no idle loop or JavaScript per-frame state
+update.
+
+No dependency, graphics runtime, config plugin, iOS file, production screen
+redesign, or Checkpoint 6 work is added. The existing native host gains one
+generic `interactionEnabled` prop so navigation can retain static optics without
+touch-down capture; its renderer architecture and tier gates are unchanged.
+API 24–30, low-RAM, missing-module, and failure cases retain the tonal material;
+API 31–32 retain bounded RenderNode blur; API 33+ retain original AGSL with blur
+then tonal degradation.
+EAS/device validation of the production navigation composition remains required
+after review, including capture counts, visual contrast, haptic timing, and
+performance on the API-36 device. API 31–32, release metrics, and artifact size
+remain unmeasured.
+
+Final local validation passes TypeScript, root ESLint, 14 Jest suites / 120
+tests, Android Expo export, clean Android prebuild, local-module autolinking,
+New Architecture inspection, 14/14 generated Android XML parses, diff checks,
+and fresh-base patch application plus TypeScript/lint/test validation. Expo
+Doctor remains 20/21 solely because of the pre-existing SDK 57 patch drift;
+Checkpoint 5 changes no dependencies. Local Kotlin/Gradle compilation is not
+available, so the new native prop and production navigation composition still
+require EAS Development/Preview compilation and physical-device QA before
+merge.
+
+Final user physical-device QA accepted the Checkpoint 5 production navigation
+as functionally safe and usable. The Material presentation is accepted but the
+user prefers the earlier clear rounded-pill selected treatment; the Liquid
+presentation is accepted but its bounded backdrop reads too static between
+route refreshes. Both are explicitly deferred as Checkpoint 6 visual/runtime
+refinements and do not invalidate the dispatcher, centralized routing/haptics,
+shared layout metrics, single-host Liquid architecture, or Checkpoint 5 merge.
+This QA adds no API 31–32, physical API 24–30, release-size, thermal/battery, or
+formal frame-time evidence. The repository and PR contain no separate archived
+EAS compile log for the Checkpoint 5 `interactionEnabled` addition, so that
+compile result is not claimed independently from the accepted device runtime.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`
