@@ -50,8 +50,8 @@ export interface ThemeEffectTokens {
     medium: string;
     high: string;
   };
-  /** No optical renderer is claimed until Checkpoint 4 proves one. */
-  backdropRenderer: "none";
+  /** Optical rendering is restricted to explicitly adopted functional chrome. */
+  backdropRenderer: "none" | "original-android";
 }
 
 export interface SemanticThemeContract {

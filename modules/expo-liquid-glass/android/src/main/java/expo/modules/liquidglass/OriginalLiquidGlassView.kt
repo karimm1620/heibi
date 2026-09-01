@@ -76,6 +76,7 @@ class OriginalLiquidGlassView(
   private var blurRadiusPx = 12f * density
   private var refractionStrengthPx = 2.25f * density
   private var rendererEnabled = true
+  private var interactionEnabled = true
   private var reducedMotion = false
   private var maximumTier = RendererTier.OPTICAL
   private var currentTier = RendererTier.TONAL
@@ -154,6 +155,18 @@ class OriginalLiquidGlassView(
     if (rendererEnabled == enabled) return
     rendererEnabled = enabled
     recomputeTier("renderer-enabled")
+  }
+
+  fun setInteractionEnabled(enabled: Boolean) {
+    if (interactionEnabled == enabled) return
+    interactionEnabled = enabled
+    if (!enabled) {
+      touchPressure = 0f
+      touchX = width * 0.5f
+      touchY = height * 0.5f
+      renderNodeRecordingDirty = true
+      invalidate()
+    }
   }
 
   fun setReducedMotion(reduced: Boolean) {
@@ -261,7 +274,7 @@ class OriginalLiquidGlassView(
   }
 
   override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-    if (!reducedMotion && currentTier == RendererTier.OPTICAL) {
+    if (interactionEnabled && !reducedMotion && currentTier == RendererTier.OPTICAL) {
       when (event.actionMasked) {
         MotionEvent.ACTION_DOWN -> {
           touchX = event.x

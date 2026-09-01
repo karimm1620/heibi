@@ -18,12 +18,9 @@ import { AppButton } from "../../src/components/AppButton";
 import { AppListRow } from "../../src/components/AppListRow";
 import { AppSurface } from "../../src/components/AppSurface";
 import { CookieShape } from "../../src/components/CookieShape";
-import {
-  FLOATING_TAB_BAR_HEIGHT,
-  FLOATING_TAB_BAR_MARGIN,
-} from "../../src/components/FloatingTabBar";
 import { ReminderCard } from "../../src/components/ReminderCard";
 import { WaveShape } from "../../src/components/WaveShape";
+import { resolveBottomNavigationLayout } from "../../src/components/navigation/bottom-navigation-layout";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
@@ -61,8 +58,8 @@ export default function SettingsScreen() {
   const hydrateTodos = useTodosStore((s) => s.hydrate);
 
   const styles = useMemo(
-    () => createStyles(colors, typography, material3, insets.top),
-    [colors, typography, material3, insets.top],
+    () => createStyles(colors, typography, material3, insets.top, insets.bottom),
+    [colors, typography, material3, insets.top, insets.bottom],
   );
 
   const handleThemeChange = async (nextTheme: VisualTheme) => {
@@ -474,6 +471,7 @@ function createStyles(
   typography: ReturnType<typeof useTheme>["typography"],
   material3: ReturnType<typeof useTheme>["material3"],
   paddingTop: number,
+  paddingBottom: number,
 ) {
   return StyleSheet.create({
     container: {
@@ -483,8 +481,7 @@ function createStyles(
     content: {
       paddingTop: paddingTop + spacing.md,
       paddingHorizontal: spacing.md,
-      paddingBottom:
-        FLOATING_TAB_BAR_MARGIN + FLOATING_TAB_BAR_HEIGHT + spacing.xl,
+      paddingBottom: resolveBottomNavigationLayout(paddingBottom).contentBottomPadding,
     },
     headerTitle: {
       ...typography.display,

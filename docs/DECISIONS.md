@@ -797,6 +797,124 @@ loading or invoking optical behavior.
 Open the focused fix for review but do not merge it until the user confirms a
 successful EAS Android native compile. Do not start Checkpoint 5.
 
+### Validation outcome
+
+The required EAS Development Android build completed successfully and
+`:expo-liquid-glass:compileDebugKotlin` passed. PR #12 was subsequently
+squash-merged at `4ce2cf8a76cf164582e4c343255abbde65e6c702`.
+
+On a Poco X7 Pro running Android 16 / API 36, the feasibility screen reported
+the `optical` tier, started at capture count 1, and advanced through 4 and 7
+while switching Hari ini / Minggu / Bulan. There was no tonal fallback, crash,
+black frame, obvious corrupt rendering, lifecycle failure, or serious runtime
+regression; minor development-build lag was observed.
+
+This outcome verifies native compilation and basic API-36 optical execution.
+It does not verify API 31–32, physical API 24–30 fallback, exhaustive frame/GPU/
+thermal/battery behavior, release APK size, or the production navigation
+composition.
+
+---
+
+## D-026 — Adopt one bounded optical host for Liquid bottom navigation
+
+**Status:** accepted for Checkpoint 5 navigation only
+
+### Finding
+
+The user authorized selective production use after the successful EAS compile
+and API-36 feasibility test. The renderer's capture contract constrains the
+safe navigation composition: the optical `GroupView` must be the final overlay
+child of the parent that also contains the active screen, and it must own its
+React descendants so icons and labels are excluded from backdrop capture.
+
+A moving optical indicator would retain a bitmap from the wrong transformed
+location during its spring. Four per-destination optical hosts would duplicate
+bitmap, RenderNode, effect, event, and failure ownership. A single full-screen
+or content-layer blur would violate the selective material definition.
+
+### Decision
+
+Use one theme-aware navigation dispatcher for labels, route events, selected
+state, haptics, and safe-area inputs. It dispatches to:
+
+1. an opaque semantic Material navigation bar with one restrained asymmetric
+   selected shape and Android ripple; or
+2. one 72dp-high, horizontally inset Liquid optical host containing all four
+   destinations, with one semantic selected wash moving inside it.
+
+The Liquid selected wash is an absolute, childless Reanimated layer. A bounded
+UI-thread spring changes only its translation. It is not another native optical
+surface, does not move tab scenes, does not call JavaScript per frame, and does
+not invalidate backdrop capture during the animation. Reduced motion sets its
+position immediately.
+
+Expo Router continues to own route state and scene switching; tab scene
+animation is explicitly `none`. The dispatcher emits `tabPress`, commits only
+an unprevented destination change, fires one `selectionAsync` haptic at that
+moment, and performs no haptic or indicator restart for the already-selected
+destination.
+
+One safe-area layout resolver owns navigation height, content padding, FAB
+offset, snackbar offset, FAB size, and gaps. Material and Liquid therefore keep
+identical overlay geometry even though their surface treatments differ.
+
+### Renderer lifecycle and API behavior
+
+- API 24–30: `OriginalLiquidGlassSurface` does not mount the optical native
+  view; the existing tonal material owns the same navigation descendants.
+- API 31–32: the single navigation-bounded capture uses cached RenderNode +
+  RenderEffect blur.
+- API 33+: the independently authored AGSL tier remains optional and degrades
+  to blur, then tonal.
+- low-RAM, missing-module, disabled, capture, hardware, or renderer failures:
+  tonal fallback remains functional and accessible.
+- production navigation disables the generic touch-following native lens.
+  Press opacity and the selected-indicator spring provide interaction feedback,
+  while `refreshKey` captures the newly selected screen context once after
+  route state changes. The indicator spring never captures, and idle behavior
+  remains event-free. The development feasibility control retains the native
+  touch-following path for isolated renderer testing.
+- the native host remains non-accessible decoration while its four React
+  `tab` descendants preserve label, order, and selected state.
+
+### Trade-offs and remaining gates
+
+- dependency/APK: no package, graphics runtime, native library, config plugin,
+  or iOS implementation is added. Actual release artifact size remains
+  unmeasured against the historical ~65 MB baseline.
+- performance: one navigation-bounded bitmap/RenderNode is the minimum host
+  count compatible with contextual capture. Production selection requests one
+  route-change refresh rather than the feasibility control's touch-down plus
+  selection pattern; device QA must verify that lifecycle/layout do not add
+  unstable capture bursts.
+- compatibility: API-36 optical feasibility is proven, but API 31–32 and
+  physical API 24–30 behavior remain unmeasured.
+- maintainability: routing and layout metrics are centralized. The native host
+  adds one generic interaction opt-out prop; capture, RenderNode, shader, and
+  cleanup ownership remain unchanged.
+- licensing: Convx remains GPL-3.0 research-only. No Convx code, shader, or
+  derivative material is used.
+
+### Validation evidence
+
+Authoritative and fresh-base TypeScript, root ESLint, and Jest validation pass
+(14 suites / 120 tests). Android Expo export, clean Android prebuild,
+`expo-liquid-glass` autolinking, New Architecture inspection, 14/14 generated
+XML parses, and diff checks pass. Expo Doctor remains 20/21 only because of the
+pre-existing SDK 57 patch drift; no dependency file changed in this checkpoint.
+Local Kotlin/Gradle compilation is unavailable. The `interactionEnabled` native
+prop and production navigation composition therefore require EAS
+Development/Preview compilation and physical-device UI/performance validation
+before merge.
+
+### User decision
+
+On 2026-09-01 the user explicitly authorized navigation-only production
+adoption for Checkpoint 5 after the EAS/API-36 evidence above. This is not a
+general optical-surface rollout and does not authorize Checkpoint 6 or screen
+migration.
+
 ---
 
 # New decision template

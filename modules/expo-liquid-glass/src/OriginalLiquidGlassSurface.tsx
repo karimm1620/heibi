@@ -39,6 +39,7 @@ export interface LiquidGlassRendererState {
 
 type NativeProps = ViewProps & {
   fallbackColor: number;
+  interactionEnabled: boolean;
   tintColor: number;
   edgeColor: number;
   cornerRadius: number;
@@ -64,6 +65,7 @@ const NativeLiquidGlassView = nativeModule
 
 export interface OriginalLiquidGlassSurfaceProps extends ViewProps {
   active?: boolean;
+  interactionEnabled?: boolean;
   maxTier?: LiquidGlassRendererTier;
   refreshKey?: number;
   rendererEnabled?: boolean;
@@ -92,7 +94,8 @@ function fallbackState(
 }
 
 /**
- * Dev-only Checkpoint 4 optical host.
+ * Reusable Android optical host, selectively production-adopted for
+ * Checkpoint 5 navigation after successful EAS and API-36 device validation.
  *
  * API 24-30, missing-module, low-RAM, disabled, and renderer-failure paths
  * return the existing LiquidMaterialSurface rather than inventing a second
@@ -101,6 +104,7 @@ function fallbackState(
 export function OriginalLiquidGlassSurface({
   active = false,
   children,
+  interactionEnabled = true,
   maxTier = "optical",
   refreshKey = 0,
   rendererEnabled = true,
@@ -184,6 +188,7 @@ export function OriginalLiquidGlassSurface({
       accessible={false}
       blurRadius={12}
       cornerRadius={shapes.floating}
+      interactionEnabled={interactionEnabled}
       maxTier={maxTier}
       onRendererStateChange={handleRendererStateChange}
       reducedMotion={reducedMotion}

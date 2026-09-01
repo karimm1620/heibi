@@ -5,6 +5,7 @@ import { useReducedMotion } from "../hooks/useReducedMotion";
 import { withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 import { resolveAndroidSurfaceDepth } from "./appSurfaceDepth";
+import { FAB_SIZE } from "./navigation/bottom-navigation-layout";
 
 interface FabProps {
   onPress: () => void;
@@ -62,6 +63,12 @@ export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: F
 
 const styles = StyleSheet.create({
   wrapper: { position: "absolute", right: 16 },
-  fab: { width: 56, height: 56, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  fab: {
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
   icon: { fontSize: 28, fontWeight: "400", marginTop: -2 },
 });

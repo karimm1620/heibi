@@ -2,13 +2,10 @@ import React, { useMemo } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EmptyState } from "../../src/components/EmptyState";
-import {
-  FLOATING_TAB_BAR_HEIGHT,
-  FLOATING_TAB_BAR_MARGIN,
-} from "../../src/components/FloatingTabBar";
 import { GlassCard } from "../../src/components/GlassCard";
 import { HabitConsistencyHeatmap } from "../../src/components/HabitConsistencyHeatmap";
 import { TransactionRow } from "../../src/components/TransactionRow";
+import { resolveBottomNavigationLayout } from "../../src/components/navigation/bottom-navigation-layout";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
@@ -53,11 +50,7 @@ export default function HistoryScreen() {
         },
         listContent: {
           paddingTop: spacing.lg,
-          paddingBottom:
-            insets.bottom +
-            FLOATING_TAB_BAR_MARGIN +
-            FLOATING_TAB_BAR_HEIGHT +
-            spacing.lg,
+          paddingBottom: resolveBottomNavigationLayout(insets.bottom).contentBottomPadding,
         },
         rowCard: {
           paddingHorizontal: spacing.md,

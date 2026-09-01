@@ -7,12 +7,9 @@ import { AppSurface } from "../../src/components/AppSurface";
 import { Chip } from "../../src/components/Chip";
 import { DragReorderRow } from "../../src/components/DragReorderRow";
 import { EmptyState } from "../../src/components/EmptyState";
-import {
-  FLOATING_TAB_BAR_HEIGHT,
-  FLOATING_TAB_BAR_MARGIN,
-} from "../../src/components/FloatingTabBar";
 import { GoalCard } from "../../src/components/GoalCard";
 import { WaveShape } from "../../src/components/WaveShape";
+import { resolveBottomNavigationLayout } from "../../src/components/navigation/bottom-navigation-layout";
 import { useDragReorder } from "../../src/hooks/useDragReorder";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
@@ -279,8 +276,7 @@ function createStyles(
       marginHorizontal: spacing.xs,
     },
     listContent: {
-      paddingBottom:
-        insetBottom + FLOATING_TAB_BAR_MARGIN + FLOATING_TAB_BAR_HEIGHT + spacing.lg,
+      paddingBottom: resolveBottomNavigationLayout(insetBottom).contentBottomPadding,
     },
     row: {
       flexDirection: "row",

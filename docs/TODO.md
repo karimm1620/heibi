@@ -145,13 +145,16 @@ while full screen migration and all Liquid implementation remain deferred.
 - [x] Document the Convx GPL-3.0 research-only boundary and original shader provenance.
 - [x] Run clean Android prebuild and confirm Expo autolinking discovers `expo-liquid-glass`.
 - [x] Align Expo SDK 57 / React Native patch versions through `npx expo install` and pass Expo Doctor (21/21).
-- [ ] Compile the generated Android project through the established EAS Development/Preview workflow.
-  - Local compilation is unavailable/incomplete. The final offline Gradle
-    failure was `Could not download builder-8.5.0.jar
-    (com.android.tools.build:builder:8.5.0): No cached version available for
-    offline mode`; further local toolchain work is explicitly out of scope.
+- [x] Compile the generated Android project through the established EAS Development/Preview workflow.
+  - EAS Development completed and `:expo-liquid-glass:compileDebugKotlin`
+    passed after the RenderNode correction. Local compilation remains
+    unavailable and is not needed to reinterpret that external evidence.
 - [ ] Measure release APK size and delta against the historical ~65 MB baseline.
 - [ ] Measure API 31 and API 33+ release-device frame timing, jank, memory, CPU/GPU, idle, interaction, thermal, and battery behavior.
+  - API 36 qualitative feasibility evidence is now available: optical tier,
+    stable basic selection/lifecycle behavior, and no serious observed runtime
+    regression on a Poco X7 Pro development build. This does not satisfy the
+    exhaustive measurement item or supply API 31–32 evidence.
 - [x] Run final authoritative-worktree Checkpoint 4 validation (TypeScript,
   root ESLint, 108 Jest tests, Android export, Expo Doctor 21/21, clean Android
   prebuild/module resolution, XML parsing, and diff checks).
@@ -185,35 +188,54 @@ while full screen migration and all Liquid implementation remain deferred.
     drift: `expo` 57.0.17 → ~57.0.18, `expo-constants` 57.0.15 → ~57.0.16,
     and `expo-font` 57.0.1 → ~57.0.2. This focused native fix adds or updates no
     dependency and does not widen its patch for those upgrades.
-- [ ] Re-run an EAS Development/Preview Android build and confirm
+- [x] Re-run an EAS Development/Preview Android build and confirm
   `:expo-liquid-glass:compileDebugKotlin` passes.
-  - Local prebuild/export/static checks do not establish Kotlin compilation.
-    A full native compile step was not added to ordinary CI because provisioning
-    and building Android would materially increase CI cost and duration.
-- [ ] Merge the focused correction only after successful EAS native compile.
+  - The EAS Development Android build completed successfully; the corrected
+    RenderNode/RenderEffect pipeline compiled natively.
+- [x] Merge the focused correction only after successful EAS native compile.
+  - PR #12 was squash-merged at
+    `4ce2cf8a76cf164582e4c343255abbde65e6c702`.
 
-Checkpoint 4's bounded research and fallback POC are complete. The optical
-renderer investigation is now implemented only as a dependency-free,
-development-route Android native POC after explicit user authorization. It is
-not production-adopted or production-ready. Local checks cannot substitute for
-an EAS native build: EAS artifact size plus physical API 31/33+ visual,
-capture-stability, and performance evidence remain required. Do not begin
-Checkpoint 5 until D-024's measurement stop gate is resolved and the user makes
-a separate production-adoption decision.
+### Final Checkpoint 4 runtime evidence and production decision
+
+- [x] Validate API 33+ optical execution on a physical device.
+  - Poco X7 Pro, Android 16 / API 36: `optical`, initial capture count 1,
+    interaction counts 4 and 7, no tonal fallback, crash, black frame, obvious
+    corruption, or lifecycle instability; only minor development-build lag.
+- [x] Record the limits of that evidence.
+  - API 31–32, physical API 24–30 fallback, exhaustive performance/thermal/
+    battery traces, and release APK size remain unmeasured.
+- [x] Record explicit user authorization for navigation-only production
+  adoption in Checkpoint 5.
+
+Checkpoint 4's bounded research, original renderer, EAS compile correction,
+and API-36 feasibility validation are complete. The user resolved D-024's
+Checkpoint 5 stop gate only for selective navigation adoption. The renderer is
+not generally production-proven across all supported API tiers; artifact size,
+API 31–32, and instrumented device performance remain open evidence.
 
 ## Checkpoint 5 — Bottom navigation
 
-- [ ] Create theme-aware navigation dispatcher/abstraction.
-- [ ] Material nav uses semantic surface.
-- [ ] Material selected state is expressive.
-- [ ] Liquid nav uses selective liquid material.
-- [ ] Liquid indicator has controlled direct-manipulation spring/bounce.
-- [ ] No horizontal tab screen sliding.
-- [ ] Correct haptic timing.
-- [ ] Reduced-motion behavior.
-- [ ] FAB offsets correct.
-- [ ] UndoSnackbar offsets correct.
-- [ ] Validate checkpoint.
+- [x] Create theme-aware navigation dispatcher/abstraction.
+- [x] Material nav uses semantic surface.
+- [x] Material selected state is expressive.
+- [x] Liquid nav uses one selective navigation-bounded optical host.
+- [x] Liquid indicator has controlled UI-thread spring/bounce.
+- [x] No horizontal tab screen sliding (`animation: "none"`).
+- [x] Correct haptic timing (one selection haptic only for a committed change).
+- [x] Reduced-motion behavior (immediate indicator; native touch response disabled).
+- [x] FAB offsets derive from shared safe-area navigation metrics.
+- [x] UndoSnackbar offsets derive from the same metrics and FAB size.
+- [x] Validate checkpoint.
+  - Authoritative and fresh-base TypeScript, ESLint, and Jest gates pass; Jest
+    reports 14 suites and 120 tests.
+  - Android Expo export, clean Android prebuild, local-module autolinking, New
+    Architecture inspection, 14/14 generated XML parses, and diff checks pass.
+  - Expo Doctor passes 20/21 checks; the only failure is the pre-existing SDK
+    57 patch drift recorded above. Checkpoint 5 changes no dependencies.
+  - Local Kotlin/Gradle compilation is unavailable. EAS Development/Preview
+    native compilation and physical-device navigation QA remain required
+    before merge.
 
 ## Checkpoint 6 — Bottom sheets / transient UI
 

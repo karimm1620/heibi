@@ -1,10 +1,10 @@
 import { Tabs, usePathname, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Fab } from "../../src/components/Fab";
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_MARGIN, FloatingTabBar } from "../../src/components/FloatingTabBar";
+import { FloatingTabBar } from "../../src/components/FloatingTabBar";
 import { UndoSnackbar } from "../../src/components/UndoSnackbar";
+import { resolveBottomNavigationLayout } from "../../src/components/navigation/bottom-navigation-layout";
 import { useTranslation } from "../../src/hooks/useTranslation";
-import { spacing } from "../../src/theme/colors";
 import { useTheme } from "../../src/theme/useTheme";
 
 export default function TabsLayout() {
@@ -13,7 +13,7 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
-  const bottomOffset = insets.bottom + FLOATING_TAB_BAR_MARGIN + FLOATING_TAB_BAR_HEIGHT + spacing.sm;
+  const navigationLayout = resolveBottomNavigationLayout(insets.bottom);
 
   // FAB berubah tujuan/label tergantung tab aktif — Today nambah habit
   // (todo baru dibikin inline langsung di Today screen, gak butuh FAB),
@@ -31,6 +31,7 @@ export default function TabsLayout() {
       <Tabs
         tabBar={(props) => <FloatingTabBar {...props} />}
         screenOptions={{
+          animation: "none",
           headerShown: false,
           sceneStyle: { backgroundColor: colors.background },
         }}
@@ -40,12 +41,12 @@ export default function TabsLayout() {
         <Tabs.Screen name="history" options={{ title: "History" }} />
         <Tabs.Screen name="settings" options={{ title: "Settings" }} />
       </Tabs>
-      <UndoSnackbar bottomOffset={bottomOffset} />
+      <UndoSnackbar bottomOffset={navigationLayout.snackbarBottomOffset} />
       {fabConfig && (
         <Fab
           onPress={fabConfig.onPress}
           accessibilityLabel={fabConfig.label}
-          bottomOffset={bottomOffset}
+          bottomOffset={navigationLayout.fabBottomOffset}
         />
       )}
     </>

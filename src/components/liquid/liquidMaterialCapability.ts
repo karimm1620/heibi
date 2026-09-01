@@ -28,7 +28,7 @@ export const originalOpticalLiquidPocCapability = {
   capturesBoundedParent: true,
   redrawsContinuouslyWhileIdle: false,
   addsThirdPartyDependency: false,
-  productionAdopted: false,
+  productionAdoption: "navigation-only",
 } as const;
 
 /** Mirrors the native tier gate so API/failure behavior stays reviewable in Jest. */
