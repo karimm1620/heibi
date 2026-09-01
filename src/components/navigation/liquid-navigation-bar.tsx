@@ -14,8 +14,10 @@ import { useTheme } from "../../theme/useTheme";
 import {
   bottomNavigationAccessibilityState,
   resolveLiquidIndicatorMotion,
+  resolveLiquidNavigationRefreshKey,
   type BottomNavigationPresentationProps,
 } from "./bottom-navigation-contract";
+import { BOTTOM_NAVIGATION_INSET_GAP } from "./bottom-navigation-layout";
 
 const LIQUID_NAVIGATION_HEIGHT = 72;
 const LIQUID_INDICATOR_INSET = spacing.xs;
@@ -33,6 +35,7 @@ export function LiquidNavigationBar({
   const previousWidth = useRef(0);
   const hasPositionedIndicator = useRef(false);
   const itemWidth = destinations.length > 0 ? barWidth / destinations.length : 0;
+  const refreshKey = resolveLiquidNavigationRefreshKey(selectedIndex, isDark);
 
   useEffect(() => {
     if (itemWidth <= 0) return;
@@ -77,11 +80,11 @@ export function LiquidNavigationBar({
     <OriginalLiquidGlassSurface
       interactionEnabled={false}
       onLayout={handleLayout}
-      refreshKey={selectedIndex}
+      refreshKey={refreshKey}
       style={[
         styles.bar,
         {
-          bottom: Math.max(bottomInset, spacing.sm),
+          bottom: Math.max(0, bottomInset) + BOTTOM_NAVIGATION_INSET_GAP,
           borderRadius: shapes.floating,
           height: LIQUID_NAVIGATION_HEIGHT,
         },

@@ -236,6 +236,12 @@ API 31–32, and instrumented device performance remain open evidence.
   - Local Kotlin/Gradle compilation is unavailable. EAS Development/Preview
     native compilation and physical-device navigation QA remain required
     before merge.
+  - Final user physical-device QA accepts the production navigation as
+    functionally safe and usable. Material's selected geometry and Liquid
+    backdrop freshness are non-blocking Checkpoint 6 refinements, not reasons
+    to roll back the accepted dispatcher, layout, haptic, or renderer contract.
+  - No API 31–32, physical API 24–30, release-size, thermal/battery, or formal
+    frame-time evidence was added by this acceptance.
 
 ## Checkpoint 6 — Bottom sheets / transient UI
 

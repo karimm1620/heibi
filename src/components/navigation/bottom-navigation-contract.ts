@@ -47,3 +47,11 @@ export function resolveLiquidIndicatorMotion(
 ): "immediate" | "spring" {
   return reducedMotion || !hasStableLayout ? "immediate" : "spring";
 }
+
+/** Invalidates the bounded capture when either route or system appearance changes. */
+export function resolveLiquidNavigationRefreshKey(
+  selectedIndex: number,
+  isDark: boolean,
+): number {
+  return selectedIndex * 2 + (isDark ? 1 : 0);
+}

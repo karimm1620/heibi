@@ -3,6 +3,7 @@ import { spacing } from "../../theme/colors";
 /** Stable geometry shared by both navigation themes and every bottom overlay. */
 export const BOTTOM_NAVIGATION_CONTENT_HEIGHT = 80;
 export const BOTTOM_NAVIGATION_MARGIN = 0;
+export const BOTTOM_NAVIGATION_INSET_GAP = spacing.sm;
 export const BOTTOM_NAVIGATION_OVERLAY_GAP = spacing.sm;
 export const BOTTOM_NAVIGATION_SCREEN_GAP = spacing.xl;
 export const FAB_SIZE = 56;

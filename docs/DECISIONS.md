@@ -908,6 +908,17 @@ prop and production navigation composition therefore require EAS
 Development/Preview compilation and physical-device UI/performance validation
 before merge.
 
+Final user physical-device QA accepts the Checkpoint 5 navigation as
+functionally safe and usable. The user prefers the earlier rounded Material
+selection pill and finds the Liquid backdrop too static between explicit route
+refreshes. These are non-blocking Checkpoint 6 refinements; they do not reverse
+this decision or authorize a different dispatcher, multiple optical hosts,
+screen migration, or general glassmorphism. No separate archived EAS compile
+log for the Checkpoint 5 `interactionEnabled` addition is present in the
+repository/PR evidence, so this record does not invent one. API 31–32, physical
+API 24–30, release-size, thermal/battery, and formal frame-time evidence remain
+unavailable.
+
 ### User decision
 
 On 2026-09-01 the user explicitly authorized navigation-only production

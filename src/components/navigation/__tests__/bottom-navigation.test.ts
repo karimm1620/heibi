@@ -3,6 +3,7 @@ import {
   bottomNavigationAccessibilityState,
   resolveBottomNavigationVariant,
   resolveLiquidIndicatorMotion,
+  resolveLiquidNavigationRefreshKey,
   shouldCommitTabSelection,
 } from "../bottom-navigation-contract";
 import {
@@ -31,6 +32,12 @@ describe("theme-aware bottom navigation contract", () => {
     expect(resolveLiquidIndicatorMotion(true, true)).toBe("immediate");
     expect(resolveLiquidIndicatorMotion(false, false)).toBe("immediate");
     expect(resolveLiquidIndicatorMotion(false, true)).toBe("spring");
+  });
+
+  it("refreshes the Liquid capture for route and system-appearance changes", () => {
+    expect(resolveLiquidNavigationRefreshKey(2, false)).toBe(4);
+    expect(resolveLiquidNavigationRefreshKey(2, true)).toBe(5);
+    expect(resolveLiquidNavigationRefreshKey(3, true)).toBe(7);
   });
 
   it("derives FAB, snackbar, and screen padding from one safe-area metric", () => {

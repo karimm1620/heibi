@@ -291,6 +291,18 @@ available, so the new native prop and production navigation composition still
 require EAS Development/Preview compilation and physical-device QA before
 merge.
 
+Final user physical-device QA accepted the Checkpoint 5 production navigation
+as functionally safe and usable. The Material presentation is accepted but the
+user prefers the earlier clear rounded-pill selected treatment; the Liquid
+presentation is accepted but its bounded backdrop reads too static between
+route refreshes. Both are explicitly deferred as Checkpoint 6 visual/runtime
+refinements and do not invalidate the dispatcher, centralized routing/haptics,
+shared layout metrics, single-host Liquid architecture, or Checkpoint 5 merge.
+This QA adds no API 31–32, physical API 24–30, release-size, thermal/battery, or
+formal frame-time evidence. The repository and PR contain no separate archived
+EAS compile log for the Checkpoint 5 `interactionEnabled` addition, so that
+compile result is not claimed independently from the accepted device runtime.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`
