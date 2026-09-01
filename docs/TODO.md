@@ -163,6 +163,35 @@ while full screen migration and all Liquid implementation remain deferred.
     `.bin/tsc` and was stopped after prolonged incomplete registry transfers.
     Do not install the unrelated deprecated npm package named `tsc`.
 
+### EAS native RenderEffect compile correction
+
+- [x] Record the EAS `:expo-liquid-glass:compileDebugKotlin` failure caused by
+  invalid `Paint.setRenderEffect` calls.
+- [x] Replace paint-level effect configuration with one reusable bounded API-31
+  `RenderNode` recording pipeline.
+- [x] Preserve API 24–30 tonal, API 31–32 blur, API 33+ original AGSL, low-RAM,
+  reduced-motion, and renderer-failure behavior.
+- [x] Discard the node display list when its bitmap becomes invalid and clear
+  node/effect/shader/bitmap resources on detach/destruction.
+- [x] Add a cheap Jest source guard that rejects `Paint.setRenderEffect` and
+  requires the RenderNode recording/effect/draw/cleanup operations.
+- [x] Pass focused local TypeScript, ESLint, 110 Jest tests, Android export,
+  clean Android prebuild, Expo module resolution, XML parsing, and diff checks.
+- [x] Verify the focused patch applies to clean base `ed605760` and passes
+  post-apply TypeScript, ESLint, and 110 Jest tests in a separate checkout.
+- [ ] Return Expo Doctor to fully green in a separate dependency-alignment
+  change if desired.
+  - Current `main` passes 20/21 checks and reports only unrelated SDK 57 patch
+    drift: `expo` 57.0.17 → ~57.0.18, `expo-constants` 57.0.15 → ~57.0.16,
+    and `expo-font` 57.0.1 → ~57.0.2. This focused native fix adds or updates no
+    dependency and does not widen its patch for those upgrades.
+- [ ] Re-run an EAS Development/Preview Android build and confirm
+  `:expo-liquid-glass:compileDebugKotlin` passes.
+  - Local prebuild/export/static checks do not establish Kotlin compilation.
+    A full native compile step was not added to ordinary CI because provisioning
+    and building Android would materially increase CI cost and duration.
+- [ ] Merge the focused correction only after successful EAS native compile.
+
 Checkpoint 4's bounded research and fallback POC are complete. The optical
 renderer investigation is now implemented only as a dependency-free,
 development-route Android native POC after explicit user authorization. It is

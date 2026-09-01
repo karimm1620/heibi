@@ -178,6 +178,36 @@ means fresh-clone command validation is not established; the unrelated npm
 `tsc` fallback is not a heibi source failure. Authoritative-worktree validation
 remains the applicable local evidence.
 
+### Checkpoint 4 native RenderEffect compile correction (2026-09-01)
+
+The first EAS Development Android build reached
+`:expo-liquid-glass:compileDebugKotlin` and disproved the earlier static-only
+native validation: `Paint.setRenderEffect` does not exist. Android applies a
+`RenderEffect` to a `View` or `RenderNode`, not to `Paint`.
+
+The focused correction keeps the bounded architecture and replaces the invalid
+paint calls with one reusable API-31 `RenderNode`. The captured bitmap—or the
+API-33 original `RuntimeShader` material—is recorded into the node only when
+the captured content, size/tier, shader inputs, or touch response changes. The
+cached blur is installed with `RenderNode.setRenderEffect`, and the bounded node
+is drawn through the destination hardware `Canvas`. API 24–30 still never enter
+the optical helpers; API 31–32 retain bounded blur; API 33+ retain original AGSL
+refraction with shader-to-blur-to-tonal degradation.
+
+Detach/destruction now clears the node effect and discards its display list in
+addition to recycling the capture bitmap and releasing shader/effect
+references. Bitmap release also discards any display list that could reference
+the old bitmap. No dependency, iOS file, production navigation/screen change,
+continuous idle redraw, JS per-frame loop, or gesture-time recapture was added.
+
+Jest now statically rejects `Paint.setRenderEffect` and asserts the bounded
+`RenderNode` recording/effect/draw/cleanup pipeline. A full Gradle native compile
+is intentionally not added to the ordinary CI job because Android SDK/Gradle
+setup would materially expand its cost and duration; the user's EAS
+Development/Preview build remains the required native compile gate. The fix
+must not be merged or considered native-compile verified until that EAS build
+passes.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

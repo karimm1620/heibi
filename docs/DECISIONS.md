@@ -736,6 +736,69 @@ the tonal material instead.
 
 ---
 
+## D-025 — Apply bounded blur through RenderNode, never Paint
+
+**Status:** accepted for EAS verification; merge blocked on native compile
+
+### Finding
+
+The first EAS Development Android build reached real Kotlin compilation and
+failed `:expo-liquid-glass:compileDebugKotlin`. All three failures were
+`Unresolved reference 'setRenderEffect'` because the prototype called
+`Paint.setRenderEffect`. Android's supported effect owners are `View` and
+`RenderNode`; `Paint` can hold the bitmap or `RuntimeShader`, but it cannot own a
+`RenderEffect`.
+
+Applying the blur with `View.setRenderEffect` would filter the entire Expo
+group view, including React children and chrome drawn after the optical pass.
+That is broader than the bounded captured material and would change the
+prototype's accessibility/content behavior.
+
+### Decision
+
+Keep the View/Canvas capture architecture and use one reusable API-31
+`RenderNode` for the optical pass:
+
+1. retain the bounded captured bitmap owned by the native view;
+2. record either the bitmap paint (API 31–32) or original RuntimeShader paint
+   (API 33+) into the node's `RecordingCanvas`;
+3. install the cached blur through `RenderNode.setRenderEffect`;
+4. draw that node into the already rounded-clipped destination canvas;
+5. re-record only after capture/bitmap, tier, size, shader-uniform, reduced
+   motion, or touch-response invalidation;
+6. clear the node effect and discard its display list on cleanup, and discard
+   a recording before recycling its bitmap.
+
+The node is stored as `Any` in the API-agnostic host and all `RenderNode` and
+`RenderEffect` calls remain inside the API-31 helper. `RuntimeShader` remains
+inside the API-33 helper. API 24–30 therefore retain the tonal path without
+loading or invoking optical behavior.
+
+### Regression protection and trade-offs
+
+- no dependency, APK-library contribution, config plugin, or iOS work is added;
+- the backdrop capture cadence and idle behavior are unchanged;
+- API 33 touch moves re-record shader content only for the requested native
+  interaction frame and do not recapture the backdrop or schedule JS work;
+- a cheap Jest source guard rejects the exact invalid Paint API and requires
+  RenderNode recording, effect application, drawing, and display-list cleanup;
+- the existing JS/Expo CI cannot prove Kotlin compilation. Adding a full
+  prebuild/Gradle Android compile job would materially expand CI setup, network,
+  and execution cost, so it is deferred rather than silently imposed in this
+  focused correction;
+- Expo Doctor currently passes 20/21 checks and reports only pre-existing SDK
+  57 patch drift for `expo`, `expo-constants`, and `expo-font`; this fix changes
+  no dependency and keeps that separate from the RenderEffect correction;
+- EAS Development/Preview remains the mandatory native compile gate, followed
+  by the existing physical-device performance and APK measurement gates.
+
+### Recommendation
+
+Open the focused fix for review but do not merge it until the user confirms a
+successful EAS Android native compile. Do not start Checkpoint 5.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.
