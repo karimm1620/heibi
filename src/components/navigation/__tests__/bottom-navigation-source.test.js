@@ -47,6 +47,7 @@ describe("production bottom navigation source contract", () => {
 
     expect(liquidNavigation.match(/<OriginalLiquidGlassSurface\b/g)).toHaveLength(1);
     expect(liquidNavigation).toContain("interactionEnabled={false}");
+    expect(liquidNavigation).toContain('materialTone="navigation"');
     expect(liquidNavigation).toContain("refreshKey={refreshKey}");
     expect(liquidNavigation).toContain("BOTTOM_NAVIGATION_INSET_GAP");
     expect(liquidNavigation).not.toMatch(/requestAnimationFrame|setInterval/);

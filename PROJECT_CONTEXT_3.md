@@ -460,6 +460,78 @@ JavaScript gesture-lifecycle correction; the preceding EAS/device evidence
 applies to the otherwise unchanged Checkpoint 7 implementation and is not
 misrepresented as testing the cancellation path.
 
+PR #15 was squash-merged after its final source and documentation CI passed as
+`17a8dacd9518590e8dfe5f0fb313ec94085e7810`. The successful EAS build and user
+physical-device QA accept Checkpoint 7: the ripple flash is gone; Liquid live,
+settled, idle, rapid-tab, artifact, and perceived-performance checks pass;
+Today swipe/reorder, Goals filters/reorder/transactions, all habit/goal forms
+and IME, Settings persistence, History grouping/day detail, TalkBack, large
+text, and reduced motion pass. No crash, noticeable lag, or noticeable
+heat/battery issue was observed. This remains qualitative evidence, not formal
+frame/GPU/CPU/memory, battery, or thermal instrumentation. Release APK size and
+physical API 24–30/API 31–32 Liquid evidence remain unavailable.
+
+Checkpoint 8 starts from that exact squash commit on
+`feat/checkpoint-8-widget-fixes` in an isolated worktree. Its first correction
+resolves the accepted non-blocking light Liquid navigation issue. The root
+cause was color composition, not capture: an alpha-bearing primary-container
+role received a second appended alpha, yielding an invalid color that left the
+native charcoal default in place; the same role was too dense for a light
+fallback. Navigation now opts into a neutral semantic light optical material
+with valid tint composition and light-specific bounded adaptive contrast.
+Dark mode, selected accent, the single bounded host, contextual/coalesced live
+capture, trailing settled capture, zero recurring idle work, API tiers, and
+failure fallback remain unchanged. The native module adds only a material flag,
+so EAS compilation and physical light/dark QA are still required.
+
+The widget investigation confirms the JavaScript builder and native parser
+share the expected schema: up to eight active habits, ordered by `sortOrder`,
+with color, streak, and exactly 14 local calendar days oldest to newest. The
+data defect was asynchronous write ordering: debounced calls were not
+serialized, so an older native update could finish after a newer mutation. A
+pure coordinator now serializes writes and coalesces in-flight changes into one
+latest-state follow-up. Final review found that advancing only the native day
+cells at midnight could desynchronize them from the JS-derived `currentStreak`.
+CP8 therefore keeps all date-derived values on the same snapshot timestamp;
+the next centralized app/store synchronization advances cells and streak
+together.
+
+The widest-layout issue came from assigning every day cell `defaultWeight()`:
+the same 14 cells collapsed behind fixed chrome at minimum width and stretched
+without bounds at wide sizes. The renderer now uses deterministic compact,
+medium, and wide classes with bounded square cells, adaptive name/streak chrome,
+and height-derived one-to-eight row capacity. The provider resize range stays
+180–450dp wide and 70–500dp tall; comments and description now correctly say
+14 calendar days rather than rows or 30 days. No dependency or Checkpoint 9
+variant is added.
+
+Checkpoint 8 local validation passes TypeScript, warning-free ESLint, 22 Jest
+suites / 159 tests, Expo Doctor 21/21, Android export, and clean Android
+prebuild. Expo autolinking resolves `expo-home-widgets`, `expo-liquid-glass`,
+and `@expo/ui`; New Architecture remains enabled; all 21 generated/module
+Android XML files parse; no iOS or package/lockfile drift exists. Local
+Kotlin/Gradle compilation and physical launcher testing are unavailable.
+
+The user reviews the resulting physical screenshots and accepts CP8 for squash
+merge while deliberately replacing its presentation direction in CP9. The
+screenshots show that the invalid charcoal light-navbar failure is gone, but
+light Liquid navigation is now too faint and dark Liquid navigation still has
+a green Material-You cast. The current heatmap remains visually awkward despite
+its corrected data and sizing infrastructure. These are CP9 design findings,
+not reasons to discard serialized snapshot writes, the safe parser, the one-host
+Liquid capture lifecycle, or the API/failure tiers.
+
+Checkpoint 9 is expanded into the final major product/design checkpoint. It
+must deliver exactly four widget concepts (redesigned heatmap, simple tracker,
+saving, and chart), final neutral Liquid navbar tuning, Liquid-inspired tonal
+native sheets, the deposit/withdraw horizontal-shift fix, a transaction-derived
+savings chart and full progress route, History-to-goal navigation, a modern
+savings progress visual, and redesigned onboarding. The local reference images
+are evidence only and must not ship. CP10 remains testing, release size,
+performance, polish, small fixes, and final QA. No CP8 EAS result, release APK,
+formal performance/battery/thermal result, or physical API 24–30/API 31–32
+Liquid evidence is invented by this handoff.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

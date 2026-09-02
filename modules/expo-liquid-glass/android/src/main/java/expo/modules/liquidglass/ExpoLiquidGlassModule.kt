@@ -34,6 +34,9 @@ class ExpoLiquidGlassModule : Module() {
       Prop("interactionEnabled") { view: OriginalLiquidGlassView, enabled: Boolean? ->
         view.setInteractionEnabled(enabled != false)
       }
+      Prop("lightMaterial") { view: OriginalLiquidGlassView, light: Boolean? ->
+        view.setLightMaterial(light == true)
+      }
       Prop("reducedMotion") { view: OriginalLiquidGlassView, reduced: Boolean? ->
         view.setReducedMotion(reduced == true)
       }

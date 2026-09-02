@@ -7,6 +7,7 @@ import { resolveAndroidSurfaceDepth } from "../appSurfaceDepth";
 
 export interface LiquidMaterialSurfaceProps extends ViewProps {
   active?: boolean;
+  materialTone?: "default" | "navigation";
 }
 
 /**
@@ -19,10 +20,11 @@ export interface LiquidMaterialSurfaceProps extends ViewProps {
 export function LiquidMaterialSurface({
   active = false,
   children,
+  materialTone = "default",
   style,
   ...rest
 }: LiquidMaterialSurfaceProps) {
-  const { colors, effects, motion, shapes, states } = useTheme();
+  const { colors, effects, isDark, motion, shapes, states } = useTheme();
   const reducedMotion = useReducedMotion();
 
   const depthStyle = useMemo(
@@ -41,7 +43,10 @@ export function LiquidMaterialSurface({
       style={[
         styles.surface,
         {
-          backgroundColor: colors.surfaceInteractive,
+          backgroundColor:
+            materialTone === "navigation" && !isDark
+              ? colors.glassTintLight
+              : colors.surfaceInteractive,
           borderColor: colors.glassBorder,
           borderRadius: shapes.floating,
           transform: [{ scale: reducedMotion || !active ? 1 : states.pressedScale }],

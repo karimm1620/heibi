@@ -10,9 +10,12 @@ import {
   type ViewProps,
 } from "react-native";
 import { useReducedMotion } from "../../../src/hooks/useReducedMotion";
-import { withOpacity } from "../../../src/theme/colors";
 import { useTheme } from "../../../src/theme/useTheme";
 import { LiquidMaterialSurface } from "../../../src/components/liquid/LiquidMaterialSurface";
+import {
+  resolveLiquidGlassMaterialColors,
+  type LiquidGlassMaterialTone,
+} from "./liquidGlassMaterialColors";
 
 export type LiquidGlassRendererTier = "tonal" | "blur" | "optical";
 
@@ -40,6 +43,7 @@ export interface LiquidGlassRendererState {
 type NativeProps = ViewProps & {
   fallbackColor: number;
   interactionEnabled: boolean;
+  lightMaterial: boolean;
   tintColor: number;
   edgeColor: number;
   cornerRadius: number;
@@ -66,6 +70,7 @@ const NativeLiquidGlassView = nativeModule
 export interface OriginalLiquidGlassSurfaceProps extends ViewProps {
   active?: boolean;
   interactionEnabled?: boolean;
+  materialTone?: LiquidGlassMaterialTone;
   maxTier?: LiquidGlassRendererTier;
   refreshKey?: number;
   rendererEnabled?: boolean;
@@ -105,6 +110,7 @@ export function OriginalLiquidGlassSurface({
   active = false,
   children,
   interactionEnabled = true,
+  materialTone = "default",
   maxTier = "optical",
   refreshKey = 0,
   rendererEnabled = true,
@@ -149,18 +155,15 @@ export function OriginalLiquidGlassSurface({
     rendererEnabled,
   ]);
 
-  const nativeColors = useMemo(
-    () => ({
-      fallbackColor: processColor(colors.surfaceInteractive) as number,
-      tintColor: processColor(
-        withOpacity(colors.surfaceInteractive, isDark ? 0.66 : 0.58),
-      ) as number,
-      edgeColor: processColor(
-        isDark ? "rgba(255,255,255,0.44)" : "rgba(255,255,255,0.68)",
-      ) as number,
-    }),
-    [colors.surfaceInteractive, isDark],
-  );
+  const nativeColors = useMemo(() => {
+    const resolved = resolveLiquidGlassMaterialColors(colors, isDark, materialTone);
+    return {
+      fallbackColor: processColor(resolved.fallbackColor) as number,
+      tintColor: processColor(resolved.tintColor) as number,
+      edgeColor: processColor(resolved.edgeColor) as number,
+      lightMaterial: resolved.lightMaterial,
+    };
+  }, [colors, isDark, materialTone]);
 
   const handleRendererStateChange = useCallback(
     (event: NativeSyntheticEvent<LiquidGlassRendererState>) => {
@@ -175,7 +178,12 @@ export function OriginalLiquidGlassSurface({
 
   if (!nativeEligible || NativeLiquidGlassView === null) {
     return (
-      <LiquidMaterialSurface active={active} style={style} {...rest}>
+      <LiquidMaterialSurface
+        active={active}
+        materialTone={materialTone}
+        style={style}
+        {...rest}
+      >
         {children}
       </LiquidMaterialSurface>
     );

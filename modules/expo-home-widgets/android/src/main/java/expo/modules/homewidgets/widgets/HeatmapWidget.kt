@@ -2,6 +2,7 @@ package expo.modules.homewidgets.widgets
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -36,26 +37,74 @@ private val ColorCellEmpty = ColorProvider(R.color.widget_heatmap_cell_empty)
 
 private val CONTAINER_PADDING = 10.dp
 private val TITLE_RESERVED_HEIGHT = 22.dp
-private val ROW_HEIGHT = 26.dp
-private val CELL_HEIGHT = 14.dp
 private val DOT_SIZE = 8.dp
-private val DOT_GAP = 6.dp
-private val NAME_WIDTH = 56.dp
-private val NAME_GAP = 6.dp
 private val STREAK_WIDTH = 32.dp
-private val STREAK_GAP = 6.dp
-private val CELL_GAP = 2.dp
+
+private data class HeatmapLayout(
+  val cellGap: Dp,
+  val cellSize: Dp,
+  val dotGap: Dp,
+  val maxRows: Int,
+  val nameGap: Dp,
+  val nameWidth: Dp,
+  val rowHeight: Dp,
+  val showStreak: Boolean,
+  val streakGap: Dp,
+)
+
+private fun resolveHeatmapLayout(width: Dp, height: Dp): HeatmapLayout {
+  val compact = width < 240.dp
+  val wide = width >= 360.dp
+  val rowHeight = if (compact) 24.dp else 26.dp
+  val availableHeight = (height - CONTAINER_PADDING * 2 - TITLE_RESERVED_HEIGHT)
+    .coerceAtLeast(0.dp)
+  val maxRows = (availableHeight / rowHeight).toInt().coerceIn(1, 8)
+
+  return when {
+    compact -> HeatmapLayout(
+      cellGap = 1.dp,
+      cellSize = 5.dp,
+      dotGap = 4.dp,
+      maxRows = maxRows,
+      nameGap = 4.dp,
+      nameWidth = 40.dp,
+      rowHeight = rowHeight,
+      showStreak = false,
+      streakGap = 0.dp,
+    )
+    wide -> HeatmapLayout(
+      cellGap = 2.dp,
+      cellSize = 10.dp,
+      dotGap = 6.dp,
+      maxRows = maxRows,
+      nameGap = 8.dp,
+      nameWidth = 72.dp,
+      rowHeight = rowHeight,
+      showStreak = true,
+      streakGap = 8.dp,
+    )
+    else -> HeatmapLayout(
+      cellGap = 2.dp,
+      cellSize = 6.dp,
+      dotGap = 6.dp,
+      maxRows = maxRows,
+      nameGap = 6.dp,
+      nameWidth = 52.dp,
+      rowHeight = rowHeight,
+      showStreak = true,
+      streakGap = 6.dp,
+    )
+  }
+}
 
 /**
  * Widget 1 -- konsistensi habit, satu baris per habit (dot warna khas
  * habit itu, nama, strip 14 hari terakhir, current streak).
  *
- * Checkpoint 4g: strip sel sekarang pake `GlanceModifier.defaultWeight()`
- * (mekanisme weight LinearLayout Android asli) buat ngisi SISA lebar row,
- * bukan hitungan manual dari `LocalSize` (checkpoint 4f) yang ternyata
- * masih nyisain banyak ruang kosong -- weight lebih robust karena
- * di-resolve sama layout engine Android langsung pas render, gak gantung
- * ke akurasi angka yang Glance laporin balik ke composable.
+ * Fourteen means chronological calendar-day slots, oldest to newest. Exact
+ * width classes keep those cells bounded: compact hides the streak, medium
+ * fits the full row, and wide grows cells only to 10dp instead of stretching
+ * them into bars.
  */
 class HeatmapWidget : GlanceAppWidget() {
   override val sizeMode = SizeMode.Exact
@@ -72,12 +121,12 @@ class HeatmapWidget : GlanceAppWidget() {
 @Composable
 private fun HeatmapContent(snapshot: WidgetSnapshot) {
   val size = LocalSize.current
-  // Row count masih dari LocalSize (soal tinggi, bukan lebar) -- gak ada
-  // laporan masalah di sisi ini, cuma lebar yang kemarin gak ngisi penuh.
-  val availableHeight = (size.height - CONTAINER_PADDING * 2 - TITLE_RESERVED_HEIGHT)
-    .coerceAtLeast(0.dp)
-  val maxRows = (availableHeight / ROW_HEIGHT).toInt().coerceAtLeast(1)
-  val rows = snapshot.habits.take(maxRows)
+  val layout = resolveHeatmapLayout(size.width, size.height)
+  // Keep days and currentStreak on the same JS snapshot timestamp. Advancing
+  // only the cells during an hourly Glance redraw can display a missed day
+  // beside a stale non-zero streak. The next app/store synchronization moves
+  // every date-derived value forward together.
+  val rows = snapshot.habits.take(layout.maxRows)
 
   Column(
     modifier = GlanceModifier
@@ -102,17 +151,17 @@ private fun HeatmapContent(snapshot: WidgetSnapshot) {
     }
 
     for (habit in rows) {
-      HabitRow(habit)
+      HabitRow(habit, layout)
     }
   }
 }
 
 @Composable
-private fun HabitRow(habit: WidgetHabitRow) {
+private fun HabitRow(habit: WidgetHabitRow, layout: HeatmapLayout) {
   val habitColor = ColorProvider(parseHexColor(habit.colorHex))
 
   Row(
-    modifier = GlanceModifier.fillMaxWidth().height(ROW_HEIGHT),
+    modifier = GlanceModifier.fillMaxWidth().height(layout.rowHeight),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Box(
@@ -123,44 +172,40 @@ private fun HabitRow(habit: WidgetHabitRow) {
         .background(habitColor),
     ) {}
 
-    Spacer(modifier = GlanceModifier.width(DOT_GAP))
+    Spacer(modifier = GlanceModifier.width(layout.dotGap))
 
     Text(
       text = habit.name,
       maxLines = 1,
       style = TextStyle(fontSize = 11.sp, color = ColorTextPrimary),
-      modifier = GlanceModifier.width(NAME_WIDTH),
+      modifier = GlanceModifier.width(layout.nameWidth),
     )
 
-    Spacer(modifier = GlanceModifier.width(NAME_GAP))
+    Spacer(modifier = GlanceModifier.width(layout.nameGap))
 
-    // Strip ini yang NYERAP SISA lebar row lewat defaultWeight() -- bukan
-    // hitungan dp manual lagi. Dot/nama/streak di kanan-kiri tetap ukuran
-    // tetap, strip ini yang otomatis melar/menyempit ngisi sisanya.
-    Row(
-      modifier = GlanceModifier.defaultWeight(),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
       for ((index, day) in habit.days.withIndex()) {
         Box(
           modifier = GlanceModifier
-            .defaultWeight()
-            .height(CELL_HEIGHT)
-            .cornerRadius(3.dp)
+            .width(layout.cellSize)
+            .height(layout.cellSize)
+            .cornerRadius(2.dp)
             .background(if (day.done) habitColor else ColorCellEmpty),
         ) {}
         if (index != habit.days.lastIndex) {
-          Spacer(modifier = GlanceModifier.width(CELL_GAP))
+          Spacer(modifier = GlanceModifier.width(layout.cellGap))
         }
       }
     }
 
-    Spacer(modifier = GlanceModifier.width(STREAK_GAP))
-
-    Text(
-      text = "🔥${habit.currentStreak}",
-      style = TextStyle(fontSize = 10.sp, color = ColorTextSecondary),
-      modifier = GlanceModifier.width(STREAK_WIDTH),
-    )
+    if (layout.showStreak) {
+      Spacer(modifier = GlanceModifier.defaultWeight())
+      Spacer(modifier = GlanceModifier.width(layout.streakGap))
+      Text(
+        text = "🔥${habit.currentStreak}",
+        style = TextStyle(fontSize = 10.sp, color = ColorTextSecondary),
+        modifier = GlanceModifier.width(STREAK_WIDTH),
+      )
+    }
   }
 }
