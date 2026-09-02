@@ -1083,7 +1083,7 @@ D-027 apply.
 
 ## D-029 — Keep Checkpoint 7 dependency maintenance inside Expo SDK 57
 
-**Status:** accepted for Checkpoint 7; EAS validation pending
+**Status:** accepted and EAS validated for Checkpoint 7
 
 ### Finding
 
@@ -1114,7 +1114,7 @@ device behavior must be rechecked before merge.
 
 ## D-030 — Centralize Android press feedback and migrate screens without broadening Liquid
 
-**Status:** accepted for Checkpoint 7 implementation; device validation pending
+**Status:** accepted and physically validated for Checkpoint 7
 
 ### Finding
 
@@ -1152,6 +1152,46 @@ change, widget work, or Checkpoint 8 scope. Static tests protect the Material
 pill, Liquid ripple exclusion, no timer workaround, no horizontal tab scenes,
 and gesture/reorder architecture. EAS and device QA remain required for actual
 ripple appearance and interaction feel.
+
+The final EAS Android build succeeds. User physical-device QA confirms the
+ripple flash is gone and passes Liquid navigation behavior, Today swipe and
+reorder, Goals reorder/filter/transactions, all habit/goal forms and IME,
+Settings persistence, History grouping/day detail, TalkBack, large text, and
+reduced motion. No crash, noticeable lag, or noticeable heat/battery issue was
+observed. These are qualitative results, not formal performance, thermal, or
+battery measurements. A final review correction restores pinch scale on
+gesture cancellation through UI-runtime `onFinalize`; it does not change the
+native package graph or the accepted architecture.
+
+---
+
+## D-031 — Accept Checkpoint 7 and defer the Liquid light-material correction
+
+**Status:** accepted; Checkpoint 8 follow-up authorized
+
+### Finding
+
+Checkpoint 7 is functionally accepted after successful EAS and broad
+physical-device QA. The only remaining visual issue is Liquid navigation in
+light mode: the navigation-wide material reads as dense dark gray/charcoal even
+over a light scene. Live contextual refresh, settled capture, idle behavior,
+routing, spring, haptics, accessibility, and perceived performance all pass.
+
+### Decision
+
+The issue is non-blocking for the Checkpoint 7 merge and moves to Checkpoint 8.
+Checkpoint 8 must audit fallback, tint, adaptive-contrast, edge, selected-state,
+and icon/text color ownership and define distinct light/dark optical material
+responses. It must preserve the accepted one bounded host,
+`interactionEnabled={false}`, contextual dirty observers, bounded active
+capture, trailing settled capture, zero recurring idle capture, independent
+indicator spring, API tiers, and low-RAM/failure fallback.
+
+This decision does not reopen Checkpoint 5/6 navigation architecture or
+authorize multiple optical hosts, permanent frame capture, full-screen glass,
+or Checkpoint 9 widget variants. Dark-mode Liquid navigation remains accepted.
+Physical light/dark validation is required on the Checkpoint 8 build. Release
+APK size and physical API 24–30/API 31–32 Liquid evidence remain outstanding.
 
 ---
 

@@ -381,8 +381,33 @@ API 31–32, and instrumented device performance remain open evidence.
     `09e8c48259f45a9e420fd5a163f182da8d811c04`. A disk-backed verification
     checkout completed a cold `npm ci`, TypeScript, warning-free ESLint, and
     all 18 Jest suites / 145 tests.
+  - EAS Android succeeds. User physical-device QA confirms the ripple flash is
+    eliminated; Liquid live blur, settling, idle behavior, rapid tab switching,
+    and artifact/flicker behavior pass; Today swipe and upward/downward,
+    middle, and quick-drop reorder pass without jumping or disappearing; Goals
+    filter/sort, reorder, and deposit/withdraw pass; all habit/goal forms,
+    keyboard/IME, back/save/cancel, Settings theme/language/reminders and
+    persistence, History grouping/day detail, TalkBack, large text, and reduced
+    motion pass.
+  - No crash, noticeable lag, or noticeable heat/battery issue was observed.
+    This is qualitative device evidence, not frame-time, GPU/CPU/memory,
+    battery-discharge, or thermal instrumentation. Release APK size and physical
+    API 24–30/API 31–32 Liquid evidence remain unavailable.
+  - Checkpoint 7 is user accepted. A final review correction resets the
+    UI-thread pinch scale after gesture cancellation; it changes JavaScript
+    gesture finalization only and has focused source-contract coverage.
 
 ## Checkpoint 8 — Widget fixes
+
+### Checkpoint 7 follow-up — Liquid navigation light mode
+
+- [ ] Reproduce overly dark Liquid navbar in light mode.
+- [ ] Audit fallback/tint/edge/adaptive-contrast color ownership.
+- [ ] Define separate light/dark optical material response without hardcoded
+      fake glass.
+- [ ] Preserve live contextual capture and zero-idle work.
+- [ ] Preserve dark-mode Liquid navigation.
+- [ ] Validate light/dark Liquid navigation on physical device.
 
 - [ ] Reproduce widget heatmap data bug.
 - [ ] Verify snapshot contains expected heatmap data.

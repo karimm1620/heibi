@@ -431,6 +431,35 @@ checkout completed a cold `npm ci`, TypeScript, warning-free ESLint, and all
 18 Jest suites / 145 tests. This verifies patch reproducibility for the
 JavaScript/TypeScript gates; it is not Android native compilation evidence.
 
+Final Checkpoint 7 EAS Android compilation succeeds, and the user accepts the
+checkpoint after physical-device QA. The corrected semantic ripple eliminates
+the reported flash. Liquid navigation passes live blur, settled capture, idle,
+rapid-tab, flicker/artifact, and perceived-performance checks. Today swipe and
+all exercised reorder directions/drop cases pass without jumping or vanishing;
+Goals filter/sort, reorder, and transaction sheets pass. Habit/goal add, edit,
+detail, keyboard/IME, navigation actions, Settings theme/language/reminders and
+persistence, History grouping/day detail, TalkBack, large text, and reduced
+motion pass. No crash, noticeable lag, or noticeable heat/battery issue was
+observed. This remains qualitative evidence rather than formal frame-time,
+GPU/CPU/memory, thermal, or battery instrumentation.
+
+One accepted non-blocking visual issue remains: in Liquid light mode the
+navigation-wide material reads as a dense charcoal slab even though live
+capture and idle behavior are correct. By explicit user decision, Checkpoint 7
+is not reopened; Checkpoint 8 must audit the optical fallback, tint, adaptive
+contrast, edge, selected-indicator, and text/icon color ownership and establish
+a light-specific contextual material while retaining the accepted dark mode,
+one-host capture, API tiers, and zero-idle contract. Release APK size and
+physical API 24–30/API 31–32 Liquid evidence remain unavailable.
+
+The final PR review found one independent gesture-finalization defect: a
+cancelled habit-detail pinch could retain its partial scale because only a
+successful `onEnd` reset it. The follow-up adds an `onFinalize` cancellation
+reset on the UI runtime plus a source-contract guard. This is a scoped
+JavaScript gesture-lifecycle correction; the preceding EAS/device evidence
+applies to the otherwise unchanged Checkpoint 7 implementation and is not
+misrepresented as testing the cancellation path.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`
