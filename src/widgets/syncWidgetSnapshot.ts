@@ -2,8 +2,20 @@ import HomeWidgetsModule from "../../modules/expo-home-widgets";
 import { useGoalsStore } from "../store/useGoalsStore";
 import { useHabitsStore } from "../store/useHabitsStore";
 import { buildWidgetSnapshot } from "./buildWidgetSnapshot";
+import { createWidgetSnapshotSyncCoordinator } from "./widgetSnapshotSyncCoordinator";
 
-let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+const widgetSnapshotSync = createWidgetSnapshotSyncCoordinator({
+  delayMs: 300,
+  buildSnapshot: () => {
+    const { goals } = useGoalsStore.getState();
+    const { habits, habitLogs } = useHabitsStore.getState();
+    return JSON.stringify(buildWidgetSnapshot(goals, habits, habitLogs));
+  },
+  writeSnapshot: (snapshotJson) => HomeWidgetsModule.updateWidgets(snapshotJson),
+  onError: (error) => {
+    console.warn("[widgets] Gagal sinkronisasi snapshot widget:", error);
+  },
+});
 
 /**
  * Bangun snapshot terbaru dari state Zustand SEKARANG (`getState()`, bukan
@@ -13,23 +25,7 @@ let syncTimeout: ReturnType<typeof setTimeout> | null = null;
  * `transactions` + `goals` sekaligus).
  */
 export function syncWidgetSnapshot() {
-  if (syncTimeout) clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(() => {
-    syncTimeout = null;
-    try {
-      const { goals } = useGoalsStore.getState();
-      const { habits, habitLogs } = useHabitsStore.getState();
-      const snapshot = buildWidgetSnapshot(goals, habits, habitLogs);
-
-      HomeWidgetsModule.updateWidgets(JSON.stringify(snapshot)).catch((error: unknown) => {
-        console.warn("[widgets] Gagal update snapshot widget:", error);
-      });
-    } catch (error) {
-      // Exception SINKRON (mis. gagal bangun snapshot) sebelumnya bisa
-      // diam-diam gak ketahuan sama sekali di listener store subscribe.
-      console.warn("[widgets] Gagal bangun snapshot widget:", error);
-    }
-  }, 300);
+  widgetSnapshotSync.request();
 }
 
 let registered = false;

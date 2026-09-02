@@ -460,6 +460,58 @@ JavaScript gesture-lifecycle correction; the preceding EAS/device evidence
 applies to the otherwise unchanged Checkpoint 7 implementation and is not
 misrepresented as testing the cancellation path.
 
+PR #15 was squash-merged after its final source and documentation CI passed as
+`17a8dacd9518590e8dfe5f0fb313ec94085e7810`. The successful EAS build and user
+physical-device QA accept Checkpoint 7: the ripple flash is gone; Liquid live,
+settled, idle, rapid-tab, artifact, and perceived-performance checks pass;
+Today swipe/reorder, Goals filters/reorder/transactions, all habit/goal forms
+and IME, Settings persistence, History grouping/day detail, TalkBack, large
+text, and reduced motion pass. No crash, noticeable lag, or noticeable
+heat/battery issue was observed. This remains qualitative evidence, not formal
+frame/GPU/CPU/memory, battery, or thermal instrumentation. Release APK size and
+physical API 24–30/API 31–32 Liquid evidence remain unavailable.
+
+Checkpoint 8 starts from that exact squash commit on
+`feat/checkpoint-8-widget-fixes` in an isolated worktree. Its first correction
+resolves the accepted non-blocking light Liquid navigation issue. The root
+cause was color composition, not capture: an alpha-bearing primary-container
+role received a second appended alpha, yielding an invalid color that left the
+native charcoal default in place; the same role was too dense for a light
+fallback. Navigation now opts into a neutral semantic light optical material
+with valid tint composition and light-specific bounded adaptive contrast.
+Dark mode, selected accent, the single bounded host, contextual/coalesced live
+capture, trailing settled capture, zero recurring idle work, API tiers, and
+failure fallback remain unchanged. The native module adds only a material flag,
+so EAS compilation and physical light/dark QA are still required.
+
+The widget investigation confirms the JavaScript builder and native parser
+share the expected schema: up to eight active habits, ordered by `sortOrder`,
+with color, streak, and exactly 14 local calendar days oldest to newest. The
+data defect was asynchronous write ordering: debounced calls were not
+serialized, so an older native update could finish after a newer mutation. A
+pure coordinator now serializes writes and coalesces in-flight changes into one
+latest-state follow-up. Native redraw also realigns completion values by date
+to the current local 14-day window, preventing a stale day axis after midnight
+while the app is closed.
+
+The widest-layout issue came from assigning every day cell `defaultWeight()`:
+the same 14 cells collapsed behind fixed chrome at minimum width and stretched
+without bounds at wide sizes. The renderer now uses deterministic compact,
+medium, and wide classes with bounded square cells, adaptive name/streak chrome,
+and height-derived one-to-eight row capacity. The provider resize range stays
+180–450dp wide and 70–500dp tall; comments and description now correctly say
+14 calendar days rather than rows or 30 days. No dependency or Checkpoint 9
+variant is added.
+
+Checkpoint 8 local validation passes TypeScript, warning-free ESLint, 22 Jest
+suites / 159 tests, Expo Doctor 21/21, Android export, and clean Android
+prebuild. Expo autolinking resolves `expo-home-widgets`, `expo-liquid-glass`,
+and `@expo/ui`; New Architecture remains enabled; all 21 generated/module
+Android XML files parse; no iOS or package/lockfile drift exists. Local
+Kotlin/Gradle compilation and physical launcher testing are unavailable. EAS
+native compilation plus physical light/dark navbar and launcher resize/data
+refresh QA remain the required pre-merge gates.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

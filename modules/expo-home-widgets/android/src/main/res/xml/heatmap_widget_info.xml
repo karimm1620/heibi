@@ -1,24 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Checkpoint 4f: konten sekarang ngikutin ukuran ASLI widget secara terus-
-  menerus (SizeMode.Exact di HeatmapWidget.kt), bukan cuma 2 preset
-  kecil/besar (checkpoint 4e) yang bikin konten gak ngisi lebar beneran
-  pas widget di-resize. Resize horizontal juga diaktifin lagi, sempat
-  gak sengaja dibatasin vertical doang.
-
-  Checkpoint <next> (fix): user laporan widget kepotong 5 row TERUS
-  berapa pun di-resize (harusnya 14 row pas dilebarin, 7 row pas versi
-  kecil). Root cause BUKAN di logic hitung row (`HeatmapContent` di
-  HeatmapWidget.kt udah bener, dinamis ngikutin LocalSize.current.height
-  dibagi ROW_HEIGHT), tapi attribute `maxResizeWidth`/`maxResizeHeight`
-  gak pernah dideklarasiin. Dikonfirmasi dari dokumentasi resmi Android:
-  attribute ini WAJIB (Android 12+/API 31+) biar launcher ngebolehin
-  widget di-resize NGELEWATIN ukuran default targetCellWidth/Height,
-  tanpa ini banyak launcher (termasuk Pixel) nge-cap resize MENTOK di
-  ukuran default, gak peduli user narik resize handle sejauh apa. Nilai
-  di bawah dihitung biar muat lebih dari 14 row dengan buffer (14 row
-  butuh sekitar 406dp, dibulatin ke atas jadi 500dp).
--->
+<!-- Exact sizing supports compact, medium, and wide 14-calendar-day layouts. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="180dp"
     android:minHeight="70dp"

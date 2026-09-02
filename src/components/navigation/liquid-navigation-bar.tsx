@@ -79,6 +79,7 @@ export function LiquidNavigationBar({
   return (
     <OriginalLiquidGlassSurface
       interactionEnabled={false}
+      materialTone="navigation"
       onLayout={handleLayout}
       refreshKey={refreshKey}
       style={[

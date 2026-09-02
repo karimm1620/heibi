@@ -83,6 +83,7 @@ class OriginalLiquidGlassView(
   private var refractionStrengthPx = 2.25f * density
   private var rendererEnabled = true
   private var interactionEnabled = true
+  private var lightMaterial = false
   private var reducedMotion = false
   private var maximumTier = RendererTier.OPTICAL
   private var currentTier = RendererTier.TONAL
@@ -192,6 +193,12 @@ class OriginalLiquidGlassView(
       renderNodeRecordingDirty = true
       invalidate()
     }
+  }
+
+  fun setLightMaterial(light: Boolean) {
+    if (lightMaterial == light) return
+    lightMaterial = light
+    invalidate()
   }
 
   fun setReducedMotion(reduced: Boolean) {
@@ -543,7 +550,13 @@ class OriginalLiquidGlassView(
   private fun drawAdaptiveContrast(canvas: Canvas) {
     val luminance = backdropLuminance ?: return
     fillPaint.shader = null
-    fillPaint.color = if (luminance >= 0.58f) {
+    fillPaint.color = if (lightMaterial) {
+      if (luminance >= 0.58f) {
+        Color.argb(8, 255, 255, 255)
+      } else {
+        Color.argb(24, 255, 255, 255)
+      }
+    } else if (luminance >= 0.58f) {
       Color.argb(18, 0, 0, 0)
     } else {
       Color.argb(12, 255, 255, 255)

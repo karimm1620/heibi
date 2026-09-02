@@ -1195,6 +1195,83 @@ APK size and physical API 24–30/API 31–32 Liquid evidence remain outstanding
 
 ---
 
+## D-032 — Give navigation an explicit light/dark optical material contract
+
+**Status:** accepted for Checkpoint 8 validation
+
+### Finding
+
+Liquid navigation reused the general `surfaceInteractive` role, which is an
+alpha-bearing primary-container color. The native wrapper then appended a
+second alpha while deriving its tint, producing an invalid ten-digit hex color.
+When `processColor` rejected it, the Android view retained its default charcoal
+tint. The same primary-container role was also too chromatic and dense to be a
+good light navigation fallback. The capture, refresh, shader, and idle systems
+were functioning correctly and are not the cause of the light-mode appearance.
+
+### Decision
+
+Add a renderer-level material-tone configuration and select `navigation` only
+for the Liquid bottom bar. Light navigation uses the existing semantic neutral
+glass tint as its fallback, a valid restrained translucent neutral tint, a
+brighter edge, and a bounded light-specific adaptive-contrast response. The
+semantic accent remains on the independently animated selected indicator
+instead of tinting the whole optical host. Dark/default material keeps the
+accepted dark response, with alpha replacement made valid rather than nested.
+
+The native view receives one `lightMaterial` flag. It changes only adaptive
+contrast and does not change backdrop capture, RenderNode/RenderEffect,
+RuntimeShader, resource ownership, or invalidation. The navbar retains one
+bounded host, `interactionEnabled={false}`, contextual dirty observers, the
+approximately 30fps active cap, one cancellable settled capture, zero recurring
+idle work, independent indicator motion, and the existing API and failure
+tiers. No dependency, full-screen glass, extra host, or frame loop is added.
+
+EAS native compilation and physical light/dark visual/contrast QA are required
+before merge. Static validation cannot establish final optical appearance.
+
+---
+
+## D-033 — Serialize widget snapshots and bound the 14-day Glance layout
+
+**Status:** accepted for Checkpoint 8 validation
+
+### Finding
+
+The JavaScript snapshot and native parser already agreed on the heatmap schema,
+but debouncing did not serialize asynchronous native updates. A mutation during
+an in-flight write could therefore allow an older snapshot to complete last.
+The hourly widget redraw also reused the stored date array unchanged, leaving
+the 14-day window stale across local midnight when the app remained closed.
+
+The renderer represented all 14 days, but assigned every cell equal weight in
+all remaining horizontal space. This made cells collapse at the 180dp minimum
+after fixed chrome and stretch into meaningless bars at wide launcher sizes.
+The provider comments also incorrectly described row count as day count.
+
+### Decision
+
+Keep the existing local Expo/Glance architecture and schema. A small pure
+coordinator now debounces and serializes snapshot writes; requests received
+during a write coalesce into one latest-state follow-up. Existing startup
+hydration plus goals, habits, and habit-log subscriptions remain the central
+mutation ownership. On every Glance redraw, native code aligns stored completion
+values by date to exactly 14 current local calendar days, oldest to newest.
+
+Glance uses deterministic compact, medium, and wide width classes with bounded
+square cells and 1–2dp gaps. Name/streak chrome adapts by class, streak hides in
+compact mode, and only the spacer before the streak may consume flexible width.
+Height chooses one through eight habit rows. Provider min/max resize metadata is
+retained because it covers the tested classes; its comments and description now
+match the 14-day contract. No new widget variant or dependency is introduced.
+
+Unit/source-contract tests cover snapshot data, ordering, filtering, sorting,
+serialization, parser/renderer keys, 14-cell preservation, thresholds, and XML
+metadata. EAS compilation and physical launcher resize/data-refresh QA remain
+required; no local Kotlin/Gradle or launcher evidence is claimed.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.

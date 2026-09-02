@@ -35,6 +35,13 @@ describe("native Liquid RenderEffect pipeline", () => {
     );
   });
 
+  it("uses an explicit light adaptive-contrast path without changing tiers", () => {
+    expect(moduleSource).toContain('Prop("lightMaterial")');
+    expect(rendererSource).toContain("if (lightMaterial)");
+    expect(rendererSource).toContain("Color.argb(24, 255, 255, 255)");
+    expect(rendererSource).toContain("Color.argb(18, 0, 0, 0)");
+  });
+
   it("refreshes on bounded native scroll/layout dirtiness without an idle frame loop", () => {
     expect(rendererSource).toContain("ACTIVE_CAPTURE_INTERVAL_MS = 32L");
     expect(rendererSource).toContain("addOnScrollChangedListener(ancestorScrollListener)");
