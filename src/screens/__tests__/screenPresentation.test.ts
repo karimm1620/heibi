@@ -66,6 +66,8 @@ describe("screen presentation contracts", () => {
     expect(today).not.toContain("PanResponder");
     expect(habitDetail).toContain("Gesture.Pinch()");
     expect(habitDetail).toContain("useSharedValue(1)");
+    expect(habitDetail).toContain(".onFinalize((_event, success)");
+    expect(habitDetail).toContain("if (!success)");
   });
 
   it("keeps Material ripple intentional and Liquid navigation ripple-free", () => {

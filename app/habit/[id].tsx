@@ -91,6 +91,11 @@ export default function HabitDetailScreen() {
         return;
       }
       pinchScale.set(reducedMotion ? 1 : withSpring(1, { damping: 18, stiffness: 260 }));
+    })
+    .onFinalize((_event, success) => {
+      if (!success) {
+        pinchScale.set(reducedMotion ? 1 : withSpring(1, { damping: 18, stiffness: 260 }));
+      }
     });
   const pinchStyle = useAnimatedStyle(() => ({
     opacity: pinchScale.get(),
