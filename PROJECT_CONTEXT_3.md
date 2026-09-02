@@ -490,9 +490,11 @@ with color, streak, and exactly 14 local calendar days oldest to newest. The
 data defect was asynchronous write ordering: debounced calls were not
 serialized, so an older native update could finish after a newer mutation. A
 pure coordinator now serializes writes and coalesces in-flight changes into one
-latest-state follow-up. Native redraw also realigns completion values by date
-to the current local 14-day window, preventing a stale day axis after midnight
-while the app is closed.
+latest-state follow-up. Final review found that advancing only the native day
+cells at midnight could desynchronize them from the JS-derived `currentStreak`.
+CP8 therefore keeps all date-derived values on the same snapshot timestamp;
+the next centralized app/store synchronization advances cells and streak
+together.
 
 The widest-layout issue came from assigning every day cell `defaultWeight()`:
 the same 14 cells collapsed behind fixed chrome at minimum width and stretched
@@ -508,9 +510,27 @@ suites / 159 tests, Expo Doctor 21/21, Android export, and clean Android
 prebuild. Expo autolinking resolves `expo-home-widgets`, `expo-liquid-glass`,
 and `@expo/ui`; New Architecture remains enabled; all 21 generated/module
 Android XML files parse; no iOS or package/lockfile drift exists. Local
-Kotlin/Gradle compilation and physical launcher testing are unavailable. EAS
-native compilation plus physical light/dark navbar and launcher resize/data
-refresh QA remain the required pre-merge gates.
+Kotlin/Gradle compilation and physical launcher testing are unavailable.
+
+The user reviews the resulting physical screenshots and accepts CP8 for squash
+merge while deliberately replacing its presentation direction in CP9. The
+screenshots show that the invalid charcoal light-navbar failure is gone, but
+light Liquid navigation is now too faint and dark Liquid navigation still has
+a green Material-You cast. The current heatmap remains visually awkward despite
+its corrected data and sizing infrastructure. These are CP9 design findings,
+not reasons to discard serialized snapshot writes, the safe parser, the one-host
+Liquid capture lifecycle, or the API/failure tiers.
+
+Checkpoint 9 is expanded into the final major product/design checkpoint. It
+must deliver exactly four widget concepts (redesigned heatmap, simple tracker,
+saving, and chart), final neutral Liquid navbar tuning, Liquid-inspired tonal
+native sheets, the deposit/withdraw horizontal-shift fix, a transaction-derived
+savings chart and full progress route, History-to-goal navigation, a modern
+savings progress visual, and redesigned onboarding. The local reference images
+are evidence only and must not ship. CP10 remains testing, release size,
+performance, polish, small fixes, and final QA. No CP8 EAS result, release APK,
+formal performance/battery/thermal result, or physical API 24–30/API 31–32
+Liquid evidence is invented by this handoff.
 
 ## Repository
 

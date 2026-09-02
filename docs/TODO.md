@@ -407,7 +407,8 @@ API 31–32, and instrumented device performance remain open evidence.
       fake glass.
 - [x] Preserve live contextual capture and zero-idle work.
 - [x] Preserve dark-mode Liquid navigation.
-- [ ] Validate light/dark Liquid navigation on physical device.
+- [x] Review light/dark Liquid navigation using user-supplied physical-device
+      screenshots.
   - Root cause: `surfaceInteractive` already carried an alpha channel, and the
     native wrapper appended another alpha when deriving the tint. The invalid
     ten-digit color could not be processed, so the native view retained its
@@ -456,21 +457,79 @@ API 31–32, and instrumented device performance remain open evidence.
     Expo modules and `@expo/ui` resolve, New Architecture stays enabled, and all
     21 generated/module Android XML files parse. No dependency/config/iOS
     change was introduced. Local Kotlin/Gradle compilation is not claimed.
-  - EAS native compilation plus physical light/dark Liquid and launcher resize/
-    data-refresh QA remain required before merge. Release APK size and physical
+  - User-supplied screenshots confirm that the invalid-charcoal failure is
+    corrected, but also show two design findings: light Liquid navigation is
+    now too faint, and dark Liquid navigation still inherits a strong green
+    Material-You cast. The user accepts CP8 for merge and explicitly moves
+    final neutral-glass tuning to CP9.
+  - A final review fix keeps heatmap cells and `currentStreak` on the same
+    snapshot timestamp. Hourly native redraw no longer advances only the cells
+    while leaving a stale streak; the next centralized app/store sync advances
+    all date-derived values together.
+  - The user also rejects further iteration on the current heatmap presentation.
+    CP9 retains the corrected snapshot/sync/parser infrastructure but replaces
+    the visual direction as part of an exactly four-widget suite.
+  - EAS/native compilation and full physical launcher resize/data-refresh QA
+    were not reported for the final CP8 source. Release APK size and physical
     API 24–30/API 31–32 Liquid evidence remain unavailable.
 
-## Checkpoint 9 — Widget variants
+## Checkpoint 9 — Widget variants + final product redesign
 
+### Widget suite
+
+- [ ] Replace current heatmap visual direction with redesigned heatmap widget.
 - [ ] Simple tracker widget design.
-- [ ] Simple tracker implementation.
+- [ ] Simple tracker widget implementation.
 - [ ] Simple tracker resize states.
-- [ ] New savings widget design.
-- [ ] Savings widget implementation.
-- [ ] Savings widget resize states.
-- [ ] Light/dark/dynamic-color check.
-- [ ] Deep-link/action check.
-- [ ] Validate checkpoint.
+- [ ] Saving widget redesign.
+- [ ] Saving widget implementation.
+- [ ] Saving widget resize states.
+- [ ] Chart widget design.
+- [ ] Chart widget implementation.
+- [ ] Chart widget resize states.
+- [ ] Widget light/dark behavior.
+- [ ] Widget dynamic-color strategy where appropriate.
+- [ ] Widget deep-link/action behavior.
+- [ ] Validate shared snapshot/sync integrity.
+
+### Liquid refinement
+
+- [ ] Improve Liquid navbar light-mode visibility.
+- [ ] Remove dark-mode green Material-You cast.
+- [ ] Preserve accepted Liquid blur/capture architecture.
+- [ ] Refine Liquid bottom-sheet styling.
+- [ ] Validate Liquid navbar light/dark.
+- [ ] Validate Liquid bottom sheets.
+
+### Savings experience
+
+- [ ] Fix deposit/withdraw horizontal screen shift.
+- [ ] Redesign top saving progress card.
+- [ ] Add saving flow line chart.
+- [ ] Add full saving progress screen.
+- [ ] Keep progress screen out of bottom navigation.
+- [ ] Navigate saving History rows to related goal.
+- [ ] Redesign saving jar/progress visual.
+- [ ] Validate deposit/withdraw flows.
+
+### Onboarding
+
+- [ ] Redesign onboarding visual hierarchy.
+- [ ] Validate Material onboarding.
+- [ ] Validate Liquid onboarding.
+- [ ] Validate accessibility and reduced motion.
+
+### Validation
+
+- [ ] Expo Doctor.
+- [ ] TypeScript.
+- [ ] ESLint.
+- [ ] Jest.
+- [ ] Android export.
+- [ ] Clean Android prebuild.
+- [ ] XML/resources.
+- [ ] Fresh-base patch verification.
+- [ ] Prepare EAS/device QA gate.
 
 ## Checkpoint 10 — Size/performance
 

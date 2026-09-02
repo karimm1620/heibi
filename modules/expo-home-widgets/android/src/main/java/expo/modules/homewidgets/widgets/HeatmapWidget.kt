@@ -122,9 +122,11 @@ class HeatmapWidget : GlanceAppWidget() {
 private fun HeatmapContent(snapshot: WidgetSnapshot) {
   val size = LocalSize.current
   val layout = resolveHeatmapLayout(size.width, size.height)
-  val rows = snapshot.habits
-    .take(layout.maxRows)
-    .map { habit -> habit.copy(days = alignWidgetDays(habit.days)) }
+  // Keep days and currentStreak on the same JS snapshot timestamp. Advancing
+  // only the cells during an hourly Glance redraw can display a missed day
+  // beside a stale non-zero streak. The next app/store synchronization moves
+  // every date-derived value forward together.
+  val rows = snapshot.habits.take(layout.maxRows)
 
   Column(
     modifier = GlanceModifier

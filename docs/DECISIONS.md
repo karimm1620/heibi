@@ -1227,8 +1227,10 @@ approximately 30fps active cap, one cancellable settled capture, zero recurring
 idle work, independent indicator motion, and the existing API and failure
 tiers. No dependency, full-screen glass, extra host, or frame loop is added.
 
-EAS native compilation and physical light/dark visual/contrast QA are required
-before merge. Static validation cannot establish final optical appearance.
+Static validation cannot establish final optical appearance or Kotlin
+compilation. The user accepts CP8 for merge based on the repository gates and
+supplied physical screenshots, while explicitly moving final light/dark tuning
+to CP9. The CP9 EAS build must compile and validate the cumulative native tree.
 
 ---
 
@@ -1241,8 +1243,9 @@ before merge. Static validation cannot establish final optical appearance.
 The JavaScript snapshot and native parser already agreed on the heatmap schema,
 but debouncing did not serialize asynchronous native updates. A mutation during
 an in-flight write could therefore allow an older snapshot to complete last.
-The hourly widget redraw also reused the stored date array unchanged, leaving
-the 14-day window stale across local midnight when the app remained closed.
+The first CP8 implementation tried to advance the stored date array during an
+hourly native redraw. Review found that this moved the cells without recomputing
+the JS-derived `currentStreak`, so the two date-derived values could disagree.
 
 The renderer represented all 14 days, but assigned every cell equal weight in
 all remaining horizontal space. This made cells collapse at the 180dp minimum
@@ -1255,8 +1258,9 @@ Keep the existing local Expo/Glance architecture and schema. A small pure
 coordinator now debounces and serializes snapshot writes; requests received
 during a write coalesce into one latest-state follow-up. Existing startup
 hydration plus goals, habits, and habit-log subscriptions remain the central
-mutation ownership. On every Glance redraw, native code aligns stored completion
-values by date to exactly 14 current local calendar days, oldest to newest.
+mutation ownership. All date-derived row values remain on the same deterministic
+JS snapshot timestamp. Glance does not advance only the cells at midnight; the
+next central app/store synchronization advances cells and streak together.
 
 Glance uses deterministic compact, medium, and wide width classes with bounded
 square cells and 1–2dp gaps. Name/streak chrome adapts by class, streak hides in
@@ -1266,9 +1270,44 @@ retained because it covers the tested classes; its comments and description now
 match the 14-day contract. No new widget variant or dependency is introduced.
 
 Unit/source-contract tests cover snapshot data, ordering, filtering, sorting,
-serialization, parser/renderer keys, 14-cell preservation, thresholds, and XML
-metadata. EAS compilation and physical launcher resize/data-refresh QA remain
-required; no local Kotlin/Gradle or launcher evidence is claimed.
+serialization, parser/renderer keys, 14-cell/streak timestamp consistency,
+thresholds, and XML metadata. EAS compilation and physical launcher resize/
+data-refresh QA remain required; no local Kotlin/Gradle or launcher evidence is
+claimed. The user subsequently rejects the current heatmap presentation and
+moves its visual replacement—without discarding this sync correctness—to CP9.
+
+---
+
+## D-034 — Accept Checkpoint 8 infrastructure and replace its presentation in Checkpoint 9
+
+**Status:** accepted; expanded Checkpoint 9 authorized
+
+### Finding
+
+Checkpoint 8 establishes serialized latest-state widget writes, a deterministic
+14-day snapshot/parser contract, bounded Glance sizing, and a renderer-specific
+Liquid navigation tone. User-supplied physical screenshots then expose three
+non-blocking product findings: the redesigned heatmap is still visually awkward,
+light Liquid navigation is too faint, and dark Liquid navigation carries a
+green Material-You cast. The screenshots also show a separate native transaction
+sheet horizontal-shift defect and motivate broader savings/onboarding work.
+
+### Decision
+
+Accept CP8's data, synchronization, parser, API-tier, and capture architecture
+for squash merge. Do not keep iterating on its heatmap composition. CP9 replaces
+the widget presentation with exactly four concepts—heatmap, simple tracker,
+saving, and chart—while retaining or deliberately extending the JS snapshot to
+native Glance pipeline. CP9 also owns final neutral Liquid navigation tuning,
+Liquid-inspired tonal native-sheet styling, the transaction-sheet layout fix,
+the savings card/chart/progress route/history linkage/progress visual, and
+onboarding redesign.
+
+This does not authorize CP10 release/performance work, a new graphics runtime,
+cross-window optical capture, permanent Liquid refresh, or a widget-framework
+replacement. The supplied images are local design/bug references only and must
+not ship. No release APK, formal performance/battery/thermal evidence, or
+physical API 24–30/API 31–32 Liquid evidence is added by this decision.
 
 ---
 

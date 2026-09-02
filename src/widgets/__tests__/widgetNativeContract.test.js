@@ -12,9 +12,6 @@ describe("home widget native contract", () => {
   const renderer = read(
     "modules/expo-home-widgets/android/src/main/java/expo/modules/homewidgets/widgets/HeatmapWidget.kt",
   );
-  const dateWindow = read(
-    "modules/expo-home-widgets/android/src/main/java/expo/modules/homewidgets/widgets/WidgetDateWindow.kt",
-  );
   const providerXml = read(
     "modules/expo-home-widgets/android/src/main/res/xml/heatmap_widget_info.xml",
   );
@@ -25,11 +22,9 @@ describe("home widget native contract", () => {
     }
   });
 
-  it("renders fourteen oldest-to-newest calendar slots and repairs midnight rollover", () => {
-    expect(dateWindow).toContain("HEATMAP_DAY_SLOTS = 14");
-    expect(dateWindow).toContain("newestToOldest.asReversed()");
-    expect(dateWindow).toContain("dayByKey[dateKey]");
-    expect(renderer).toContain("alignWidgetDays(habit.days)");
+  it("renders the fourteen snapshot-date slots without desynchronizing the streak", () => {
+    expect(renderer).toContain("snapshot.habits.take(layout.maxRows)");
+    expect(renderer).not.toContain("alignWidgetDays");
     expect(renderer).toContain("for ((index, day) in habit.days.withIndex())");
   });
 
