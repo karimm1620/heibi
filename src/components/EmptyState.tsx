@@ -10,7 +10,6 @@ type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 interface EmptyStateProps {
   icon: IconName;
   title: string;
-  /** Selalu dipotong ke 1 baris (numberOfLines=1) — tulis singkat dari awal, jangan ngandelin truncate. */
   description: string;
   /** Opsional — cuma render tombol CTA kalau KEDUANYA diisi (ctaLabel + onPressCta). */
   ctaLabel?: string;
@@ -39,8 +38,8 @@ export function EmptyState({
   return (
     <View style={styles.container}>
       <MaterialCommunityIcons name={icon} size={40} color={colors.textSecondary} />
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.description} numberOfLines={1}>
+      <Text accessibilityRole="header" style={styles.title}>{title}</Text>
+      <Text style={styles.description}>
         {description}
       </Text>
       {showCta && (

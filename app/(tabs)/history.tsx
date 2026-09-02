@@ -1,14 +1,18 @@
-import React, { useMemo } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import React, { useMemo, useState } from "react";
+import { Pressable, SectionList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EmptyState } from "../../src/components/EmptyState";
+import { DayHistorySheet } from "../../src/components/DayHistorySheet";
 import { GlassCard } from "../../src/components/GlassCard";
 import { HabitConsistencyHeatmap } from "../../src/components/HabitConsistencyHeatmap";
+import { ScreenHeading } from "../../src/components/ScreenHeading";
+import { usePressFeedback } from "../../src/components/pressFeedback";
 import { TransactionRow } from "../../src/components/TransactionRow";
 import { resolveBottomNavigationLayout } from "../../src/components/navigation/bottom-navigation-layout";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
+import { buildHistorySections, type HistorySection } from "../../src/screens/historySections";
 import { spacing } from "../../src/theme/colors";
 import { useTheme } from "../../src/theme/useTheme";
 import type { Transaction } from "../../src/types";
@@ -16,15 +20,22 @@ import type { Transaction } from "../../src/types";
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { colors, typography, isDark } = useTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const transactions = useGoalsStore((state) => state.transactions);
   const goals = useGoalsStore((state) => state.goals);
   const habits = useHabitsStore((state) => state.habits);
   const habitLogs = useHabitsStore((state) => state.habitLogs);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const datePressFeedback = usePressFeedback(colors.primary);
 
   const sorted = useMemo(
     () => [...transactions].sort((a, b) => b.createdAt - a.createdAt),
     [transactions],
+  );
+
+  const sections = useMemo(
+    () => buildHistorySections(sorted, language),
+    [language, sorted],
   );
 
   const goalNameById = useMemo(() => {
@@ -43,13 +54,8 @@ export default function HistoryScreen() {
           backgroundColor: colors.background,
           paddingHorizontal: spacing.lg,
         },
-        headerTitle: {
-          ...typography.display,
-          fontSize: 28,
-          marginTop: 2,
-        },
         listContent: {
-          paddingTop: spacing.lg,
+          paddingTop: spacing.md,
           paddingBottom: resolveBottomNavigationLayout(insets.bottom).contentBottomPadding,
         },
         rowCard: {
@@ -58,6 +64,16 @@ export default function HistoryScreen() {
         },
         heatmapWrapper: {
           marginBottom: spacing.lg,
+        },
+        sectionTitle: {
+          ...typography.section,
+          color: colors.textSecondary,
+        },
+        sectionButton: {
+          minHeight: 48,
+          justifyContent: "center",
+          borderRadius: 24,
+          overflow: "hidden",
         },
       }),
     [colors, typography, insets.bottom],
@@ -68,13 +84,10 @@ export default function HistoryScreen() {
       key={isDark ? "dark" : "light"}
       style={[styles.container, { paddingTop: insets.top + spacing.md }]}
     >
-      <Text style={styles.headerTitle}>{t.history.headerTitle}</Text>
-      <Text style={typography.caption}>
-        {t.history.subtitle}
-      </Text>
+      <ScreenHeading title={t.history.headerTitle} supportingText={t.history.subtitle} />
 
-      <FlatList<Transaction>
-        data={sorted}
+      <SectionList<Transaction, HistorySection>
+        sections={sections}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -93,6 +106,23 @@ export default function HistoryScreen() {
             />
           </GlassCard>
         )}
+        renderSectionHeader={({ section }) => (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={section.title}
+            onPress={() => setSelectedDate(section.key)}
+            android_ripple={datePressFeedback.androidRipple}
+            style={({ pressed }) => [
+              styles.sectionButton,
+              { opacity: datePressFeedback.opacity(pressed) },
+            ]}
+          >
+            <Text accessibilityRole="header" style={styles.sectionTitle}>
+              {section.title}
+            </Text>
+          </Pressable>
+        )}
+        stickySectionHeadersEnabled={false}
         ListEmptyComponent={
           <EmptyState
             icon="history"
@@ -101,6 +131,7 @@ export default function HistoryScreen() {
           />
         }
       />
+      <DayHistorySheet dateKey={selectedDate} onClose={() => setSelectedDate(null)} />
     </View>
   );
 }

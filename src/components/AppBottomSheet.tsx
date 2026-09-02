@@ -12,6 +12,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import { spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 import { LiquidMaterialSurface } from "./liquid/LiquidMaterialSurface";
+import { usePressFeedback } from "./pressFeedback";
 import {
   resolveAppBottomSheetIndex,
   resolveAppBottomSheetMaterial,
@@ -50,6 +51,7 @@ export function AppBottomSheet({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const material = resolveAppBottomSheetMaterial(visualTheme);
+  const closePressFeedback = usePressFeedback(colors.primary, { radius: shapes.full });
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -102,8 +104,11 @@ export function AppBottomSheet({
           accessibilityRole="button"
           accessibilityLabel={t.common.close}
           onPress={onDismiss}
-          style={styles.closeButton}
-          android_ripple={{ color: colors.glassBorder, borderless: true }}
+          style={({ pressed }) => [
+            styles.closeButton,
+            { opacity: closePressFeedback.opacity(pressed) },
+          ]}
+          android_ripple={closePressFeedback.androidRipple}
           hitSlop={4}
         >
           <MaterialCommunityIcons name="close" size={24} color={colors.textPrimary} />

@@ -3,9 +3,9 @@ import { router } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
-import { withOpacity } from "../theme/colors";
 import { m3ElevationStyle } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
+import { usePressFeedback } from "./pressFeedback";
 
 /**
  * Tombol back custom buat header `headerTransparent: true` (`goal/[id]`,
@@ -23,6 +23,7 @@ import { useTheme } from "../theme/useTheme";
  */
 export function HeaderBackButton() {
   const { colors, material3 } = useTheme();
+  const pressFeedback = usePressFeedback(material3.onSurface, { radius: 20 });
   const { t } = useTranslation();
 
   return (
@@ -31,8 +32,12 @@ export function HeaderBackButton() {
       hitSlop={8}
       accessibilityRole="button"
       accessibilityLabel={t.common.back}
-      style={[styles.button, m3ElevationStyle("level1"), { backgroundColor: colors.glassTintLight }]}
-      android_ripple={{ color: withOpacity(material3.onSurface, 0.12) }}
+      style={({ pressed }) => [
+        styles.button,
+        m3ElevationStyle("level1"),
+        { backgroundColor: colors.glassTintLight, opacity: pressFeedback.opacity(pressed) },
+      ]}
+      android_ripple={pressFeedback.androidRipple}
     >
       <MaterialCommunityIcons name="arrow-left" size={22} color={colors.textPrimary} />
     </Pressable>

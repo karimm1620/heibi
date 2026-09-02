@@ -309,49 +309,78 @@ API 31–32, and instrumented device performance remain open evidence.
 
 ## Checkpoint 7 — Screens
 
+### Checkpoint 7 foundation / regressions
+
+- [x] Align Expo SDK 57 dependencies and return Expo Doctor to green.
+- [x] Audit Android press/ripple feedback across shared controls and screens.
+- [x] Eliminate Android ripple/press flash globally except Liquid bottom navigation.
+- [x] Verify Material bottom navigation ripple remains correct.
+- [x] Verify Liquid bottom navigation behavior/capture is unchanged.
+- [x] Validate shared press feedback before full screen migration.
+  - `npx expo install --fix` aligned only SDK 57-compatible patches; Expo
+    Doctor now passes 21/21. React 19.2.3, React Native 0.86.3, Gesture
+    Handler 2.32.0, Reanimated 4.5.1, and Worklets 0.10.1 remain unchanged.
+  - Material controls share one clipped semantic background-ripple contract.
+    Liquid controls use restrained opacity feedback, and the accepted Liquid
+    bottom navigation remains unchanged and ripple-free.
+
 ### Settings
 
-- [ ] Theme picker.
-- [ ] Sections.
-- [ ] controls.
-- [ ] reminders.
-- [ ] language.
+- [x] Theme picker.
+- [x] Sections.
+- [x] controls.
+- [x] reminders.
+- [x] language.
 
 ### Today
 
-- [ ] Header/calendar.
-- [ ] habits.
-- [ ] todos.
-- [ ] swipe regression check.
-- [ ] drag reorder regression check.
+- [x] Header/calendar.
+- [x] habits.
+- [x] todos.
+- [x] swipe regression check.
+- [x] drag reorder regression check.
 
 ### Goals
 
-- [ ] Summary.
-- [ ] filters/sort.
-- [ ] goal cards.
-- [ ] drag reorder regression check.
+- [x] Summary.
+- [x] filters/sort.
+- [x] goal cards.
+- [x] drag reorder regression check.
 
 ### History
 
-- [ ] Timeline/calendar hierarchy.
-- [ ] day details.
+- [x] Timeline/calendar hierarchy.
+- [x] day details.
 
 ### Detail/edit
 
-- [ ] Habit add/edit.
-- [ ] Habit detail.
-- [ ] Goal add/edit.
-- [ ] Goal detail.
+- [x] Habit add/edit.
+- [x] Habit detail.
+- [x] Goal add/edit.
+- [x] Goal detail.
 
 ### Secondary
 
-- [ ] Onboarding.
-- [ ] Empty state.
-- [ ] celebration.
-- [ ] alert.
-- [ ] snackbar.
-- [ ] miscellaneous shared UI.
+- [x] Onboarding.
+- [x] Empty state.
+- [x] celebration.
+- [x] alert.
+- [x] snackbar.
+- [x] miscellaneous shared UI.
+- [x] Validate checkpoint locally.
+  - TypeScript and ESLint pass without warnings; Jest passes 18 suites / 145
+    tests. Expo Doctor passes 21/21 and Android Expo export succeeds.
+  - Clean Android prebuild succeeds. `expo-liquid-glass` and `@expo/ui`
+    resolve through Expo autolinking; Gesture Handler, Reanimated, and
+    Worklets resolve through React Native autolinking; New Architecture stays
+    enabled; 14/14 generated Android XML files parse; no iOS tree is generated.
+  - Local Kotlin/Gradle compilation was not performed. Because native package
+    patches changed, EAS Development/Preview compilation and physical-device
+    screen/ripple/gesture QA remain required before merge.
+  - The isolated Checkpoint 7 patch applies cleanly to exact base
+    `09e8c48259f45a9e420fd5a163f182da8d811c04`. A disk-backed verification
+    checkout completed a cold `npm ci`, TypeScript, warning-free ESLint, and
+    all 18 Jest suites / 145 tests.
 
 ## Checkpoint 8 — Widget fixes
 

@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text } from "react-native";
 import Animated from "react-native-reanimated";
 import { useReducedMotion } from "../hooks/useReducedMotion";
-import { withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 import { resolveAndroidSurfaceDepth } from "./appSurfaceDepth";
 import { FAB_SIZE } from "./navigation/bottom-navigation-layout";
+import { resolvePressFeedback } from "./pressFeedback";
 
 interface FabProps {
   onPress: () => void;
@@ -15,7 +15,7 @@ interface FabProps {
 }
 
 export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: FabProps) {
-  const { colors, effects, motion, shapes, states } = useTheme();
+  const { colors, effects, motion, shapes, states, visualTheme } = useTheme();
   const reducedMotion = useReducedMotion();
   const [pressed, setPressed] = useState(false);
   const depthStyle = resolveAndroidSurfaceDepth(
@@ -23,6 +23,12 @@ export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: F
     effects.shadows.medium,
     Number(Platform.Version),
   );
+  const pressFeedback = resolvePressFeedback({
+    visualTheme,
+    states,
+    color: colors.onPrimaryContainer,
+    radius: shapes.floating,
+  });
 
   return (
     <Animated.View
@@ -44,14 +50,14 @@ export function Fab({ onPress, icon = "+", accessibilityLabel, bottomOffset }: F
         onPressOut={() => setPressed(false)}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        android_ripple={{ color: withOpacity(colors.onPrimaryContainer, states.rippleOpacity) }}
+        android_ripple={pressFeedback.androidRipple}
         style={[
           styles.fab,
           {
             backgroundColor: colors.primaryContainer,
             borderRadius: shapes.floating,
             ...depthStyle,
-            opacity: pressed ? states.pressedOpacity : 1,
+            opacity: pressFeedback.opacity(pressed),
           },
         ]}
       >

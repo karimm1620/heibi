@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "../theme/colors";
 import { m3ElevationStyle } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
+import { usePressFeedback } from "./pressFeedback";
 
 interface TopAppBarAction {
   icon: string;
@@ -20,6 +21,7 @@ interface TopAppBarProps {
 
 export function TopAppBar({ title, onBack, actions = [], elevated = false }: TopAppBarProps) {
   const { colors, typography } = useTheme();
+  const pressFeedback = usePressFeedback(colors.primary, { radius: 20 });
   const insets = useSafeAreaInsets();
 
   return (
@@ -36,8 +38,8 @@ export function TopAppBar({ title, onBack, actions = [], elevated = false }: Top
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Kembali"
-          android_ripple={{ color: colors.glassBorder, borderless: true, radius: 20 }}
-          style={styles.iconButton}
+          android_ripple={pressFeedback.androidRipple}
+          style={({ pressed }) => [styles.iconButton, { opacity: pressFeedback.opacity(pressed) }]}
         >
           <Text style={{ fontSize: 20, color: colors.textPrimary }}>‹</Text>
         </Pressable>
@@ -55,8 +57,8 @@ export function TopAppBar({ title, onBack, actions = [], elevated = false }: Top
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel={action.accessibilityLabel}
-            android_ripple={{ color: colors.glassBorder, borderless: true, radius: 20 }}
-            style={styles.iconButton}
+            android_ripple={pressFeedback.androidRipple}
+            style={({ pressed }) => [styles.iconButton, { opacity: pressFeedback.opacity(pressed) }]}
           >
             <Text style={{ fontSize: 18 }}>{action.icon}</Text>
           </Pressable>
@@ -70,5 +72,5 @@ const styles = StyleSheet.create({
   bar: { flexDirection: "row", alignItems: "center", minHeight: 56, paddingHorizontal: spacing.sm, justifyContent: "flex-start" },
   title: { flex: 1, marginLeft: spacing.sm },
   actions: { flexDirection: "row", alignItems: "center" },
-  iconButton: { width: 40, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 20 },
+  iconButton: { width: 48, height: 48, alignItems: "center", justifyContent: "center", borderRadius: 24, overflow: "hidden" },
 });

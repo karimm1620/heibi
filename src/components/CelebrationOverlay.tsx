@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useState } from "react";
 import { Animated, Easing, StyleSheet, Text } from "react-native";
 import { useReducedMotion } from "../hooks/useReducedMotion";
+import { useTranslation } from "../hooks/useTranslation";
 import { spacing } from "../theme/colors";
 import { m3ElevationStyle, m3Motion, m3Shape } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
@@ -28,6 +29,7 @@ export function CelebrationOverlay({
 }: CelebrationOverlayProps) {
   const { typography, material3 } = useTheme();
   const reducedMotion = useReducedMotion();
+  const { t } = useTranslation();
   // Checkpoint 6/7: useState(() => ...) gantiin useRef(...).current -- lihat
   // catatan sama di MaterialNavigationBar.tsx (hindari react-hooks/refs).
   const [opacity] = useState(() => new Animated.Value(0));
@@ -106,6 +108,8 @@ export function CelebrationOverlay({
       style={styles.wrapper}
       pointerEvents="none"
       accessibilityLiveRegion="polite"
+      accessibilityRole="alert"
+      accessibilityLabel={t.celebration.allDone}
     >
       <Animated.View
         style={[styles.card, { opacity, transform: [{ scale }] }]}
@@ -113,7 +117,7 @@ export function CelebrationOverlay({
         <CookieShape size={28} color={material3.primary}>
           <MaterialCommunityIcons name="check" size={16} color={material3.onPrimary} />
         </CookieShape>
-        <Text style={styles.text}>Semua beres hari ini</Text>
+        <Text style={styles.text}>{t.celebration.allDone}</Text>
       </Animated.View>
     </Animated.View>
   );

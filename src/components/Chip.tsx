@@ -1,7 +1,8 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, type AccessibilityRole } from "react-native";
-import { spacing, withOpacity } from "../theme/colors";
+import { spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
+import { resolvePressFeedback } from "./pressFeedback";
 
 interface ChipProps {
   label: string;
@@ -20,7 +21,14 @@ export function Chip({
   accessibilityRole = "button",
   disabled = false,
 }: ChipProps) {
-  const { colors, shapes, states, typography } = useTheme();
+  const { colors, shapes, states, typography, visualTheme } = useTheme();
+  const pressFeedback = resolvePressFeedback({
+    visualTheme,
+    states,
+    color: selected ? colors.onSelected : colors.primary,
+    disabled,
+    radius: shapes.control,
+  });
 
   return (
     <Pressable
@@ -29,7 +37,7 @@ export function Chip({
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected, disabled }}
       disabled={disabled}
-      android_ripple={{ color: withOpacity(colors.onSelected, states.rippleOpacity) }}
+      android_ripple={pressFeedback.androidRipple}
       hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
       pressRetentionOffset={12}
       style={({ pressed }) => [
@@ -38,11 +46,7 @@ export function Chip({
           ...(selected ? shapes.selected : { borderRadius: shapes.content }),
           backgroundColor: selected ? colors.selected : "transparent",
           borderColor: selected ? "transparent" : colors.outline,
-          opacity: disabled
-            ? states.disabledOpacity
-            : pressed
-              ? states.pressedOpacity
-              : 1,
+          opacity: pressFeedback.opacity(pressed),
         },
       ]}
     >

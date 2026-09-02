@@ -1,5 +1,5 @@
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -14,7 +14,9 @@ import {
 } from "react-native";
 import { AppAlert } from "../../src/components/AppAlert";
 import { AppButton } from "../../src/components/AppButton";
+import { AppSurface } from "../../src/components/AppSurface";
 import { Chip } from "../../src/components/Chip";
+import { usePressFeedback } from "../../src/components/pressFeedback";
 import {
   HABIT_COLOR_OPTIONS,
   HabitColorPicker,
@@ -61,6 +63,9 @@ export default function AddHabitScreen() {
   const { colors, typography, isDark, material3 } = useTheme();
   const { t, language, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
+  const weekdayPressFeedback = usePressFeedback(material3.onSecondaryContainer, {
+    radius: m3Shape.full,
+  });
 
   const habit = useHabitsStore((s) =>
     id ? s.getHabitById(id) : undefined,
@@ -192,17 +197,27 @@ export default function AddHabitScreen() {
 
   return (
     <KeyboardAvoidingView key={isDark ? "dark" : "light"} style={{ flex: 1 }}>
+      <Stack.Screen
+        options={{
+          title: isEditMode ? t.habitForm.editScreenTitle : t.habitForm.screenTitle,
+        }}
+      />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.label}>{t.habitForm.nameLabel}</Text>
+        <AppSurface variant="muted" elevation="none" style={styles.formSection}>
+        <Text accessibilityRole="header" style={[styles.label, styles.firstLabel]}>
+          {t.habitForm.nameLabel}
+        </Text>
         <TextInput
           value={name}
           onChangeText={setName}
           placeholder={t.habitForm.namePlaceholder}
           placeholderTextColor={colors.textSecondary}
           style={styles.input}
+          accessibilityLabel={t.habitForm.nameLabel}
         />
 
         <Text style={styles.label}>{t.habitForm.iconLabel}</Text>
@@ -210,8 +225,12 @@ export default function AddHabitScreen() {
 
         <Text style={styles.label}>{t.habitForm.colorLabel}</Text>
         <HabitColorPicker selected={color} onSelect={setColor} />
+        </AppSurface>
 
-        <Text style={styles.label}>{t.habitForm.frequencyLabel}</Text>
+        <AppSurface variant="muted" elevation="none" style={styles.formSection}>
+        <Text accessibilityRole="header" style={[styles.label, styles.firstLabel]}>
+          {t.habitForm.frequencyLabel}
+        </Text>
         <View style={styles.chipRow}>
           <Chip
             label={t.habitForm.dailyChip}
@@ -235,17 +254,18 @@ export default function AddHabitScreen() {
                   onPress={() =>
                     setWeekdaysMask((prev) => toggleWeekdayBit(prev, index))
                   }
-                  style={[
+                  style={({ pressed }) => [
                     styles.weekdayChip,
                     active && {
                       backgroundColor: material3.secondaryContainer,
                       borderColor: "transparent",
                     },
+                    { opacity: weekdayPressFeedback.opacity(pressed) },
                   ]}
                   accessibilityRole="button"
                   accessibilityLabel={interpolate(t.habitForm.weekdayAccessibilityLabel, { label })}
                   accessibilityState={{ selected: active }}
-                  android_ripple={{ color: colors.glassBorder }}
+                  android_ripple={weekdayPressFeedback.androidRipple}
                 >
                   <Text
                     style={[
@@ -316,6 +336,7 @@ export default function AddHabitScreen() {
             onDismiss={() => setShowTimePicker(false)}
           />
         )}
+        </AppSurface>
 
         <AppButton
           label={isEditMode ? t.habitForm.saveButtonEdit : t.habitForm.saveButtonCreate}
@@ -353,6 +374,13 @@ function createStyles(
       padding: spacing.lg,
       paddingBottom: spacing.xxl,
     },
+    formSection: {
+      padding: spacing.md,
+      marginBottom: spacing.md,
+    },
+    firstLabel: {
+      marginTop: 0,
+    },
     label: {
       ...typography.label,
       marginBottom: spacing.sm,
@@ -378,8 +406,8 @@ function createStyles(
       marginTop: spacing.sm,
     },
     weekdayChip: {
-      width: 40,
-      height: 40,
+      width: 48,
+      height: 48,
       borderRadius: m3Shape.full,
       borderWidth: 1,
       borderColor: colors.glassBorder,

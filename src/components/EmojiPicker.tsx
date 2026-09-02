@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { radius, spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
+import { usePressFeedback } from "./pressFeedback";
 
 const EMOJI_OPTIONS = [
   "🎯",
@@ -41,6 +42,9 @@ interface EmojiPickerProps {
 
 export function EmojiPicker({ selected, onSelect }: EmojiPickerProps) {
   const { colors, material3 } = useTheme();
+  const pressFeedback = usePressFeedback(material3.onSecondaryContainer, {
+    radius: radius.md,
+  });
 
   const styles = useMemo(
     () =>
@@ -84,11 +88,15 @@ export function EmojiPicker({ selected, onSelect }: EmojiPickerProps) {
           <Pressable
             key={emoji}
             onPress={() => onSelect(emoji)}
-            style={[styles.item, isActive && styles.itemActive]}
+            style={({ pressed }) => [
+              styles.item,
+              isActive && styles.itemActive,
+              { opacity: pressFeedback.opacity(pressed) },
+            ]}
             accessibilityRole="button"
             accessibilityLabel={`Pilih ikon ${emoji}`}
             accessibilityState={{ selected: isActive }}
-            android_ripple={{ color: colors.glassBorder }}
+            android_ripple={pressFeedback.androidRipple}
           >
             <Text style={styles.emoji}>{emoji}</Text>
           </Pressable>

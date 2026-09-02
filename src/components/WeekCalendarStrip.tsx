@@ -12,6 +12,7 @@ import Animated, {
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { useTranslation } from "../hooks/useTranslation";
 import { useTheme } from "../theme/useTheme";
+import { usePressFeedback } from "./pressFeedback";
 import {
   addDays,
   getLocalDateKey,
@@ -163,6 +164,7 @@ interface WeekDatesRowProps {
 
 function WeekDatesRow({ width, weekStart, todayKey, onSelectDate }: WeekDatesRowProps) {
   const { colors, material3 } = useTheme();
+  const pressFeedback = usePressFeedback(material3.onPrimary, { radius: 18 });
   const { t, interpolate } = useTranslation();
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
   const today = useMemo(() => new Date(), []);
@@ -180,8 +182,12 @@ function WeekDatesRow({ width, weekStart, todayKey, onSelectDate }: WeekDatesRow
             onPress={() => onSelectDate(dateKey)}
             accessibilityRole="button"
             accessibilityLabel={interpolate(t.calendar.dateAccessibilityLabel, { day: day.getDate() })}
-            style={styles.dateCell}
+            style={({ pressed }) => [
+              styles.dateCell,
+              { opacity: pressFeedback.opacity(pressed) },
+            ]}
             hitSlop={4}
+            android_ripple={pressFeedback.androidRipple}
           >
             <View
               style={[

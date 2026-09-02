@@ -15,6 +15,14 @@ export const en: TranslationDict = {
     archive: "Archive",
     back: "Back",
     close: "Close",
+    undo: "Undo",
+  },
+  celebration: {
+    allDone: "Everything is done for today",
+  },
+  snackbar: {
+    goalDeleted: "{{name}} deleted",
+    undoGoalDeletionAccessibility: "Undo goal deletion",
   },
   today: {
     headerTitle: "Today's agenda",
@@ -74,6 +82,7 @@ export const en: TranslationDict = {
   },
   habitForm: {
     screenTitle: "New Habit",
+    editScreenTitle: "Edit Habit",
     nameLabel: "Habit Name",
     namePlaceholder: "e.g. Drink water, Read 20 minutes",
     iconLabel: "Icon",
@@ -167,6 +176,7 @@ export const en: TranslationDict = {
   },
   goalForm: {
     screenTitle: "New Goal",
+    editScreenTitle: "Edit Goal",
     imageLabel: "Image / Icon",
     pickImageAccessibilityLabel: "Choose a goal image from gallery",
     uploadLabel: "Upload",

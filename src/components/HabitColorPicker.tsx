@@ -4,6 +4,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import { spacing } from "../theme/colors";
 import { m3Shape } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
+import { usePressFeedback } from "./pressFeedback";
 
 /**
  * Palet warna khusus habit — SENGAJA beda dari `accentByKey` (pastel, dipakai
@@ -34,6 +35,7 @@ export function HabitColorPicker({
   onSelect,
 }: HabitColorPickerProps) {
   const { colors } = useTheme();
+  const pressFeedback = usePressFeedback(colors.textPrimary, { radius: m3Shape.full });
   const { t, interpolate } = useTranslation();
 
   const styles = useMemo(
@@ -67,15 +69,17 @@ export function HabitColorPicker({
           <Pressable
             key={color}
             onPress={() => onSelect(color)}
-            style={[
+            style={({ pressed }) => [
               styles.swatch,
               { backgroundColor: color },
               isActive && styles.swatchActive,
+              { opacity: pressFeedback.opacity(pressed) },
             ]}
             accessibilityRole="button"
             accessibilityLabel={interpolate(t.habitForm.colorAccessibilityLabel, { color })}
             accessibilityState={{ selected: isActive }}
             hitSlop={4}
+            android_ripple={pressFeedback.androidRipple}
           />
         );
       })}

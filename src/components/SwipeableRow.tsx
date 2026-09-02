@@ -5,6 +5,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { radius, spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
+import { usePressFeedback } from "./pressFeedback";
 
 export type SwipeIconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -174,7 +175,8 @@ function ActionButton({
   /** true = renderRightActions (transX negatif pas ke-reveal), false = renderLeftActions (positif). */
   isRightSide: boolean;
 }) {
-  const { typography } = useTheme();
+  const { colors, typography } = useTheme();
+  const pressFeedback = usePressFeedback(colors.textInverse, { radius: radius.sm });
 
   // Pop-in halus ngikutin jarak drag -- 0.5 (baru mulai keliatan) ke 1
   // (kebuka penuh di REVEAL_DISTANCE), biar kerasa "nyambung" ke jari,
@@ -194,7 +196,11 @@ function ActionButton({
   return (
     <Pressable
       onPress={() => onPress(action)}
-      style={[styles.actionButton, { backgroundColor: action.color }]}
+      android_ripple={pressFeedback.androidRipple}
+      style={({ pressed }) => [
+        styles.actionButton,
+        { backgroundColor: action.color, opacity: pressFeedback.opacity(pressed) },
+      ]}
       accessibilityRole="button"
       accessibilityLabel={action.label}
     >
