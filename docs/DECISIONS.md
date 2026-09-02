@@ -928,6 +928,159 @@ migration.
 
 ---
 
+## D-027 — Preserve Checkpoint 5 navigation architecture while refining its material response
+
+**Status:** accepted and physically validated for Checkpoint 6
+
+### Finding
+
+Final physical-device QA accepted Checkpoint 5 navigation as functionally safe
+and usable. The user nevertheless prefers the earlier clear Material selection
+pill and reports that Liquid's route-triggered backdrop capture reads as a
+static snapshot between explicit refreshes. Neither finding invalidates the
+dispatcher, centralized event/haptic ownership, shared safe-area metrics,
+single optical host, or immediate tab-scene switching.
+
+### Decision
+
+Checkpoint 6 may change the Material selected presentation back to a restrained
+semantic rounded pill while preserving the Checkpoint 5 architecture. It must
+also investigate the smallest generic native invalidation capability that can
+refresh a bounded Liquid host while the backdrop is meaningfully changing and
+stop deterministically once the scene is idle.
+
+The renderer must keep one navigation-bounded host, no JavaScript frame loop,
+no permanent native frame loop, no indicator-driven capture, the existing API
+24–30 tonal / API 31–32 blur / API 33+ optical tiers, and the existing low-RAM
+and failure degradation. Transient control surfaces may reuse the capability
+only when invalidation ownership remains explicit.
+
+### Trade-offs and gate
+
+- no new graphics runtime or dependency is authorized by this decision;
+- a permanent high-frequency capture loop, whole-screen capture, multiple
+  navigation hosts, or materially heavier rendering architecture still
+  triggers the significant-finding stop gate;
+- the user acceptance adds no API 31–32, physical API 24–30, artifact-size,
+  thermal/battery, or formal frame-time evidence;
+- no general glassmorphism, content-card optical rollout, screen migration, or
+  Checkpoint 7 work is authorized.
+
+The static appearance was caused by invalidation ownership: pre-draw already
+existed, but it captured only when `capturePending` was set. With production
+touch capture disabled, route `refreshKey` changes were the only normal dirty
+signal; ancestor scrolling and layout changes did not mark the backdrop dirty.
+
+The accepted generic refinement registers one `OnScrollChangedListener` and
+one `OnGlobalLayoutListener` beside the existing pre-draw listener. Both mark
+the same bounded host dirty. Requests coalesce while a capture is pending and
+are limited to one request per 32ms while the view tree changes. If the final
+event lands inside that interval, one delayed trailing dirty request captures
+the settled backdrop; it is not a recurring timer. Detach and Expo destruction
+remove all three observers, cancel the trailing callback, reset scheduling
+state, and release the bitmap, RenderNode, effects, and shader as before.
+
+This model performs no recurring idle work, schedules no JavaScript frame
+callback, and does not respond to the separate selected-indicator transform.
+It covers ancestor scroll and layout mutation. Pure paint/transform animation
+behind the host that produces neither signal still requires an explicit
+`refreshKey`; supporting arbitrary animation would require a continuously
+sampled or producer-coordinated contract and is not claimed.
+
+The Material selected icon container returns to the earlier 64x32 semantic
+rounded pill. Only its geometry changes; the Checkpoint 5 dispatcher, event
+gate, ripple, accessibility, layout metrics, and no-scene-animation contract
+remain intact.
+
+Local source guards require observer registration, coalescing/throttling,
+trailing-callback cancellation, and full listener cleanup, and reject a native
+or JavaScript permanent frame loop. At implementation delivery, EAS/device
+validation remained required because local static validation did not establish
+capture cost, visual freshness, or native compilation.
+
+The follow-up EAS Android build succeeds for the unchanged production source.
+User physical-device QA strongly confirms live bounded blur while scrolling,
+the final settled backdrop after scrolling, no visible recurring idle refresh,
+rapid tab switching, and no artifact or flicker. The Material rounded pill,
+navigation behavior, and FAB/snackbar geometry also pass. No crash,
+noticeable lag, or noticeable heat/battery issue was observed. The user accepts
+this model and the pill refinement.
+
+This remains qualitative evidence. It adds no formal frame-time, GPU, CPU,
+memory, battery-discharge, or thermal measurements; no release APK size; and
+no physical API 24–30 or API 31–32 evidence. The API 24–30 tonal, API 31–32
+bounded blur, API 33+ original AGSL, and low-RAM/failure degradation contracts
+remain unchanged.
+
+---
+
+## D-028 — Use the installed native Expo UI sheet with a tonal Liquid dialog boundary
+
+**Status:** accepted and physically validated for Checkpoint 6
+
+### Finding
+
+The production audit found two bottom sheets implemented with duplicated core
+`Animated`, `PanResponder`, React Native `Modal`, manual scrims, and manual IME
+translation: day history and goal deposit/withdraw. `AppAlert` is already a
+shared dialog rather than a sheet; add/edit flows are route modals.
+
+The installed `@expo/ui` 57.0.14 community bottom-sheet wrapper hosts arbitrary
+React Native descendants in Android Material 3 `ModalBottomSheet`. It provides
+native system-back and scrim dismissal, swipe gestures, partial/full states,
+scroll arbitration, and keyboard behavior, and is already inside the project's
+New Architecture/native dependency envelope. Android exposes two effective
+detents, and several Gorhom-compatibility styling/keyboard props are native
+no-ops. The wrapper exposes semantic container color but intentionally retains
+the platform Material 3 scrim.
+
+### Decision
+
+One `AppBottomSheet` controls visibility, dismissal, theme surface, safe-area
+padding, heading, 48dp close action, and modal accessibility semantics. Both
+production sheets migrate to it and the manual `useSheetMotion` hook is
+removed. The platform scrim blocks touch-through and owns press-to-dismiss;
+system back dismisses the top native sheet before the activity route; the
+native sheet arbitrates inner scrolling, drag, and IME rather than a JS-frame
+gesture state machine.
+
+Material uses an opaque dynamic semantic surface with the existing restrained
+sheet radius. Liquid uses `LiquidMaterialSurface` as a tonal, highlighted
+control plane. The optical `OriginalLiquidGlassSurface` is not mounted in the
+sheet: Compose presents the sheet in a separate dialog window, but the current
+renderer samples only its immediate parent in the same view hierarchy. A real
+cross-window backdrop would require materially heavier capture architecture,
+so faking or silently adopting it is rejected.
+
+Native sheet motion follows Android's system animator setting. The tonal
+Liquid child also follows the existing reduced-motion hook. A single light
+haptic occurs after a deposit or withdrawal commits; rejected actions, drag
+frames, and detent movement do not vibrate. The SDK 57 Android wrapper exposes
+no reliable detent-settle callback, so no detent haptic is claimed.
+
+### Consequences
+
+- no dependency, graphics runtime, config plugin, or iOS change is added;
+- Expo Go/development-build posture does not change because `@expo/ui` was
+  already installed and used, while heibi's local optical module already makes
+  EAS Development/Preview the authoritative native path;
+- the platform Material 3 scrim is deliberate depth separation, not a custom
+  arbitrary opacity or a full-screen Liquid blur;
+- exact focus entry/restoration support and native sheet behavior require
+  TalkBack/device QA; React descendants remain the accessibility source;
+- EAS compilation and physical-device sheet, keyboard, back, scroll, and live
+  Liquid validation were required before merge and are recorded below.
+
+The follow-up EAS build succeeds, and user physical-device QA passes for the
+History and goal deposit/withdraw sheets in both Material and Liquid themes,
+including Android back, the native scrim, swipe dismissal, scroll handoff,
+keyboard/IME behavior, reduced motion, and TalkBack. Liquid sheets remain
+tonal: no cross-window optical renderer was introduced. The user accepts this
+native-sheet architecture. The same qualitative evidence limits recorded in
+D-027 apply.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.

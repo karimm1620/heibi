@@ -26,6 +26,16 @@ describe("production bottom navigation source contract", () => {
     expect(dispatcher).not.toContain("ImpactFeedbackStyle");
   });
 
+  it("keeps the accepted dispatcher while presenting Material selection as a pill", () => {
+    const materialNavigation = fs.readFileSync(
+      path.join(process.cwd(), "src/components/MaterialNavigationBar.tsx"),
+      "utf8",
+    );
+
+    expect(materialNavigation).toContain("borderRadius: shapes.full");
+    expect(materialNavigation).not.toContain("...shapes.selected");
+  });
+
   it("uses one bounded optical host and no JavaScript frame loop", () => {
     const liquidNavigation = fs.readFileSync(
       path.join(

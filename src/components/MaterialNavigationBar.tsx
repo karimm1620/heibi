@@ -63,8 +63,8 @@ export function MaterialNavigationBar({
               style={[
                 styles.iconContainer,
                 destination.selected && {
-                  ...shapes.selected,
                   backgroundColor: colors.selected,
+                  borderRadius: shapes.full,
                 },
               ]}
             >

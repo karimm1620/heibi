@@ -1,9 +1,7 @@
+import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  Animated,
-  Keyboard,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,21 +11,20 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppAlert } from "../../src/components/AppAlert";
+import { AppBottomSheet } from "../../src/components/AppBottomSheet";
 import { EmptyState } from "../../src/components/EmptyState";
 import { GlassCard } from "../../src/components/GlassCard";
 import { JarProgress } from "../../src/components/JarProgress";
 import { TransactionRow } from "../../src/components/TransactionRow";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
-import { useSheetMotion } from "../../src/hooks/useSheetMotion";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
 import {
   getAccentColors,
-  radius,
   spacing,
   withOpacity,
 } from "../../src/theme/colors";
-import { m3ElevationStyle, m3Shape } from "../../src/theme/material3/tokens";
+import { m3Shape } from "../../src/theme/material3/tokens";
 import { useTheme } from "../../src/theme/useTheme";
 import { formatIDR, formatThousands, parseThousands } from "../../src/utils/currency";
 
@@ -64,40 +61,6 @@ export default function GoalDetailScreen() {
     setAmountDisplay("");
     setNote("");
   };
-
-  const {
-    mounted: sheetMounted,
-    backdropOpacity,
-    sheetTranslateY,
-    dragHandlers,
-  } = useSheetMotion({ visible: action !== null, onDismiss: closeSheet });
-  // Checkpoint 6: useState(() => ...) gantiin useRef(...).current -- lihat
-  // catatan yang sama di MaterialNavigationBar.tsx (hindari warning
-  // react-hooks/refs, sekalian gak query recompute Animated.Value baru tiap
-  // render yang langsung dibuang).
-  const [keyboardOffset] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
-      Animated.timing(keyboardOffset, {
-        toValue: e.endCoordinates.height,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    });
-    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
-      Animated.timing(keyboardOffset, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    });
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, [keyboardOffset]);
 
   const accent = useMemo(() => getAccentColors(goal?.accent ?? "mint"), [goal]);
 
@@ -151,36 +114,6 @@ export default function GoalDetailScreen() {
         txCard: {
           paddingHorizontal: spacing.md,
           marginBottom: spacing.sm,
-        },
-        backdrop: {
-          flex: 1,
-          backgroundColor: colors.overlayScrim,
-        },
-        sheetWrapper: {
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-        },
-        sheetCard: {
-          backgroundColor: colors.surface,
-          borderTopLeftRadius: m3Shape.extraLarge,
-          borderTopRightRadius: m3Shape.extraLarge,
-          padding: spacing.lg,
-          paddingBottom: spacing.lg + insets.bottom,
-          ...m3ElevationStyle("level1"),
-        },
-        grabber: {
-          width: 40,
-          height: 5,
-          borderRadius: radius.pill,
-          backgroundColor: colors.glassBorder,
-          alignSelf: "center",
-          marginBottom: spacing.md,
-        },
-        modalTitle: {
-          ...typography.subtitle,
-          marginBottom: spacing.xs,
         },
         modalHint: {
           ...typography.caption,
@@ -236,7 +169,7 @@ export default function GoalDetailScreen() {
           color: colors.textPrimary,
         },
       }),
-    [colors, typography, insets.bottom],
+    [colors, typography],
   );
 
   if (!goal) {
@@ -265,6 +198,7 @@ export default function GoalDetailScreen() {
 
     if (action === "deposit") {
       await deposit(goal.id, amount, note.trim() || undefined);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
       closeSheet();
     } else if (action === "withdraw") {
       const result = await withdraw(
@@ -276,6 +210,7 @@ export default function GoalDetailScreen() {
         showAlert(t.goalDetail.withdrawErrorTitle, result.error ?? t.goalDetail.withdrawErrorFallback);
         return;
       }
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
       closeSheet();
     }
   };
@@ -373,93 +308,65 @@ export default function GoalDetailScreen() {
         )}
       </ScrollView>
 
-      <Modal
-        visible={sheetMounted}
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        onRequestClose={closeSheet}
+      <AppBottomSheet
+        visible={action !== null}
+        onDismiss={closeSheet}
+        title={action === "deposit" ? t.goalDetail.sheetTitleDeposit : t.goalDetail.sheetTitleWithdraw}
+        testID="goal-transaction-sheet"
       >
-        <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={closeSheet} />
-        </Animated.View>
+        {action === "withdraw" && (
+          <Text style={styles.modalHint}>
+            {interpolate(t.goalDetail.availableBalance, { amount: formatIDR(goal.currentAmount) })}
+          </Text>
+        )}
 
-        <View style={styles.sheetWrapper} pointerEvents="box-none">
-          <Animated.View
+        <View style={styles.currencyInputWrap}>
+          <Text style={styles.currencyPrefix}>Rp</Text>
+          <TextInput
+            value={amountDisplay}
+            onChangeText={(text) => setAmountDisplay(formatThousands(text))}
+            placeholder="0"
+            placeholderTextColor={colors.textSecondary}
+            keyboardType="number-pad"
+            style={styles.currencyInput}
+            autoFocus
+          />
+        </View>
+
+        <TextInput
+          value={note}
+          onChangeText={setNote}
+          placeholder={t.goalDetail.notePlaceholder}
+          placeholderTextColor={colors.textSecondary}
+          style={styles.noteInput}
+        />
+
+        <View style={styles.modalActions}>
+          <Pressable
+            onPress={closeSheet}
+            style={[styles.modalButton, styles.modalButtonGhost]}
+            accessibilityRole="button"
+            accessibilityLabel={t.goalDetail.cancelAccessibilityLabel}
+            android_ripple={{ color: colors.glassBorder }}
+          >
+            <Text style={styles.modalButtonGhostText}>{t.common.cancel}</Text>
+          </Pressable>
+          <Pressable
+            onPress={handleConfirm}
             style={[
-              styles.sheetCard,
+              styles.modalButton,
               {
-                transform: [
-                  { translateY: sheetTranslateY },
-                  { translateY: Animated.multiply(keyboardOffset, -1) },
-                ],
+                backgroundColor: action === "deposit" ? colors.deposit : colors.withdraw,
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={t.goalDetail.confirmAccessibilityLabel}
+            android_ripple={{ color: withOpacity(colors.textInverse, 0.24) }}
           >
-            <View
-              style={styles.grabber}
-              hitSlop={{ top: 12, bottom: 12, left: 24, right: 24 }}
-              {...dragHandlers}
-            />
-            <Text style={styles.modalTitle}>
-              {action === "deposit" ? t.goalDetail.sheetTitleDeposit : t.goalDetail.sheetTitleWithdraw}
-            </Text>
-            {action === "withdraw" && (
-              <Text style={styles.modalHint}>
-                {interpolate(t.goalDetail.availableBalance, { amount: formatIDR(goal.currentAmount) })}
-              </Text>
-            )}
-
-            <View style={styles.currencyInputWrap}>
-              <Text style={styles.currencyPrefix}>Rp</Text>
-              <TextInput
-                value={amountDisplay}
-                onChangeText={(text) => setAmountDisplay(formatThousands(text))}
-                placeholder="0"
-                placeholderTextColor={colors.textSecondary}
-                keyboardType="number-pad"
-                style={styles.currencyInput}
-                autoFocus
-              />
-            </View>
-
-            <TextInput
-              value={note}
-              onChangeText={setNote}
-              placeholder={t.goalDetail.notePlaceholder}
-              placeholderTextColor={colors.textSecondary}
-              style={styles.noteInput}
-            />
-
-            <View style={styles.modalActions}>
-              <Pressable
-                onPress={closeSheet}
-                style={[styles.modalButton, styles.modalButtonGhost]}
-                accessibilityRole="button"
-                accessibilityLabel={t.goalDetail.cancelAccessibilityLabel}
-                android_ripple={{ color: colors.glassBorder }}
-              >
-                <Text style={styles.modalButtonGhostText}>{t.common.cancel}</Text>
-              </Pressable>
-              <Pressable
-                onPress={handleConfirm}
-                style={[
-                  styles.modalButton,
-                  {
-                    backgroundColor:
-                      action === "deposit" ? colors.deposit : colors.withdraw,
-                  },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={t.goalDetail.confirmAccessibilityLabel}
-                android_ripple={{ color: withOpacity(colors.textInverse, 0.24) }}
-              >
-                <Text style={styles.actionButtonText}>{t.goalDetail.confirmButton}</Text>
-              </Pressable>
-            </View>
-          </Animated.View>
+            <Text style={styles.actionButtonText}>{t.goalDetail.confirmButton}</Text>
+          </Pressable>
         </View>
-      </Modal>
+      </AppBottomSheet>
 
       <AppAlert
         visible={alertState.visible}

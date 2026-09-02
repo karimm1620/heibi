@@ -228,7 +228,7 @@ API 31–32, and instrumented device performance remain open evidence.
 - [x] UndoSnackbar offsets derive from the same metrics and FAB size.
 - [x] Validate checkpoint.
   - Authoritative and fresh-base TypeScript, ESLint, and Jest gates pass; Jest
-    reports 14 suites and 120 tests.
+    reports 14 suites and 121 tests after the final review fixes.
   - Android Expo export, clean Android prebuild, local-module autolinking, New
     Architecture inspection, 14/14 generated XML parses, and diff checks pass.
   - Expo Doctor passes 20/21 checks; the only failure is the pre-existing SDK
@@ -242,19 +242,70 @@ API 31–32, and instrumented device performance remain open evidence.
     to roll back the accepted dispatcher, layout, haptic, or renderer contract.
   - No API 31–32, physical API 24–30, release-size, thermal/battery, or formal
     frame-time evidence was added by this acceptance.
+  - PR #13 was squash-merged at
+    `ab80ed3ad1cd6d9d5feea4b92a3e8484ad5e2194` after its amended CI passed and
+    the two review threads were resolved.
 
 ## Checkpoint 6 — Bottom sheets / transient UI
 
-- [ ] Audit `expo-ui` options.
-- [ ] Establish shared sheet behavior.
-- [ ] Correct scrim.
-- [ ] Correct Android back dismissal.
-- [ ] Correct scroll/gesture interaction.
-- [ ] M3 sheet styling.
-- [ ] Liquid sheet styling.
-- [ ] Haptic detents/actions.
-- [ ] Reduced motion.
-- [ ] Validate checkpoint.
+### Checkpoint 5 follow-up refinements
+
+- [x] Restore/refine the Material selected-navigation pill without regressing
+  the Checkpoint 5 dispatcher, routing, haptics, metrics, or accessibility.
+- [x] Make Liquid navigation backdrop refresh contextual/live while preserving
+  one bounded host and zero recurring idle capture.
+- [x] Validate navigation regressions after both refinements.
+
+- [x] Audit `expo-ui` options.
+  - The already-installed SDK 57 community sheet supports arbitrary React
+    Native descendants through its native Compose host, New Architecture,
+    native back/scrim/swipe ownership, scroll handoff, and IME behavior. Android
+    supports only partial/full states. No dependency or Expo Go/development
+    build requirement changed.
+  - Its separate dialog window cannot expose the activity backdrop to the
+    current immediate-parent optical renderer. Liquid sheets therefore use the
+    tonal fallback; a heavier cross-window renderer was not justified.
+- [x] Establish shared sheet behavior.
+- [x] Correct scrim.
+  - The native Material 3 scrim blocks touch-through and owns permitted
+    press-to-dismiss. Liquid does not blur the whole screen.
+- [x] Correct Android back dismissal.
+- [x] Correct scroll/gesture interaction.
+  - Native sheet/scroll/IME arbitration replaces the deleted JS-thread
+    `useSheetMotion` PanResponder implementation.
+- [x] M3 sheet styling.
+- [x] Liquid sheet styling.
+  - Uses the established semantic tonal Liquid surface because optical capture
+    cannot cross the native dialog window safely.
+- [x] Haptic detents/actions.
+  - One light haptic follows a committed deposit/withdraw action. Android's
+    SDK 57 wrapper exposes no reliable detent-settle callback, so detent haptics
+    are intentionally omitted rather than guessed or duplicated.
+- [x] Reduced motion.
+  - Native sheet motion follows Android animator settings; the tonal Liquid
+    surface retains the existing reduced-motion contract and adds no JS motion.
+- [x] Validate checkpoint.
+  - TypeScript and ESLint pass; Jest passes 16 suites / 132 tests. Android Expo
+    export, clean Android prebuild, `expo-liquid-glass` autolinking, New
+    Architecture inspection, 14/14 Android XML parses, and diff checks pass.
+  - Expo Doctor remains 20/21 solely for the pre-existing SDK 57 patch drift;
+    Checkpoint 6 changes no dependency files.
+  - Local Kotlin/Gradle compilation is unavailable and was not attempted. EAS
+    Development/Preview and user physical-device validation subsequently pass
+    for the unchanged Checkpoint 6 production source.
+  - EAS Android native compilation completed successfully. On a physical
+    device, the Material selected pill, navigation behavior, FAB/snackbar
+    geometry, Liquid live blur during scroll, settled post-scroll backdrop,
+    zero-visible-idle-refresh behavior, and rapid tab switching all pass with
+    no visible artifact or flicker.
+  - History and goal transaction sheets pass in Material and Liquid themes,
+    including Android back, scrim, swipe dismissal, scroll handoff, keyboard/
+    IME behavior, reduced motion, and TalkBack.
+  - The user observed no crash, noticeable lag, or noticeable heat/battery
+    issue and accepts Checkpoint 6. This is qualitative device evidence, not
+    frame-time, GPU/CPU/memory, battery-discharge, or thermal instrumentation.
+  - Release APK size, physical API 24–30 behavior, and physical API 31–32
+    behavior remain unmeasured.
 
 ## Checkpoint 7 — Screens
 

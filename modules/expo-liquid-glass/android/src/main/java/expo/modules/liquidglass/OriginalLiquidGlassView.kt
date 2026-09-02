@@ -17,6 +17,7 @@ import android.graphics.RenderNode
 import android.graphics.RuntimeShader
 import android.graphics.Shader
 import android.os.Build
+import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -55,6 +56,11 @@ class OriginalLiquidGlassView(
   context: Context,
   appContext: AppContext,
 ) : ExpoView(context, appContext) {
+  private companion object {
+    /** Active scroll capture is bounded to roughly 30fps and stops with scroll events. */
+    const val ACTIVE_CAPTURE_INTERVAL_MS = 32L
+  }
+
   val onRendererStateChange by EventDispatcher()
 
   private val density = resources.displayMetrics.density
@@ -92,6 +98,10 @@ class OriginalLiquidGlassView(
   private var backdropLuminance: Float? = null
   private var capturingBackdrop = false
   private var cleanedUp = false
+  private var observedViewTreeObserver: ViewTreeObserver? = null
+  private var lastActiveCaptureRequestUptimeMs = 0L
+  private var activeCaptureScheduled = false
+  private var pendingActiveCaptureReason = "ancestor-change"
 
   private var blurEffect: Any? = null
   private var renderNode: Any? = null
@@ -106,6 +116,21 @@ class OriginalLiquidGlassView(
       captureBackdrop()
     }
     true
+  }
+
+  private val ancestorScrollListener = ViewTreeObserver.OnScrollChangedListener {
+    requestActiveBackdropCapture("ancestor-scroll")
+  }
+
+  private val ancestorLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+    requestActiveBackdropCapture("ancestor-layout")
+  }
+
+  private val trailingActiveCapture = Runnable {
+    activeCaptureScheduled = false
+    if (cleanedUp || !isAttachedToWindow) return@Runnable
+    lastActiveCaptureRequestUptimeMs = SystemClock.uptimeMillis()
+    requestBackdropCapture(pendingActiveCaptureReason)
   }
 
   init {
@@ -200,23 +225,41 @@ class OriginalLiquidGlassView(
 
   fun requestBackdropCapture(reason: String) {
     if (cleanedUp || currentTier == RendererTier.TONAL) return
+    removeCallbacks(trailingActiveCapture)
+    activeCaptureScheduled = false
     capturePending = true
     pendingCaptureReason = reason
     invalidate()
   }
 
+  private fun requestActiveBackdropCapture(reason: String) {
+    if (capturePending) return
+    val now = SystemClock.uptimeMillis()
+    val elapsed = now - lastActiveCaptureRequestUptimeMs
+    if (elapsed >= ACTIVE_CAPTURE_INTERVAL_MS) {
+      removeCallbacks(trailingActiveCapture)
+      activeCaptureScheduled = false
+      lastActiveCaptureRequestUptimeMs = now
+      requestBackdropCapture(reason)
+      return
+    }
+
+    pendingActiveCaptureReason = reason
+    if (activeCaptureScheduled) return
+    activeCaptureScheduled = true
+    postDelayed(trailingActiveCapture, ACTIVE_CAPTURE_INTERVAL_MS - elapsed)
+  }
+
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
     cleanedUp = false
-    if (viewTreeObserver.isAlive) {
-      viewTreeObserver.addOnPreDrawListener(preDrawListener)
-    }
+    addViewTreeObservers()
     requestBackdropCapture("attached")
     post { emitRendererState() }
   }
 
   override fun onDetachedFromWindow() {
-    removePreDrawListener()
+    removeViewTreeObservers()
     releaseCaptureResources()
     super.onDetachedFromWindow()
   }
@@ -305,7 +348,7 @@ class OriginalLiquidGlassView(
   fun cleanup() {
     if (cleanedUp) return
     cleanedUp = true
-    removePreDrawListener()
+    removeViewTreeObservers()
     releaseCaptureResources()
   }
 
@@ -597,10 +640,25 @@ class OriginalLiquidGlassView(
     )
   }
 
-  private fun removePreDrawListener() {
-    if (viewTreeObserver.isAlive) {
-      viewTreeObserver.removeOnPreDrawListener(preDrawListener)
+  private fun addViewTreeObservers() {
+    val observer = viewTreeObserver
+    if (!observer.isAlive) return
+    observedViewTreeObserver = observer
+    observer.addOnPreDrawListener(preDrawListener)
+    observer.addOnScrollChangedListener(ancestorScrollListener)
+    observer.addOnGlobalLayoutListener(ancestorLayoutListener)
+  }
+
+  private fun removeViewTreeObservers() {
+    observedViewTreeObserver?.takeIf { it.isAlive }?.let { observer ->
+      observer.removeOnPreDrawListener(preDrawListener)
+      observer.removeOnScrollChangedListener(ancestorScrollListener)
+      observer.removeOnGlobalLayoutListener(ancestorLayoutListener)
     }
+    observedViewTreeObserver = null
+    removeCallbacks(trailingActiveCapture)
+    activeCaptureScheduled = false
+    lastActiveCaptureRequestUptimeMs = 0L
   }
 
   private fun releaseCaptureResources() {
