@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
@@ -13,7 +13,9 @@ import {
 } from "react-native";
 import { AppAlert } from "../../src/components/AppAlert";
 import { AppButton } from "../../src/components/AppButton";
+import { AppSurface } from "../../src/components/AppSurface";
 import { EmojiPicker } from "../../src/components/EmojiPicker";
+import { usePressFeedback } from "../../src/components/pressFeedback";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
@@ -46,6 +48,11 @@ export default function AddGoalScreen() {
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [emoji, setEmoji] = useState<string | undefined>("🎯");
   const [pickerBusy, setPickerBusy] = useState(false);
+  const imagePressFeedback = usePressFeedback(colors.primary, {
+    disabled: pickerBusy,
+    radius: radius.lg,
+  });
+  const removePressFeedback = usePressFeedback(colors.danger, { radius: m3Shape.full });
 
   const [originalImageUri, setOriginalImageUri] = useState<string | undefined>(undefined);
   const savedSuccessfully = useRef(false);
@@ -173,6 +180,11 @@ export default function AddGoalScreen() {
         },
         removeImageBtn: {
           marginLeft: spacing.md,
+          minHeight: 48,
+          paddingHorizontal: spacing.sm,
+          borderRadius: m3Shape.full,
+          justifyContent: "center",
+          overflow: "hidden",
         },
         removeImageText: {
           ...typography.caption,
@@ -209,25 +221,44 @@ export default function AddGoalScreen() {
         saveButton: {
           marginTop: spacing.xl,
         },
+        formSection: {
+          padding: spacing.md,
+          marginBottom: spacing.md,
+        },
+        firstLabel: {
+          marginTop: 0,
+        },
       }),
     [colors, typography],
   );
 
   return (
     <KeyboardAvoidingView key={isDark ? "dark" : "light"} style={{ flex: 1 }}>
+      <Stack.Screen
+        options={{
+          title: isEditMode ? t.goalForm.editScreenTitle : t.goalForm.screenTitle,
+        }}
+      />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.label}>{t.goalForm.imageLabel}</Text>
-        <View style={styles.imageRow}>
+        <AppSurface variant="muted" elevation="none" style={styles.formSection}>
+          <Text accessibilityRole="header" style={[styles.label, styles.firstLabel]}>
+            {t.goalForm.imageLabel}
+          </Text>
+          <View style={styles.imageRow}>
           <Pressable
             onPress={handlePickImage}
             disabled={pickerBusy}
-            style={styles.imagePicker}
+            style={({ pressed }) => [
+              styles.imagePicker,
+              { opacity: imagePressFeedback.opacity(pressed) },
+            ]}
             accessibilityRole="button"
             accessibilityLabel={t.goalForm.pickImageAccessibilityLabel}
-            android_ripple={{ color: colors.glassBorder }}
+            android_ripple={imagePressFeedback.androidRipple}
           >
             {imageUri ? (
               <Image source={{ uri: imageUri }} style={styles.imagePreview} />
@@ -247,45 +278,57 @@ export default function AddGoalScreen() {
           {imageUri ? (
             <Pressable
               onPress={() => setImageUri(undefined)}
-              style={styles.removeImageBtn}
+              style={({ pressed }) => [
+                styles.removeImageBtn,
+                { opacity: removePressFeedback.opacity(pressed) },
+              ]}
               accessibilityRole="button"
               accessibilityLabel={t.goalForm.removeImageAccessibilityLabel}
+              android_ripple={removePressFeedback.androidRipple}
             >
               <Text style={styles.removeImageText}>
                 {t.goalForm.removeImageLabel}
               </Text>
             </Pressable>
           ) : null}
-        </View>
+          </View>
 
-        {!imageUri && (
-          <>
-            <Text style={styles.label}>{t.goalForm.emojiLabel}</Text>
-            <EmojiPicker selected={emoji} onSelect={setEmoji} />
-          </>
-        )}
+          {!imageUri && (
+            <>
+              <Text style={styles.label}>{t.goalForm.emojiLabel}</Text>
+              <EmojiPicker selected={emoji} onSelect={setEmoji} />
+            </>
+          )}
+        </AppSurface>
 
-        <Text style={styles.label}>{t.goalForm.nameLabel}</Text>
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder={t.goalForm.namePlaceholder}
-          placeholderTextColor={colors.textSecondary}
-          style={styles.input}
-        />
-
-        <Text style={styles.label}>{t.goalForm.targetLabel}</Text>
-        <View style={styles.currencyInputWrap}>
-          <Text style={styles.currencyPrefix}>Rp</Text>
+        <AppSurface variant="muted" elevation="none" style={styles.formSection}>
+          <Text accessibilityRole="header" style={[styles.label, styles.firstLabel]}>
+            {t.goalForm.nameLabel}
+          </Text>
           <TextInput
-            value={targetDisplay}
-            onChangeText={(text) => setTargetDisplay(formatThousands(text))}
-            placeholder="0"
+            value={name}
+            onChangeText={setName}
+            placeholder={t.goalForm.namePlaceholder}
             placeholderTextColor={colors.textSecondary}
-            keyboardType="number-pad"
-            style={styles.currencyInput}
+            style={styles.input}
+            accessibilityLabel={t.goalForm.nameLabel}
+            returnKeyType="next"
           />
-        </View>
+
+          <Text style={styles.label}>{t.goalForm.targetLabel}</Text>
+          <View style={styles.currencyInputWrap}>
+            <Text style={styles.currencyPrefix}>Rp</Text>
+            <TextInput
+              value={targetDisplay}
+              onChangeText={(text) => setTargetDisplay(formatThousands(text))}
+              placeholder="0"
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="number-pad"
+              style={styles.currencyInput}
+              accessibilityLabel={t.goalForm.targetLabel}
+            />
+          </View>
+        </AppSurface>
 
         <AppButton
           label={isEditMode ? t.goalForm.saveButtonEdit : t.goalForm.saveButtonCreate}

@@ -5,12 +5,14 @@ import { spacing } from "../theme/colors";
 import { m3Motion } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
 import { useReducedMotion } from "../hooks/useReducedMotion";
+import { useTranslation } from "../hooks/useTranslation";
 import { AppButton } from "./AppButton";
 import { AppSurface } from "./AppSurface";
 
 export function UndoSnackbar({ bottomOffset = 0 }: { bottomOffset?: number }) {
   const { colors, typography } = useTheme();
   const reducedMotion = useReducedMotion();
+  const { t, interpolate } = useTranslation();
   const pendingDeletion = useGoalsStore((s) => s.pendingDeletion);
   const undoDelete = useGoalsStore((s) => s.undoDelete);
   const commitPendingDeletion = useGoalsStore((s) => s.commitPendingDeletion);
@@ -103,16 +105,23 @@ export function UndoSnackbar({ bottomOffset = 0 }: { bottomOffset?: number }) {
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <Animated.View style={{ transform: [{ translateY }] }}>
-        <AppSurface variant="inverse" elevation="medium" style={styles.card}>
+        <AppSurface
+          accessibilityLiveRegion="polite"
+          variant="inverse"
+          elevation="medium"
+          style={styles.card}
+        >
           <Text style={styles.text} numberOfLines={1}>
-            {pendingDeletion?.goal.name} dihapus
+            {interpolate(t.snackbar.goalDeleted, {
+              name: pendingDeletion?.goal.name ?? "",
+            })}
           </Text>
           <AppButton
-            label="Undo"
+            label={t.common.undo}
             variant="inverse"
             size="compact"
             onPress={() => void undoDelete()}
-            accessibilityLabel="Batalkan penghapusan goal"
+            accessibilityLabel={t.snackbar.undoGoalDeletionAccessibility}
           />
         </AppSurface>
       </Animated.View>

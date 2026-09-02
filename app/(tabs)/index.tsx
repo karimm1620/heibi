@@ -16,10 +16,12 @@ import { CelebrationOverlay } from "../../src/components/CelebrationOverlay";
 import { DayHistorySheet } from "../../src/components/DayHistorySheet";
 import { DragReorderRow } from "../../src/components/DragReorderRow";
 import { EmptyState } from "../../src/components/EmptyState";
-import { GlassCard } from "../../src/components/GlassCard";
+import { AppSurface } from "../../src/components/AppSurface";
 import { HabitCompleteToggle } from "../../src/components/HabitCompleteToggle";
+import { ScreenHeading, SectionHeading } from "../../src/components/ScreenHeading";
 import { SwipeableRow } from "../../src/components/SwipeableRow";
 import { WeekCalendarStrip } from "../../src/components/WeekCalendarStrip";
+import { usePressFeedback } from "../../src/components/pressFeedback";
 import { resolveBottomNavigationLayout } from "../../src/components/navigation/bottom-navigation-layout";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import {
@@ -170,12 +172,14 @@ export default function TodayScreen() {
         showsVerticalScrollIndicator={false}
         scrollEnabled={draggingHabitKey === null}
       >
-        <Text style={typography.caption}>{formatLongDate(new Date(), language)}</Text>
-        <Text style={styles.headerTitle}>{t.today.headerTitle}</Text>
+        <ScreenHeading
+          title={t.today.headerTitle}
+          supportingText={formatLongDate(new Date(), language)}
+        />
 
-        <GlassCard elevationLevel="level1" style={styles.calendarCard}>
+        <AppSurface variant="muted" elevation="none" style={styles.calendarCard}>
           <WeekCalendarStrip onSelectDate={setHistoryDate} />
-        </GlassCard>
+        </AppSurface>
 
         {hasNothing ? (
           <EmptyState
@@ -189,9 +193,10 @@ export default function TodayScreen() {
           <>
             {todayHabits.length > 0 && (
               <>
-                <Text style={styles.sectionTitle}>{t.today.habitsSection}</Text>
-                <GlassCard
-                  elevationLevel="level1"
+                <SectionHeading title={t.today.habitsSection} />
+                <AppSurface
+                  variant="muted"
+                  elevation="none"
                   style={[
                     styles.listCard,
                     draggingHabitKey !== null && styles.listCardDragging,
@@ -216,13 +221,13 @@ export default function TodayScreen() {
                       }
                     />
                   ))}
-                </GlassCard>
+                </AppSurface>
               </>
             )}
 
-            <Text style={styles.sectionTitle}>{t.today.todosSection}</Text>
+            <SectionHeading title={t.today.todosSection} />
             {todayTodos.length > 0 && (
-              <GlassCard elevationLevel="level1" style={styles.listCard}>
+              <AppSurface variant="muted" elevation="none" style={styles.listCard}>
                 {todayTodos.map((todo, index) => (
                   <TodoRow
                     key={todo.id}
@@ -233,7 +238,7 @@ export default function TodayScreen() {
                     onDelete={() => void deleteTodo(todo.id)}
                   />
                 ))}
-              </GlassCard>
+              </AppSurface>
             )}
 
             <View style={styles.addTodoRow}>
@@ -253,6 +258,7 @@ export default function TodayScreen() {
                 returnKeyType="done"
                 onSubmitEditing={handleSubmitTodo}
                 blurOnSubmit={false}
+                accessibilityLabel={t.today.addTodoPlaceholder}
               />
             </View>
           </>
@@ -299,6 +305,7 @@ function HabitRow({
 }: HabitRowProps) {
   const router = useRouter();
   const { colors, typography } = useTheme();
+  const rowPressFeedback = usePressFeedback(colors.primary, { radius: m3Shape.small });
   const { t, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
   const { archiveWithCleanup, deletePermanentlyWithCleanup } = useHabitActions();
@@ -381,14 +388,15 @@ function HabitRow({
           >
             <Pressable
               onPress={onPress}
-              style={[
+              style={({ pressed }) => [
                 styles.row,
                 !isLast && {
                   borderBottomWidth: 1,
                   borderBottomColor: colors.glassBorder,
                 },
+                { opacity: rowPressFeedback.opacity(pressed) },
               ]}
-              android_ripple={{ color: colors.glassBorder }}
+              android_ripple={rowPressFeedback.androidRipple}
             >
               <View style={[styles.iconCircle, { backgroundColor: `${habit.color}33` }]}>
                 <MaterialCommunityIcons
@@ -436,6 +444,9 @@ interface TodoRowProps {
 
 function TodoRow({ title, done, isLast, onToggle, onDelete }: TodoRowProps) {
   const { colors, typography, material3 } = useTheme();
+  const checkboxPressFeedback = usePressFeedback(material3.onPrimary, {
+    radius: m3Shape.extraSmall,
+  });
   const { t, interpolate } = useTranslation();
   const styles = useMemo(
     () => createStyles(colors, typography, 0, 0),
@@ -464,9 +475,11 @@ function TodoRow({ title, done, isLast, onToggle, onDelete }: TodoRowProps) {
             done ? t.today.toggleTodoIncomplete : t.today.toggleTodoComplete,
             { title },
           )}
-          style={[
+          android_ripple={checkboxPressFeedback.androidRipple}
+          style={({ pressed }) => [
             styles.checkbox,
             done && { backgroundColor: material3.primary, borderColor: material3.primary },
+            { opacity: checkboxPressFeedback.opacity(pressed) },
           ]}
         >
           {done && <MaterialCommunityIcons name="check" size={14} color={material3.onPrimary} />}
@@ -498,22 +511,9 @@ function createStyles(
       paddingTop: paddingTop + spacing.md,
       paddingBottom: resolveBottomNavigationLayout(paddingBottom).contentBottomPadding,
     },
-    headerTitle: {
-      ...typography.display,
-      fontSize: 28,
-      marginTop: 2,
-      marginBottom: spacing.md,
-    },
     calendarCard: {
       padding: spacing.lg,
       marginBottom: spacing.md,
-    },
-    sectionTitle: {
-      ...typography.caption,
-      fontWeight: "700",
-      textTransform: "uppercase",
-      marginTop: spacing.md,
-      marginBottom: spacing.sm,
     },
     listCard: {
       paddingHorizontal: spacing.md,

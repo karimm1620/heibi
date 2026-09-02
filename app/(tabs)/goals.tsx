@@ -8,17 +8,17 @@ import { Chip } from "../../src/components/Chip";
 import { DragReorderRow } from "../../src/components/DragReorderRow";
 import { EmptyState } from "../../src/components/EmptyState";
 import { GoalCard } from "../../src/components/GoalCard";
+import { ScreenHeading } from "../../src/components/ScreenHeading";
 import { WaveShape } from "../../src/components/WaveShape";
 import { resolveBottomNavigationLayout } from "../../src/components/navigation/bottom-navigation-layout";
 import { useDragReorder } from "../../src/hooks/useDragReorder";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
+import { buildGoalList, type GoalSortOption } from "../../src/screens/goalListPresentation";
 import { spacing, withOpacity } from "../../src/theme/colors";
 import { useTheme } from "../../src/theme/useTheme";
 import type { Goal } from "../../src/types";
-import { clampPercent, formatIDR } from "../../src/utils/currency";
-
-type SortOption = "newest" | "closest" | "az";
+import { formatIDR } from "../../src/utils/currency";
 
 const DEFAULT_ROW_HEIGHT = 112;
 
@@ -30,13 +30,13 @@ export default function GoalsScreen() {
   const goals = useGoalsStore((state) => state.goals);
   const reorderGoals = useGoalsStore((state) => state.reorderGoals);
 
-  const SORT_OPTIONS: { key: SortOption; label: string }[] = [
+  const SORT_OPTIONS: { key: GoalSortOption; label: string }[] = [
     { key: "newest", label: t.goalsList.sortNewest },
     { key: "closest", label: t.goalsList.sortClosest },
     { key: "az", label: t.goalsList.sortAZ },
   ];
 
-  const [sortOption, setSortOption] = useState<SortOption>("newest");
+  const [sortOption, setSortOption] = useState<GoalSortOption>("newest");
   const [showCompletedOnly, setShowCompletedOnly] = useState(false);
   const [rowHeight, setRowHeight] = useState(DEFAULT_ROW_HEIGHT);
 
@@ -49,37 +49,10 @@ export default function GoalsScreen() {
     [goals],
   );
 
-  const displayedGoals = useMemo(() => {
-    let list = [...goals];
-
-    if (showCompletedOnly) {
-      list = list.filter(
-        (g) => clampPercent(g.currentAmount, g.targetAmount) >= 1,
-      );
-    }
-
-    switch (sortOption) {
-      case "closest":
-        list.sort(
-          (a, b) =>
-            clampPercent(b.currentAmount, b.targetAmount) -
-            clampPercent(a.currentAmount, a.targetAmount),
-        );
-        break;
-      case "az":
-        list.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "newest":
-      default:
-        // TETAP ikutin urutan `sort_order` dari store (hasil drag-reorder
-        // manual) — SENGAJA gak di-re-sort berdasarkan createdAt lagi kayak
-        // dulu, karena drag-reorder butuh urutan yang keliatan gak dioprek
-        // ulang di sini.
-        break;
-    }
-
-    return list;
-  }, [goals, sortOption, showCompletedOnly]);
+  const displayedGoals = useMemo(
+    () => buildGoalList(goals, sortOption, showCompletedOnly),
+    [goals, sortOption, showCompletedOnly],
+  );
 
   // Drag-reorder cuma masuk akal kalau list lagi nunjukin urutan "asli"
   // (bukan hasil re-sort Terdekat/A-Z, bukan lagi difilter Selesai) — di
@@ -110,9 +83,7 @@ export default function GoalsScreen() {
         showsVerticalScrollIndicator={false}
         scrollEnabled={draggingKey === null}
       >
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t.goalsList.headerTitle}</Text>
-        </View>
+        <ScreenHeading title={t.goalsList.headerTitle} />
 
         <AppSurface
           variant="expressive"
@@ -231,15 +202,6 @@ function createStyles(
       flex: 1,
       backgroundColor: colors.background,
       paddingHorizontal: spacing.md,
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: spacing.md,
-    },
-    headerTitle: {
-      ...typography.display,
     },
     summaryCard: {
       padding: spacing.md,

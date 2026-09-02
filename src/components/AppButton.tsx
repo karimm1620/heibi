@@ -8,8 +8,9 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { spacing, withOpacity } from "../theme/colors";
+import { spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
+import { resolvePressFeedback } from "./pressFeedback";
 
 export type AppButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "inverse";
 export type AppButtonSize = "compact" | "medium" | "large";
@@ -34,7 +35,7 @@ export function AppButton({
   style,
   ...rest
 }: AppButtonProps) {
-  const { colors, shapes, states, typography } = useTheme();
+  const { colors, shapes, states, typography, visualTheme } = useTheme();
   const blocked = disabled || loading;
 
   const variantTokens = useMemo(
@@ -48,6 +49,13 @@ export function AppButton({
     [colors],
   );
   const tokens = variantTokens[variant];
+  const pressFeedback = resolvePressFeedback({
+    visualTheme,
+    states,
+    color: tokens.foreground,
+    disabled: blocked,
+    radius: shapes.control,
+  });
 
   return (
     <Pressable
@@ -57,7 +65,7 @@ export function AppButton({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ ...rest.accessibilityState, disabled: blocked, busy: loading }}
       pressRetentionOffset={rest.pressRetentionOffset ?? 12}
-      android_ripple={{ color: withOpacity(tokens.foreground, states.rippleOpacity) }}
+      android_ripple={pressFeedback.androidRipple}
       style={({ pressed }) => [
         styles.base,
         styles[size],
@@ -65,11 +73,7 @@ export function AppButton({
           minHeight: states.minTouchTarget,
           borderRadius: shapes.control,
           backgroundColor: tokens.background,
-          opacity: blocked
-            ? states.disabledOpacity
-            : pressed
-              ? states.pressedOpacity
-              : 1,
+          opacity: pressFeedback.opacity(pressed),
         },
         style,
       ]}

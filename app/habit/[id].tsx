@@ -1,21 +1,27 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useMemo, useRef, useState } from "react";
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import {
-  PinchGestureHandler,
-  type PinchGestureHandlerGestureEvent,
-  type PinchGestureHandlerStateChangeEvent,
-  State,
-} from "react-native-gesture-handler";
+import React, { useMemo } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppAlert } from "../../src/components/AppAlert";
+import { AppSurface } from "../../src/components/AppSurface";
 import { GlassCard } from "../../src/components/GlassCard";
 import type { HabitIconName } from "../../src/components/HabitIconPicker";
 import { HabitHeatmap } from "../../src/components/HabitHeatmap";
+import { SectionHeading } from "../../src/components/ScreenHeading";
+import { usePressFeedback } from "../../src/components/pressFeedback";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useHabitActions } from "../../src/hooks/useHabitActions";
+import { useReducedMotion } from "../../src/hooks/useReducedMotion";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useHabitsStore } from "../../src/store/useHabitsStore";
 import { spacing } from "../../src/theme/colors";
@@ -36,6 +42,10 @@ export default function HabitDetailScreen() {
   const { colors, typography, isDark, material3 } = useTheme();
   const { t, language, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
+  const linkPressFeedback = usePressFeedback(colors.primary, { radius: m3Shape.full });
+  const dangerPressFeedback = usePressFeedback(colors.danger, { radius: m3Shape.full });
+  const markPressFeedback = usePressFeedback(material3.onPrimary, { radius: m3Shape.full });
+  const reducedMotion = useReducedMotion();
   const { archiveWithCleanup, unarchiveWithReschedule, deletePermanentlyWithCleanup } =
     useHabitActions();
 
@@ -55,73 +65,42 @@ export default function HabitDetailScreen() {
     [colors, typography, material3],
   );
 
-  // Pinch-to-dismiss: pinch ke dalam (nyubit, jari nutup) di layar detail
-  // habit ini buat balik ke home — mirip pola "pinch to close" di app foto.
-  // Haptic bertingkat: tick ringan tiap ngelewatin ambang batas pas lagi
-  // nyubit (biar berasa "makin deket"), notif sukses pas beneran ke-dismiss,
-  // tick ringan lagi kalau dilepas sebelum ambang batas (batal, snap balik).
-  // Checkpoint 6/7: useState(() => ...) gantiin useRef(...).current buat
-  // Animated.Value (hindari react-hooks/refs). crossedThresholdsRef TETAP
-  // useRef biasa -- cuma dibaca/ditulis di dalam handler, gak pernah diakses
-  // langsung pas render.
-  const [pinchScale] = useState(() => new Animated.Value(1));
-  const crossedThresholdsRef = useRef<Set<number>>(new Set());
-  const HAPTIC_THRESHOLDS = [0.94, 0.86, 0.78];
+  // Pinch-to-dismiss remains optional navigation, but the gesture now stays
+  // on the UI runtime. React receives only the final committed dismissal.
   const DISMISS_THRESHOLD = 0.72;
-
-  /* eslint-disable react-hooks/refs -- false positive: linter nganggep
-     closure `listener` di bawah ini "dibaca pas render" karena
-     `Animated.event(...)` dipanggil di render body, tapi
-     `crossedThresholdsRef.current` di dalemnya CUMA keeksekusi pas event
-     pinch beneran nembak (listener callback), gak pernah pas render itu
-     sendiri. */
-  const onPinchGestureEvent = Animated.event(
-    [{ nativeEvent: { scale: pinchScale } }],
-    {
-      useNativeDriver: true,
-      listener: (event: PinchGestureHandlerGestureEvent) => {
-        const scale = event.nativeEvent.scale;
-        for (const threshold of HAPTIC_THRESHOLDS) {
-          if (scale <= threshold && !crossedThresholdsRef.current.has(threshold)) {
-            crossedThresholdsRef.current.add(threshold);
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-          } else if (scale > threshold + 0.03) {
-            crossedThresholdsRef.current.delete(threshold);
-          }
-        }
-      },
-    },
-  );
-  /* eslint-enable react-hooks/refs */
-
-  const onPinchHandlerStateChange = (event: PinchGestureHandlerStateChangeEvent) => {
-    if (event.nativeEvent.oldState !== State.ACTIVE) return;
-    crossedThresholdsRef.current.clear();
-
-    if (event.nativeEvent.scale <= DISMISS_THRESHOLD) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      Animated.timing(pinchScale, {
-        toValue: 0.3,
-        duration: 180,
-        useNativeDriver: true,
-      }).start(() => router.back());
-    } else {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      Animated.spring(pinchScale, {
-        toValue: 1,
-        useNativeDriver: true,
-        damping: 16,
-        stiffness: 220,
-        mass: 0.7,
-      }).start();
-    }
+  const pinchScale = useSharedValue(1);
+  const announcePinchCommit = () => {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
   };
-
-  const pinchOpacity = pinchScale.interpolate({
-    inputRange: [0.3, 1],
-    outputRange: [0, 1],
-    extrapolate: "clamp",
-  });
+  const finishPinchDismiss = () => router.back();
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate((event) => {
+      if (reducedMotion) return;
+      pinchScale.set(Math.max(0.68, Math.min(1, event.scale)));
+    })
+    .onEnd((event) => {
+      if (event.scale <= DISMISS_THRESHOLD) {
+        scheduleOnRN(announcePinchCommit);
+        if (reducedMotion) {
+          scheduleOnRN(finishPinchDismiss);
+          return;
+        }
+        pinchScale.set(withTiming(0.9, { duration: 120 }, (finished) => {
+          if (finished) scheduleOnRN(finishPinchDismiss);
+        }));
+        return;
+      }
+      pinchScale.set(reducedMotion ? 1 : withSpring(1, { damping: 18, stiffness: 260 }));
+    })
+    .onFinalize((_event, success) => {
+      if (!success) {
+        pinchScale.set(reducedMotion ? 1 : withSpring(1, { damping: 18, stiffness: 260 }));
+      }
+    });
+  const pinchStyle = useAnimatedStyle(() => ({
+    opacity: pinchScale.get(),
+    transform: [{ scale: pinchScale.get() }],
+  }));
 
   if (!habit) {
     return (
@@ -188,16 +167,10 @@ export default function HabitDetailScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <PinchGestureHandler
-        onGestureEvent={onPinchGestureEvent}
-        onHandlerStateChange={onPinchHandlerStateChange}
-      >
+      <GestureDetector gesture={pinchGesture}>
         <Animated.View
           key={isDark ? "dark" : "light"}
-          style={[
-            styles.container,
-            { transform: [{ scale: pinchScale }], opacity: pinchOpacity },
-          ]}
+          style={[styles.container, pinchStyle]}
         >
       <ScrollView
         contentContainerStyle={[
@@ -217,32 +190,39 @@ export default function HabitDetailScreen() {
           </View>
         </View>
 
-        <Text style={styles.title}>{habit.name}</Text>
+        <Text accessibilityRole="header" style={styles.title}>{habit.name}</Text>
         <Text style={typography.caption}>
           {frequencyLabel}
           {habit.reminderTime ? ` · ${habit.reminderTime}` : ""}
         </Text>
 
-        <View style={styles.statsRow}>
-          <GlassCard style={styles.statCard} elevationLevel="level1">
+        <AppSurface variant="muted" elevation="none" style={styles.statsRow}>
+          <View style={styles.statCard}>
             <Text style={styles.statValue}>{currentStreak}</Text>
             <Text style={styles.statLabel}>{t.habitDetail.streakLabel}</Text>
-          </GlassCard>
-          <GlassCard style={styles.statCard} elevationLevel="level1">
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCard}>
             <Text style={styles.statValue}>{habit.bestStreak}</Text>
             <Text style={styles.statLabel}>{t.habitDetail.bestStreakLabel}</Text>
-          </GlassCard>
-          <GlassCard style={styles.statCard} elevationLevel="level1">
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCard}>
             <Text style={styles.statValue}>{completionRate}%</Text>
             <Text style={styles.statLabel}>{t.habitDetail.last30DaysLabel}</Text>
-          </GlassCard>
-        </View>
+          </View>
+        </AppSurface>
 
         <View style={styles.metaRow}>
           <Pressable
             onPress={() => router.push(`/habit/add?id=${habit.id}`)}
             accessibilityRole="button"
             accessibilityLabel={t.habitDetail.editAccessibilityLabel}
+            android_ripple={linkPressFeedback.androidRipple}
+            style={({ pressed }) => [
+              styles.metaLinkButton,
+              { opacity: linkPressFeedback.opacity(pressed) },
+            ]}
           >
             <Text style={[styles.metaLink, { color: colors.textSecondary }]}>
               {t.habitDetail.editLink}
@@ -256,6 +236,11 @@ export default function HabitDetailScreen() {
                 ? t.habitDetail.unarchiveAccessibilityLabel
                 : t.habitDetail.archiveAccessibilityLabel
             }
+            android_ripple={linkPressFeedback.androidRipple}
+            style={({ pressed }) => [
+              styles.metaLinkButton,
+              { opacity: linkPressFeedback.opacity(pressed) },
+            ]}
           >
             <Text style={[styles.metaLink, { color: colors.textSecondary }]}>
               {habit.archivedAt ? t.habitDetail.unarchiveLink : t.habitDetail.archiveLink}
@@ -265,6 +250,11 @@ export default function HabitDetailScreen() {
             onPress={handleDelete}
             accessibilityRole="button"
             accessibilityLabel={t.habitDetail.deletePermanentAccessibilityLabel}
+            android_ripple={dangerPressFeedback.androidRipple}
+            style={({ pressed }) => [
+              styles.metaLinkButton,
+              { opacity: dangerPressFeedback.opacity(pressed) },
+            ]}
           >
             <Text style={[styles.metaLink, { color: colors.danger }]}>
               {t.habitDetail.deletePermanentLink}
@@ -272,19 +262,20 @@ export default function HabitDetailScreen() {
           </Pressable>
         </View>
 
-        <Text style={styles.sectionTitle}>{t.habitDetail.historySection}</Text>
+        <SectionHeading title={t.habitDetail.historySection} />
         <GlassCard style={styles.heatmapCard} elevationLevel="level1">
           <HabitHeatmap habit={habit} completedDateKeys={completedDateKeys} />
         </GlassCard>
 
         <Pressable
           onPress={handleToggleToday}
-          style={[
+          style={({ pressed }) => [
             styles.markButton,
             {
               backgroundColor: doneToday
                 ? material3.secondaryContainer
                 : habit.color,
+              opacity: markPressFeedback.opacity(pressed),
             },
           ]}
           accessibilityRole="button"
@@ -294,7 +285,7 @@ export default function HabitDetailScreen() {
               : t.habitDetail.markDoneAccessibilityComplete,
             { name: habit.name },
           )}
-          android_ripple={{ color: colors.glassBorder }}
+          android_ripple={markPressFeedback.androidRipple}
         >
           {doneToday && (
             <MaterialCommunityIcons
@@ -318,7 +309,7 @@ export default function HabitDetailScreen() {
         </Pressable>
       </ScrollView>
         </Animated.View>
-      </PinchGestureHandler>
+      </GestureDetector>
 
       <AppAlert
         visible={alertState.visible}
@@ -367,37 +358,46 @@ function createStyles(
     },
     statsRow: {
       flexDirection: "row",
-      gap: spacing.sm,
       marginTop: spacing.lg,
+      paddingVertical: spacing.md,
     },
     statCard: {
       flex: 1,
       alignItems: "center",
-      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.xs,
     },
     statValue: {
       ...typography.title,
+      fontVariant: ["tabular-nums"],
     },
     statLabel: {
       ...typography.caption,
       marginTop: 2,
       textAlign: "center",
     },
+    statDivider: {
+      width: 1,
+      backgroundColor: colors.divider,
+      marginVertical: spacing.xs,
+    },
     metaRow: {
       flexDirection: "row",
-      gap: spacing.lg,
+      justifyContent: "center",
+      gap: spacing.xs,
       marginTop: spacing.lg,
+      flexWrap: "wrap",
+    },
+    metaLinkButton: {
+      minHeight: 48,
+      paddingHorizontal: spacing.sm,
+      borderRadius: m3Shape.full,
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
     },
     metaLink: {
       ...typography.caption,
       fontWeight: "600",
-    },
-    sectionTitle: {
-      ...typography.caption,
-      fontWeight: "700",
-      textTransform: "uppercase",
-      marginTop: spacing.xl,
-      marginBottom: spacing.sm,
     },
     heatmapCard: {
       padding: spacing.md,

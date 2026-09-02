@@ -1081,6 +1081,120 @@ D-027 apply.
 
 ---
 
+## D-029 — Keep Checkpoint 7 dependency maintenance inside Expo SDK 57
+
+**Status:** accepted and EAS validated for Checkpoint 7
+
+### Finding
+
+The pre-check reported eleven SDK-compatible patch drifts. The old notes named
+only `expo`, `expo-constants`, and `expo-font`, but the current SDK 57 resolver
+also expected patches for `@expo/ui`, dev client, image, image picker, linking,
+notifications, Router, and sharing. No SDK major, React Native architecture,
+graphics runtime, or new package was required.
+
+### Decision
+
+Use `npx expo install --fix` as the sole resolver and retain Expo SDK 57. The
+manifest now selects `expo ~57.0.19`, `@expo/ui ~57.0.15`, dev client
+`~57.0.18`, image `~57.0.4`, image picker `~57.0.15`, linking `~57.0.9`,
+notifications `~57.0.16`, Router `~57.0.18`, and sharing `~57.0.17`. Existing
+compatible ranges for constants and font remain, resolving 57.0.17 and 57.0.3
+in the lockfile. React, React Native, Gesture Handler, Reanimated, and Worklets
+remain unchanged.
+
+`expo install --check` and Expo Doctor now pass, 21/21. Clean prebuild resolves
+the local Liquid module and `@expo/ui`; React Native autolinking resolves
+Gesture Handler, Reanimated, and Worklets; New Architecture remains enabled.
+Because these are native package patches, local export/prebuild is not treated
+as native compilation. EAS Development/Preview remains the compile gate and
+device behavior must be rechecked before merge.
+
+---
+
+## D-030 — Centralize Android press feedback and migrate screens without broadening Liquid
+
+**Status:** accepted and physically validated for Checkpoint 7
+
+### Finding
+
+Android press feedback was fragmented. Controls chose ad-hoc ripple colors;
+some combined native ripple with pressed opacity/scale; the Material tab
+destination used a foreground borderless ripple on a region larger than its
+64×32 selected pill. This made full-surface light/dark flashes possible and
+made disabled and theme-switched behavior inconsistent.
+
+### Decision
+
+One pure press-feedback contract now owns Android behavior. Material receives a
+semantic 12% background ripple with `borderless: false` and `foreground:
+false`; the calling Pressable clips it to the control's own rounded geometry.
+Liquid receives no native ripple and keeps restrained opacity feedback.
+Disabled controls receive neither active response. No timer, delayed reset,
+new dependency, or JavaScript frame loop is used.
+
+Material navigation retains its accepted 64×32 selected pill and uses a
+rounded 48dp-or-larger destination ripple boundary. Liquid navigation is an
+explicit exception: its file and accepted single-host optical/press-opacity
+contract are unchanged and no `android_ripple` is introduced.
+
+Checkpoint 7 screen composition stays semantic and restrained: shared headings
+replace per-screen title drift; edit flows use two tonal groups rather than a
+card per field; History groups transactions by local day and opens the existing
+native day-detail sheet; empty, celebration, alert, and snackbar states improve
+large-text, localization, and accessibility behavior. Today's Swipeable and
+UI-thread reorder systems and Goals reorder persistence remain intact. Habit
+detail pinch moves to Gesture Handler/Reanimated so updates stay on the UI
+runtime and only a committed dismissal crosses to React.
+
+This decision does not add optical content cards, new Liquid hosts, a renderer
+change, widget work, or Checkpoint 8 scope. Static tests protect the Material
+pill, Liquid ripple exclusion, no timer workaround, no horizontal tab scenes,
+and gesture/reorder architecture. EAS and device QA remain required for actual
+ripple appearance and interaction feel.
+
+The final EAS Android build succeeds. User physical-device QA confirms the
+ripple flash is gone and passes Liquid navigation behavior, Today swipe and
+reorder, Goals reorder/filter/transactions, all habit/goal forms and IME,
+Settings persistence, History grouping/day detail, TalkBack, large text, and
+reduced motion. No crash, noticeable lag, or noticeable heat/battery issue was
+observed. These are qualitative results, not formal performance, thermal, or
+battery measurements. A final review correction restores pinch scale on
+gesture cancellation through UI-runtime `onFinalize`; it does not change the
+native package graph or the accepted architecture.
+
+---
+
+## D-031 — Accept Checkpoint 7 and defer the Liquid light-material correction
+
+**Status:** accepted; Checkpoint 8 follow-up authorized
+
+### Finding
+
+Checkpoint 7 is functionally accepted after successful EAS and broad
+physical-device QA. The only remaining visual issue is Liquid navigation in
+light mode: the navigation-wide material reads as dense dark gray/charcoal even
+over a light scene. Live contextual refresh, settled capture, idle behavior,
+routing, spring, haptics, accessibility, and perceived performance all pass.
+
+### Decision
+
+The issue is non-blocking for the Checkpoint 7 merge and moves to Checkpoint 8.
+Checkpoint 8 must audit fallback, tint, adaptive-contrast, edge, selected-state,
+and icon/text color ownership and define distinct light/dark optical material
+responses. It must preserve the accepted one bounded host,
+`interactionEnabled={false}`, contextual dirty observers, bounded active
+capture, trailing settled capture, zero recurring idle capture, independent
+indicator spring, API tiers, and low-RAM/failure fallback.
+
+This decision does not reopen Checkpoint 5/6 navigation architecture or
+authorize multiple optical hosts, permanent frame capture, full-screen glass,
+or Checkpoint 9 widget variants. Dark-mode Liquid navigation remains accepted.
+Physical light/dark validation is required on the Checkpoint 8 build. Release
+APK size and physical API 24–30/API 31–32 Liquid evidence remain outstanding.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.

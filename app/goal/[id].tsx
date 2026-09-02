@@ -16,14 +16,12 @@ import { EmptyState } from "../../src/components/EmptyState";
 import { GlassCard } from "../../src/components/GlassCard";
 import { JarProgress } from "../../src/components/JarProgress";
 import { TransactionRow } from "../../src/components/TransactionRow";
+import { SectionHeading } from "../../src/components/ScreenHeading";
+import { usePressFeedback } from "../../src/components/pressFeedback";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
-import {
-  getAccentColors,
-  spacing,
-  withOpacity,
-} from "../../src/theme/colors";
+import { getAccentColors, spacing } from "../../src/theme/colors";
 import { m3Shape } from "../../src/theme/material3/tokens";
 import { useTheme } from "../../src/theme/useTheme";
 import { formatIDR, formatThousands, parseThousands } from "../../src/utils/currency";
@@ -37,6 +35,9 @@ export default function GoalDetailScreen() {
   const { colors, typography, isDark } = useTheme();
   const { t, interpolate } = useTranslation();
   const { alertState, showAlert, hideAlert } = useAppAlert();
+  const actionPressFeedback = usePressFeedback(colors.textInverse, { radius: m3Shape.full });
+  const linkPressFeedback = usePressFeedback(colors.primary, { radius: m3Shape.full });
+  const dangerPressFeedback = usePressFeedback(colors.danger, { radius: m3Shape.full });
 
   const goal = useGoalsStore((state) => state.getGoalById(id));
   const allTransactions = useGoalsStore((state) => state.transactions);
@@ -106,10 +107,13 @@ export default function GoalDetailScreen() {
           ...typography.caption,
           fontWeight: "600",
         },
-        sectionTitle: {
-          ...typography.subtitle,
-          marginTop: spacing.xl,
-          marginBottom: spacing.sm,
+        metaLinkButton: {
+          minHeight: 48,
+          paddingHorizontal: spacing.sm,
+          borderRadius: m3Shape.full,
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
         },
         txCard: {
           paddingHorizontal: spacing.md,
@@ -241,7 +245,7 @@ export default function GoalDetailScreen() {
           { paddingTop: insets.top + 60 },
         ]}
       >
-        <Text style={styles.goalName}>{goal.name}</Text>
+        <Text accessibilityRole="header" style={styles.goalName}>{goal.name}</Text>
 
         <JarProgress
           currentAmount={goal.currentAmount}
@@ -252,20 +256,26 @@ export default function GoalDetailScreen() {
 
         <View style={styles.actionRow}>
           <Pressable
-            style={[styles.actionButton, { backgroundColor: colors.deposit }]}
+            style={({ pressed }) => [
+              styles.actionButton,
+              { backgroundColor: colors.deposit, opacity: actionPressFeedback.opacity(pressed) },
+            ]}
             onPress={() => setAction("deposit")}
             accessibilityRole="button"
             accessibilityLabel={t.goalDetail.depositAccessibilityLabel}
-            android_ripple={{ color: withOpacity(colors.textInverse, 0.24) }}
+            android_ripple={actionPressFeedback.androidRipple}
           >
             <Text style={styles.actionButtonText}>{t.goalDetail.depositButton}</Text>
           </Pressable>
           <Pressable
-            style={[styles.actionButton, { backgroundColor: colors.withdraw }]}
+            style={({ pressed }) => [
+              styles.actionButton,
+              { backgroundColor: colors.withdraw, opacity: actionPressFeedback.opacity(pressed) },
+            ]}
             onPress={() => setAction("withdraw")}
             accessibilityRole="button"
             accessibilityLabel={t.goalDetail.withdrawAccessibilityLabel}
-            android_ripple={{ color: withOpacity(colors.textInverse, 0.24) }}
+            android_ripple={actionPressFeedback.androidRipple}
           >
             <Text style={styles.actionButtonText}>{t.goalDetail.withdrawButton}</Text>
           </Pressable>
@@ -276,6 +286,11 @@ export default function GoalDetailScreen() {
             onPress={() => router.push(`/goal/add?id=${goal.id}`)}
             accessibilityRole="button"
             accessibilityLabel={t.goalDetail.editAccessibilityLabel}
+            android_ripple={linkPressFeedback.androidRipple}
+            style={({ pressed }) => [
+              styles.metaLinkButton,
+              { opacity: linkPressFeedback.opacity(pressed) },
+            ]}
           >
             <Text style={[styles.metaLink, { color: colors.textSecondary }]}>
               {t.goalDetail.editLink}
@@ -285,6 +300,11 @@ export default function GoalDetailScreen() {
             onPress={handleDelete}
             accessibilityRole="button"
             accessibilityLabel={t.goalDetail.deleteAccessibilityLabel}
+            android_ripple={dangerPressFeedback.androidRipple}
+            style={({ pressed }) => [
+              styles.metaLinkButton,
+              { opacity: dangerPressFeedback.opacity(pressed) },
+            ]}
           >
             <Text style={[styles.metaLink, { color: colors.danger }]}>
               {t.goalDetail.deleteLink}
@@ -292,7 +312,7 @@ export default function GoalDetailScreen() {
           </Pressable>
         </View>
 
-        <Text style={styles.sectionTitle}>{t.goalDetail.historySection}</Text>
+        <SectionHeading title={t.goalDetail.historySection} />
         {transactions.length === 0 ? (
           <EmptyState
             icon="sprout"
@@ -344,24 +364,29 @@ export default function GoalDetailScreen() {
         <View style={styles.modalActions}>
           <Pressable
             onPress={closeSheet}
-            style={[styles.modalButton, styles.modalButtonGhost]}
+            style={({ pressed }) => [
+              styles.modalButton,
+              styles.modalButtonGhost,
+              { opacity: linkPressFeedback.opacity(pressed) },
+            ]}
             accessibilityRole="button"
             accessibilityLabel={t.goalDetail.cancelAccessibilityLabel}
-            android_ripple={{ color: colors.glassBorder }}
+            android_ripple={linkPressFeedback.androidRipple}
           >
             <Text style={styles.modalButtonGhostText}>{t.common.cancel}</Text>
           </Pressable>
           <Pressable
             onPress={handleConfirm}
-            style={[
+            style={({ pressed }) => [
               styles.modalButton,
               {
                 backgroundColor: action === "deposit" ? colors.deposit : colors.withdraw,
+                opacity: actionPressFeedback.opacity(pressed),
               },
             ]}
             accessibilityRole="button"
             accessibilityLabel={t.goalDetail.confirmAccessibilityLabel}
-            android_ripple={{ color: withOpacity(colors.textInverse, 0.24) }}
+            android_ripple={actionPressFeedback.androidRipple}
           >
             <Text style={styles.actionButtonText}>{t.goalDetail.confirmButton}</Text>
           </Pressable>

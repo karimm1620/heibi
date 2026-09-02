@@ -139,15 +139,22 @@ export function AppAlert({
       onRequestClose={onClose}
     >
       <Animated.View style={[styles.backdrop, { opacity }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Pressable
+          accessible={false}
+          importantForAccessibility="no"
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+        />
       </Animated.View>
 
       <View style={styles.centerWrap} pointerEvents="box-none">
         <Animated.View
+          accessibilityViewIsModal
+          importantForAccessibility="yes"
           style={[styles.card, { transform: [{ scale }], opacity }]}
         >
           <AppSurface variant="elevated" elevation="medium" style={styles.cardContent}>
-            <Text style={styles.title} selectable>
+            <Text accessibilityRole="header" style={styles.title} selectable>
               {title}
             </Text>
             {message ? (

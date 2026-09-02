@@ -379,8 +379,86 @@ GPU, CPU, memory, battery-discharge, or thermal instrumentation. Release APK
 size and physical API 24–30/API 31–32 evidence remain unavailable. The final
 follow-up commit changes only these source-of-truth documents; EAS/native and
 device evidence applies to the unchanged implementation commit
-`8da3269ef897d99f1e7b9fb63cffdba4743967b3`. PR #14 remains pending squash
-merge at this documentation handoff.
+`8da3269ef897d99f1e7b9fb63cffdba4743967b3`. PR #14 was subsequently
+squash-merged as `09e8c48259f45a9e420fd5a163f182da8d811c04` after the
+documentation-only follow-up CI passed. Checkpoint 7 starts from that exact
+commit on `feat/checkpoint-7-screens` in an isolated worktree. Its authorized
+foundation work is limited to Expo SDK 57-compatible patch alignment and a
+shared Android press-feedback correction before the documented screen
+migration. Checkpoint 8 has not started.
+
+Checkpoint 7 completes that authorized scope locally. Expo's SDK 57 resolver
+aligned `expo` 57.0.17→57.0.19, `@expo/ui` 57.0.14→57.0.15, and compatible
+patches for dev client, image, image picker, linking, notifications, Router,
+and sharing. The existing `expo-constants ~57.0.8` and `expo-font ~57.0.1`
+manifest ranges remain valid while the lockfile resolves 57.0.17 and 57.0.3.
+React 19.2.3, React Native 0.86.3, Gesture Handler 2.32.0, Reanimated 4.5.1,
+and Worklets 0.10.1 do not change. `expo install --check` is clean and Expo
+Doctor returns 21/21 without exclusions.
+
+The Android flash audit found fragmented feedback ownership: controls used
+different direct ripple colors, Material navigation used a foreground,
+borderless ripple across the full destination, and several controls layered a
+native ripple with a separate pressed opacity or scale. The shared contract now
+uses a semantic 12% background ripple for Material, with `borderless` and
+`foreground` both false and each Pressable clipped to its intended geometry.
+Liquid controls use their restrained opacity state instead. Disabled controls
+produce neither ripple nor pressed flash. The accepted Liquid navigation file,
+single optical host, `interactionEnabled={false}`, contextual capture, spring,
+haptic gate, and zero-idle-refresh contract are unchanged.
+
+The screen migration introduces shared semantic headings, tonal grouped forms,
+a day-grouped financial History timeline with native day-detail sheet access,
+clear add/edit route titles, large-text-safe empty states, localized
+celebration/snackbar copy, and stronger modal semantics. Today retains classic
+RNGH Swipeable compatibility plus the UI-thread drag controller; Goals retains
+manual-order-safe drag and extracted filter/sort presentation. Habit detail's
+optional pinch dismissal moves from a core-Animated JS listener to Gesture
+Handler/Reanimated and sends only the final committed action to React.
+
+Local validation passes TypeScript, warning-free ESLint, 18 Jest suites / 145
+tests, Expo Doctor 21/21, Android export, clean Android prebuild, module
+resolution, New Architecture inspection, and 14/14 XML parses. Local native
+Kotlin/Gradle compilation is not claimed. Dependency patch changes require a
+new EAS Development/Preview build and physical-device QA for ripple geometry,
+both themes, large text/TalkBack, swipe/reorder/pinch, keyboard forms, and the
+unchanged Liquid navigation before the Checkpoint 7 PR can merge. Release APK
+size and physical API 24–30/API 31–32 evidence remain unavailable.
+
+The isolated Checkpoint 7 patch applies cleanly to exact base
+`09e8c48259f45a9e420fd5a163f182da8d811c04`. Its disk-backed verification
+checkout completed a cold `npm ci`, TypeScript, warning-free ESLint, and all
+18 Jest suites / 145 tests. This verifies patch reproducibility for the
+JavaScript/TypeScript gates; it is not Android native compilation evidence.
+
+Final Checkpoint 7 EAS Android compilation succeeds, and the user accepts the
+checkpoint after physical-device QA. The corrected semantic ripple eliminates
+the reported flash. Liquid navigation passes live blur, settled capture, idle,
+rapid-tab, flicker/artifact, and perceived-performance checks. Today swipe and
+all exercised reorder directions/drop cases pass without jumping or vanishing;
+Goals filter/sort, reorder, and transaction sheets pass. Habit/goal add, edit,
+detail, keyboard/IME, navigation actions, Settings theme/language/reminders and
+persistence, History grouping/day detail, TalkBack, large text, and reduced
+motion pass. No crash, noticeable lag, or noticeable heat/battery issue was
+observed. This remains qualitative evidence rather than formal frame-time,
+GPU/CPU/memory, thermal, or battery instrumentation.
+
+One accepted non-blocking visual issue remains: in Liquid light mode the
+navigation-wide material reads as a dense charcoal slab even though live
+capture and idle behavior are correct. By explicit user decision, Checkpoint 7
+is not reopened; Checkpoint 8 must audit the optical fallback, tint, adaptive
+contrast, edge, selected-indicator, and text/icon color ownership and establish
+a light-specific contextual material while retaining the accepted dark mode,
+one-host capture, API tiers, and zero-idle contract. Release APK size and
+physical API 24–30/API 31–32 Liquid evidence remain unavailable.
+
+The final PR review found one independent gesture-finalization defect: a
+cancelled habit-detail pinch could retain its partial scale because only a
+successful `onEnd` reset it. The follow-up adds an `onFinalize` cancellation
+reset on the UI runtime plus a source-contract guard. This is a scoped
+JavaScript gesture-lifecycle correction; the preceding EAS/device evidence
+applies to the otherwise unchanged Checkpoint 7 implementation and is not
+misrepresented as testing the cancellation path.
 
 ## Repository
 

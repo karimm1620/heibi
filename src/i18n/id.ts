@@ -18,6 +18,14 @@ export const id = {
     archive: "Arsip",
     back: "Kembali",
     close: "Tutup",
+    undo: "Urungkan",
+  },
+  celebration: {
+    allDone: "Semua beres hari ini",
+  },
+  snackbar: {
+    goalDeleted: "{{name}} dihapus",
+    undoGoalDeletionAccessibility: "Urungkan penghapusan goal",
   },
   today: {
     headerTitle: "Agenda hari ini",
@@ -77,6 +85,7 @@ export const id = {
   },
   habitForm: {
     screenTitle: "Habit Baru",
+    editScreenTitle: "Edit Habit",
     nameLabel: "Nama Habit",
     namePlaceholder: "Misal: Minum air, Baca 20 menit",
     iconLabel: "Ikon",
@@ -170,6 +179,7 @@ export const id = {
   },
   goalForm: {
     screenTitle: "Goal Baru",
+    editScreenTitle: "Edit Goal",
     imageLabel: "Gambar / Ikon",
     pickImageAccessibilityLabel: "Pilih gambar goal dari galeri",
     uploadLabel: "Upload",

@@ -19,7 +19,9 @@ import { AppListRow } from "../../src/components/AppListRow";
 import { AppSurface } from "../../src/components/AppSurface";
 import { CookieShape } from "../../src/components/CookieShape";
 import { ReminderCard } from "../../src/components/ReminderCard";
+import { ScreenHeading, SectionHeading } from "../../src/components/ScreenHeading";
 import { WaveShape } from "../../src/components/WaveShape";
+import { usePressFeedback } from "../../src/components/pressFeedback";
 import { resolveBottomNavigationLayout } from "../../src/components/navigation/bottom-navigation-layout";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useTranslation } from "../../src/hooks/useTranslation";
@@ -173,9 +175,9 @@ export default function SettingsScreen() {
   return (
     <View key={isDark ? "dark" : "light"} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.headerTitle}>{t.settings.title}</Text>
+        <ScreenHeading title={t.settings.title} />
 
-        <Text style={styles.sectionTitle}>{t.settings.sections.theme}</Text>
+        <SectionHeading title={t.settings.sections.theme} />
         <AppSurface variant="muted" elevation="none" style={styles.card}>
           <Text style={[typography.body, { color: colors.textSecondary }]}>
             {t.settings.theme.description}
@@ -208,7 +210,7 @@ export default function SettingsScreen() {
           </View>
         </AppSurface>
 
-        <Text style={styles.sectionTitle}>{t.settings.sections.language}</Text>
+        <SectionHeading title={t.settings.sections.language} />
         <AppSurface variant="muted" elevation="none" style={styles.card}>
           <View style={styles.languageRow}>
             <LanguageOption
@@ -226,11 +228,11 @@ export default function SettingsScreen() {
           </View>
         </AppSurface>
 
-        <Text style={styles.sectionTitle}>{t.settings.sections.notifications}</Text>
+        <SectionHeading title={t.settings.sections.notifications} />
         <ReminderCard domain="savings" />
         <ReminderCard domain="planner" />
 
-        <Text style={styles.sectionTitle}>{t.settings.sections.backup}</Text>
+        <SectionHeading title={t.settings.sections.backup} />
         <AppSurface variant="muted" elevation="none" style={styles.card}>
           <Text style={typography.body}>{t.settings.backup.description}</Text>
 
@@ -254,7 +256,7 @@ export default function SettingsScreen() {
           />
         </AppSurface>
 
-        <Text style={styles.sectionTitle}>{t.settings.sections.about}</Text>
+        <SectionHeading title={t.settings.sections.about} />
         <AppSurface variant="muted" elevation="none" style={[styles.card, styles.aboutCard]}>
           <AppListRow
             onPress={() => Linking.openURL(GITHUB_URL).catch(() => {})}
@@ -345,6 +347,10 @@ function ThemeOption({
   material3,
 }: ThemeOptionProps) {
   const previewShape = visualThemePreviewShapes[visualTheme];
+  const pressFeedback = usePressFeedback(colors.primary, {
+    disabled,
+    radius: previewShape.card,
+  });
 
   return (
     <Pressable
@@ -353,7 +359,7 @@ function ThemeOption({
       accessibilityRole="radio"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: active, disabled }}
-      android_ripple={{ color: withOpacity(colors.primary, 0.12) }}
+      android_ripple={pressFeedback.androidRipple}
       style={({ pressed }) => [
         styles.themeOption,
         {
@@ -361,7 +367,7 @@ function ThemeOption({
           borderColor: active ? colors.primary : colors.outline,
           borderRadius: previewShape.card,
         },
-        pressed && styles.themeOptionPressed,
+        { opacity: pressFeedback.opacity(pressed) },
       ]}
     >
       <View
@@ -436,7 +442,8 @@ interface LanguageOptionProps {
 }
 
 function LanguageOption({ label, active, onPress, styles }: LanguageOptionProps) {
-  const { colors, shapes, states } = useTheme();
+  const { colors, shapes } = useTheme();
+  const pressFeedback = usePressFeedback(colors.primary, { radius: shapes.control });
 
   return (
     <Pressable
@@ -444,7 +451,7 @@ function LanguageOption({ label, active, onPress, styles }: LanguageOptionProps)
       accessibilityRole="radio"
       accessibilityState={{ selected: active }}
       pressRetentionOffset={12}
-      android_ripple={{ color: withOpacity(colors.onSelected, states.rippleOpacity) }}
+      android_ripple={pressFeedback.androidRipple}
       style={({ pressed }) => [
         styles.languageChip,
         active
@@ -454,7 +461,7 @@ function LanguageOption({ label, active, onPress, styles }: LanguageOptionProps)
               borderColor: colors.selected,
             }
           : { borderRadius: shapes.control },
-        { opacity: pressed ? states.pressedOpacity : 1 },
+        { opacity: pressFeedback.opacity(pressed) },
       ]}
     >
       <Text
@@ -483,15 +490,6 @@ function createStyles(
       paddingHorizontal: spacing.md,
       paddingBottom: resolveBottomNavigationLayout(paddingBottom).contentBottomPadding,
     },
-    headerTitle: {
-      ...typography.display,
-      marginBottom: spacing.md,
-    },
-    sectionTitle: {
-      ...typography.section,
-      marginTop: spacing.lg,
-      marginBottom: spacing.sm,
-    },
     card: {
       padding: spacing.md,
       gap: spacing.md,
@@ -507,9 +505,6 @@ function createStyles(
       padding: spacing.sm + spacing.xs,
       borderWidth: 1,
       overflow: "hidden",
-    },
-    themeOptionPressed: {
-      opacity: 0.76,
     },
     themePreview: {
       height: 52,

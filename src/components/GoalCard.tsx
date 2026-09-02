@@ -6,6 +6,7 @@ import { useTheme } from "../theme/useTheme";
 import type { Goal } from "../types";
 import { clampPercent, formatIDR } from "../utils/currency";
 import { GlassCard } from "./GlassCard";
+import { usePressFeedback } from "./pressFeedback";
 import { ProgressBar } from "./ProgressBar";
 
 interface GoalCardProps {
@@ -15,6 +16,7 @@ interface GoalCardProps {
 
 export function GoalCard({ goal, onPress }: GoalCardProps) {
   const { colors, typography } = useTheme();
+  const pressFeedback = usePressFeedback(colors.primary, { radius: radius.lg });
   const { t, interpolate } = useTranslation();
   const accent = getAccentColors(goal.accent);
   const percent = clampPercent(goal.currentAmount, goal.targetAmount);
@@ -26,8 +28,8 @@ export function GoalCard({ goal, onPress }: GoalCardProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={styles.pressable}
-      android_ripple={{ color: colors.glassBorder }}
+      style={({ pressed }) => [styles.pressable, { opacity: pressFeedback.opacity(pressed) }]}
+      android_ripple={pressFeedback.androidRipple}
       accessibilityRole="button"
       accessibilityLabel={interpolate(t.goalCard.accessibilityLabel, {
         name: goal.name,

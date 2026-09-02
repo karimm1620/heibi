@@ -7,9 +7,10 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { spacing, withOpacity } from "../theme/colors";
+import { spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 import { AppDivider } from "./AppDivider";
+import { resolvePressFeedback } from "./pressFeedback";
 
 interface AppListRowProps {
   children: ReactNode;
@@ -36,7 +37,14 @@ export function AppListRow({
   divider = false,
   style,
 }: AppListRowProps) {
-  const { colors, shapes, states } = useTheme();
+  const { colors, shapes, states, visualTheme } = useTheme();
+  const pressFeedback = resolvePressFeedback({
+    visualTheme,
+    states,
+    color: selected ? colors.onSelected : colors.primary,
+    disabled,
+    radius: selected ? shapes.full : shapes.content,
+  });
 
   const content = (
     <>
@@ -65,12 +73,12 @@ export function AppListRow({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected, disabled }}
       pressRetentionOffset={12}
-      android_ripple={{ color: withOpacity(colors.primary, states.rippleOpacity) }}
+      android_ripple={pressFeedback.androidRipple}
       style={({ pressed }) => [
         styles.row,
         styles.pressable,
         semanticStyle,
-        { opacity: disabled ? states.disabledOpacity : pressed ? states.pressedOpacity : 1 },
+        { opacity: pressFeedback.opacity(pressed) },
         style,
       ]}
     >

@@ -87,4 +87,42 @@ describe("useSettingsStore — visual theme", () => {
 
     expect(useSettingsStore.getState().visualTheme).toBe("liquid");
   });
+
+  it("persists the selected language", async () => {
+    const testDb = await createTestSqliteDb();
+    let useSettingsStore = await loadSettingsStore(testDb);
+    await useSettingsStore.getState().hydrate();
+
+    await useSettingsStore.getState().setLanguage("en");
+
+    jest.resetModules();
+    useSettingsStore = await loadSettingsStore(testDb);
+    await useSettingsStore.getState().hydrate();
+    expect(useSettingsStore.getState().language).toBe("en");
+  });
+
+  it("persists independent savings and planner reminder settings", async () => {
+    const testDb = await createTestSqliteDb();
+    let useSettingsStore = await loadSettingsStore(testDb);
+    await useSettingsStore.getState().hydrate();
+
+    await useSettingsStore.getState().setReminder("savings", true, 7, 15, "saving-id");
+    await useSettingsStore.getState().setReminder("planner", true, 20, 30, "planner-id");
+
+    jest.resetModules();
+    useSettingsStore = await loadSettingsStore(testDb);
+    await useSettingsStore.getState().hydrate();
+    expect(useSettingsStore.getState().savingsReminder).toEqual({
+      enabled: true,
+      hour: 7,
+      minute: 15,
+      notificationId: "saving-id",
+    });
+    expect(useSettingsStore.getState().plannerReminder).toEqual({
+      enabled: true,
+      hour: 20,
+      minute: 30,
+      notificationId: "planner-id",
+    });
+  });
 });

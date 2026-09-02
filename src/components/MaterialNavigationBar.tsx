@@ -1,7 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { withOpacity } from "../theme/colors";
 import { m3ElevationStyle } from "../theme/material3/tokens";
 import { buildM3FullTypeScale } from "../theme/material3/typography";
 import { useTheme } from "../theme/useTheme";
@@ -10,6 +9,7 @@ import {
   type BottomNavigationPresentationProps,
 } from "./navigation/bottom-navigation-contract";
 import { BOTTOM_NAVIGATION_CONTENT_HEIGHT } from "./navigation/bottom-navigation-layout";
+import { resolvePressFeedback } from "./pressFeedback";
 
 export const MATERIAL_NAV_BAR_HEIGHT = BOTTOM_NAVIGATION_CONTENT_HEIGHT;
 
@@ -18,7 +18,13 @@ export function MaterialNavigationBar({
   destinations,
   onDestinationPress,
 }: BottomNavigationPresentationProps) {
-  const { colors, material3, shapes, states } = useTheme();
+  const { colors, material3, shapes, states, visualTheme } = useTheme();
+  const pressFeedback = resolvePressFeedback({
+    visualTheme,
+    states,
+    color: material3.onSurfaceVariant,
+    radius: 32,
+  });
   const typeScale = useMemo(
     () => buildM3FullTypeScale(colors.textPrimary, colors.textSecondary),
     [colors.textPrimary, colors.textSecondary],
@@ -49,12 +55,7 @@ export function MaterialNavigationBar({
             accessibilityState={bottomNavigationAccessibilityState(
               destination.selected,
             )}
-            android_ripple={{
-              borderless: true,
-              color: withOpacity(material3.onSurfaceVariant, states.rippleOpacity),
-              foreground: true,
-              radius: 32,
-            }}
+            android_ripple={pressFeedback.androidRipple}
             onPress={() => onDestinationPress(destination)}
             pressRetentionOffset={12}
             style={styles.destination}
@@ -111,7 +112,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
-    paddingTop: 12,
+    marginVertical: 8,
+    marginHorizontal: 2,
+    paddingTop: 4,
+    borderRadius: 32,
     overflow: "hidden",
   },
   iconContainer: {

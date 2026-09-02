@@ -4,11 +4,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton } from "../src/components/AppButton";
+import { usePressFeedback } from "../src/components/pressFeedback";
 import { useReducedMotion } from "../src/hooks/useReducedMotion";
 import { useTranslation } from "../src/hooks/useTranslation";
 import type { Language } from "../src/i18n";
 import { useSettingsStore } from "../src/store/useSettingsStore";
-import { accentByKey, radius, spacing, withOpacity } from "../src/theme/colors";
+import { accentByKey, radius, spacing } from "../src/theme/colors";
 import type { AccentKey } from "../src/theme/colors";
 import { m3Motion, m3Shape } from "../src/theme/material3/tokens";
 import { useTheme } from "../src/theme/useTheme";
@@ -42,6 +43,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const completeOnboarding = useSettingsStore((state) => state.completeOnboarding);
   const setLanguage = useSettingsStore((state) => state.setLanguage);
+  const skipPressFeedback = usePressFeedback(colors.primary, { radius: 24 });
 
   const STEPS: OnboardingStep[] = useMemo(
     () => [
@@ -154,10 +156,13 @@ export default function OnboardingScreen() {
           <Pressable
             onPress={finish}
             hitSlop={12}
-            style={styles.skipButton}
+            style={({ pressed }) => [
+              styles.skipButton,
+              { opacity: skipPressFeedback.opacity(pressed) },
+            ]}
             accessibilityRole="button"
             accessibilityLabel={t.onboarding.skipAccessibilityLabel}
-            android_ripple={{ color: colors.glassBorder, borderless: true, radius: 24 }}
+            android_ripple={skipPressFeedback.androidRipple}
           >
             <Text style={styles.skipText}>{t.onboarding.skipButton}</Text>
           </Pressable>
@@ -169,7 +174,7 @@ export default function OnboardingScreen() {
           <View style={[styles.iconWrap, { backgroundColor: accent.base }]}>
             <MaterialCommunityIcons name={current.icon} size={56} color={accent.deep} />
           </View>
-          <Text style={styles.title}>{current.title}</Text>
+          <Text accessibilityRole="header" style={styles.title}>{current.title}</Text>
           <Text style={styles.description}>{current.description}</Text>
         </Animated.View>
       </View>
@@ -269,14 +274,20 @@ interface LanguageSegmentProps {
 }
 
 function LanguageSegment({ code, active, accessibilityLabel, onPress, styles, material3 }: LanguageSegmentProps) {
+  const pressFeedback = usePressFeedback(material3.onPrimary, { radius: m3Shape.full });
+
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: active }}
-      style={[styles.languageSegment, active && { backgroundColor: material3.primary }]}
-      android_ripple={{ color: withOpacity(material3.onPrimary, 0.16) }}
+      style={({ pressed }) => [
+        styles.languageSegment,
+        active && { backgroundColor: material3.primary },
+        { opacity: pressFeedback.opacity(pressed) },
+      ]}
+      android_ripple={pressFeedback.androidRipple}
     >
       <Text style={[styles.languageSegmentText, active && { color: material3.onPrimary }]}>
         {code}
@@ -311,7 +322,12 @@ function createStyles(
       paddingVertical: spacing.xs,
     },
     skipButton: {
+      minHeight: 48,
+      justifyContent: "center",
       paddingVertical: spacing.md,
+      paddingHorizontal: spacing.sm,
+      borderRadius: m3Shape.full,
+      overflow: "hidden",
     },
     skipText: { ...typography.body, color: colors.textSecondary, fontWeight: "600" },
     languageToggle: {
@@ -325,6 +341,7 @@ function createStyles(
       paddingHorizontal: spacing.sm + 4,
       paddingVertical: spacing.xs + 2,
       minWidth: 44,
+      minHeight: 48,
       alignItems: "center",
       justifyContent: "center",
     },

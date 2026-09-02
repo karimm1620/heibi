@@ -14,6 +14,7 @@ import { useReducedMotion } from "../hooks/useReducedMotion";
 import { useTranslation } from "../hooks/useTranslation";
 import { m3Shape } from "../theme/material3/tokens";
 import { useTheme } from "../theme/useTheme";
+import { usePressFeedback } from "./pressFeedback";
 
 interface HabitCompleteToggleProps {
   done: boolean;
@@ -37,15 +38,17 @@ const SPRING_BOUNCY = { damping: 9, stiffness: 220, mass: 0.6 };
  * sebagian habit-nya udah selesai dari kemarin gak animasi/getar semua
  * sekaligus pas app baru dibuka.
  *
- * Reanimated dipakai KHUSUS di komponen ini (dan `CelebrationBurst`) --
- * bukan migrasi arsitektur besar. Drag-reorder (`useDragReorder`) & swipe
- * action (`SwipeableRow`) TETAP pakai PanResponder/Animated API classic
- * seperti sebelumnya, gak disentuh.
+ * Reanimated keeps this feedback on the UI runtime. Drag reorder remains the
+ * established Gesture Handler/Reanimated controller; swipe actions retain the
+ * classic RNGH `Swipeable` compatibility path documented in `SwipeableRow`.
  */
 export function HabitCompleteToggle({ done, onToggle, habitName }: HabitCompleteToggleProps) {
   const { colors, material3 } = useTheme();
   const { t, interpolate } = useTranslation();
   const reducedMotion = useReducedMotion();
+  const pressFeedback = usePressFeedback(material3.onPrimary, {
+    radius: m3Shape.extraSmall,
+  });
 
   const checkScale = useSharedValue(done ? 1 : 0);
   const boxScale = useSharedValue(1);
@@ -121,7 +124,11 @@ export function HabitCompleteToggle({ done, onToggle, habitName }: HabitComplete
             done ? t.habitToggle.markIncomplete : t.habitToggle.markComplete,
             { name: habitName },
           )}
-          style={styles.pressable}
+          android_ripple={pressFeedback.androidRipple}
+          style={({ pressed }) => [
+            styles.pressable,
+            { opacity: pressFeedback.opacity(pressed) },
+          ]}
         >
           <Animated.View style={checkStyle}>
             <MaterialCommunityIcons name="check" size={14} color={material3.onPrimary} />

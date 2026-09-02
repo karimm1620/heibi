@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
 import { radius, spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
+import { usePressFeedback } from "./pressFeedback";
 
 export type HabitIconName = React.ComponentProps<
   typeof MaterialCommunityIcons
@@ -56,6 +57,9 @@ export function HabitIconPicker({
   onSelect,
 }: HabitIconPickerProps) {
   const { colors, material3 } = useTheme();
+  const pressFeedback = usePressFeedback(material3.onSecondaryContainer, {
+    radius: radius.md,
+  });
   const { t, interpolate } = useTranslation();
 
   const styles = useMemo(
@@ -93,14 +97,15 @@ export function HabitIconPicker({
           <Pressable
             key={icon}
             onPress={() => onSelect(icon)}
-            style={[
+            style={({ pressed }) => [
               styles.item,
               isActive && [styles.itemActive, { backgroundColor: `${color}26` }],
+              { opacity: pressFeedback.opacity(pressed) },
             ]}
             accessibilityRole="button"
             accessibilityLabel={interpolate(t.habitForm.iconAccessibilityLabel, { icon })}
             accessibilityState={{ selected: isActive }}
-            android_ripple={{ color: colors.glassBorder }}
+            android_ripple={pressFeedback.androidRipple}
           >
             <MaterialCommunityIcons
               name={icon}
