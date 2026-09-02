@@ -364,6 +364,24 @@ physical-device QA remain required for the native observer lifecycle, live
 navigation freshness, both API 31–32 and API 33+ optical tiers, sheet behavior,
 visual quality, and performance. Checkpoint 7 has not started.
 
+Final Checkpoint 6 validation is now complete for the unchanged production
+source in PR #14. The EAS Android build succeeds. User physical-device QA
+passes the Material rounded pill, navigation behavior, FAB/snackbar geometry,
+Liquid live backdrop response while scrolling, settled post-scroll backdrop,
+visible idle behavior, rapid tab switching, and artifact/flicker checks.
+History and goal deposit/withdraw sheets pass in both themes with Android back,
+scrim, swipe dismissal, scroll handoff, keyboard/IME, reduced motion, and
+TalkBack. No crash, noticeable lag, or noticeable heat/battery issue was
+observed, and the user accepts Checkpoint 6 for squash merge.
+
+This is strong qualitative device evidence only. It is not formal frame-time,
+GPU, CPU, memory, battery-discharge, or thermal instrumentation. Release APK
+size and physical API 24–30/API 31–32 evidence remain unavailable. The final
+follow-up commit changes only these source-of-truth documents; EAS/native and
+device evidence applies to the unchanged implementation commit
+`8da3269ef897d99f1e7b9fb63cffdba4743967b3`. PR #14 remains pending squash
+merge at this documentation handoff.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

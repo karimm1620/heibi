@@ -930,7 +930,7 @@ migration.
 
 ## D-027 — Preserve Checkpoint 5 navigation architecture while refining its material response
 
-**Status:** accepted for bounded Checkpoint 6 implementation
+**Status:** accepted and physically validated for Checkpoint 6
 
 ### Finding
 
@@ -994,15 +994,29 @@ remain intact.
 
 Local source guards require observer registration, coalescing/throttling,
 trailing-callback cancellation, and full listener cleanup, and reject a native
-or JavaScript permanent frame loop. EAS/device validation is still required;
-local static validation does not establish capture cost, visual freshness, or
-native compilation.
+or JavaScript permanent frame loop. At implementation delivery, EAS/device
+validation remained required because local static validation did not establish
+capture cost, visual freshness, or native compilation.
+
+The follow-up EAS Android build succeeds for the unchanged production source.
+User physical-device QA strongly confirms live bounded blur while scrolling,
+the final settled backdrop after scrolling, no visible recurring idle refresh,
+rapid tab switching, and no artifact or flicker. The Material rounded pill,
+navigation behavior, and FAB/snackbar geometry also pass. No crash,
+noticeable lag, or noticeable heat/battery issue was observed. The user accepts
+this model and the pill refinement.
+
+This remains qualitative evidence. It adds no formal frame-time, GPU, CPU,
+memory, battery-discharge, or thermal measurements; no release APK size; and
+no physical API 24–30 or API 31–32 evidence. The API 24–30 tonal, API 31–32
+bounded blur, API 33+ original AGSL, and low-RAM/failure degradation contracts
+remain unchanged.
 
 ---
 
 ## D-028 — Use the installed native Expo UI sheet with a tonal Liquid dialog boundary
 
-**Status:** accepted for Checkpoint 6
+**Status:** accepted and physically validated for Checkpoint 6
 
 ### Finding
 
@@ -1055,7 +1069,15 @@ no reliable detent-settle callback, so no detent haptic is claimed.
 - exact focus entry/restoration support and native sheet behavior require
   TalkBack/device QA; React descendants remain the accessibility source;
 - EAS compilation and physical-device sheet, keyboard, back, scroll, and live
-  Liquid validation remain required before merge.
+  Liquid validation were required before merge and are recorded below.
+
+The follow-up EAS build succeeds, and user physical-device QA passes for the
+History and goal deposit/withdraw sheets in both Material and Liquid themes,
+including Android back, the native scrim, swipe dismissal, scroll handoff,
+keyboard/IME behavior, reduced motion, and TalkBack. Liquid sheets remain
+tonal: no cross-window optical renderer was introduced. The user accepts this
+native-sheet architecture. The same qualitative evidence limits recorded in
+D-027 apply.
 
 ---
 

@@ -291,8 +291,21 @@ API 31–32, and instrumented device performance remain open evidence.
   - Expo Doctor remains 20/21 solely for the pre-existing SDK 57 patch drift;
     Checkpoint 6 changes no dependency files.
   - Local Kotlin/Gradle compilation is unavailable and was not attempted. EAS
-    Development/Preview plus physical-device navigation/sheet QA remains
-    required before merge, including live-refresh capture/performance evidence.
+    Development/Preview and user physical-device validation subsequently pass
+    for the unchanged Checkpoint 6 production source.
+  - EAS Android native compilation completed successfully. On a physical
+    device, the Material selected pill, navigation behavior, FAB/snackbar
+    geometry, Liquid live blur during scroll, settled post-scroll backdrop,
+    zero-visible-idle-refresh behavior, and rapid tab switching all pass with
+    no visible artifact or flicker.
+  - History and goal transaction sheets pass in Material and Liquid themes,
+    including Android back, scrim, swipe dismissal, scroll handoff, keyboard/
+    IME behavior, reduced motion, and TalkBack.
+  - The user observed no crash, noticeable lag, or noticeable heat/battery
+    issue and accepts Checkpoint 6. This is qualitative device evidence, not
+    frame-time, GPU/CPU/memory, battery-discharge, or thermal instrumentation.
+  - Release APK size, physical API 24–30 behavior, and physical API 31–32
+    behavior remain unmeasured.
 
 ## Checkpoint 7 — Screens
 
