@@ -1,5 +1,5 @@
 import type { ThemeColors } from "../../../src/theme/colors";
-import { withOpacity } from "../../../src/theme/colors";
+import { liquidChromeColors, withOpacity } from "../../../src/theme/colors";
 
 export type LiquidGlassMaterialTone = "default" | "navigation";
 
@@ -25,12 +25,13 @@ export function resolveLiquidGlassMaterialColors(
   isDark: boolean,
   tone: LiquidGlassMaterialTone,
 ): LiquidGlassMaterialColors {
-  if (tone === "navigation" && !isDark) {
+  if (tone === "navigation") {
+    const chrome = isDark ? liquidChromeColors.dark : liquidChromeColors.light;
     return {
-      fallbackColor: colors.glassTintLight,
-      tintColor: withOpacity(colors.glassTintLight, 0.24),
-      edgeColor: "rgba(255,255,255,0.78)",
-      lightMaterial: true,
+      fallbackColor: chrome.navigationFallback,
+      tintColor: withOpacity(chrome.navigationTint, isDark ? 0.4 : 0.36),
+      edgeColor: chrome.navigationEdge,
+      lightMaterial: !isDark,
     };
   }
 

@@ -532,6 +532,85 @@ performance, polish, small fixes, and final QA. No CP8 EAS result, release APK,
 formal performance/battery/thermal result, or physical API 24–30/API 31–32
 Liquid evidence is invented by this handoff.
 
+### Checkpoint 9 widget suite and final product redesign (2026-09-02)
+
+PR #16 was finalized with the CP8 snapshot-timestamp review correction and
+squash-merged at `4df624a0e66c16a76d56a12bca91d426378319fd`. Checkpoint 9 starts from
+that exact `origin/main` commit on `feat/checkpoint-9-widget-suite` in
+`/home/immz/heibi-checkpoint-9-widget-suite`. The local visual references were
+inspected as composition/bug evidence only and are not part of the workspace or
+delivery patch.
+
+Checkpoint 9 replaces the rejected widget presentation while retaining CP8's
+serialized/coalesced latest-state write pipeline. Snapshot v2 adds goal
+creation timestamps, `dueToday`, and a bounded newest-first transaction stream;
+the native parser remains defensive. Exactly four Glance providers consume it:
+redesigned 14-day heatmap, today's completion tracker, selected-goal saving
+progress, and selected-goal balance chart. The chart uses a small Android
+Canvas bitmap rather than a new chart/runtime dependency. One native route
+object owns widget actions. EAS native compilation and physical launcher
+resize/tap/data-refresh validation remain required.
+
+Liquid's visual problem was color ownership, not capture. Wallpaper-derived
+`primaryContainer` flowed through `surfaceInteractive` into navigation and
+native-dialog sheet chrome, creating the dark green cast and weak light
+boundary. Renderer-specific neutral light/dark roles now own navigation
+fallback/tint/edge and Liquid sheet tone. Material dynamic color and the
+selected accent remain intact. Navigation source/native capture lifecycle is
+unchanged: one bounded host, `interactionEnabled=false`, coalesced contextual
+refresh, one settled capture, no idle/JS frame loop, and unchanged tonal/blur/
+AGSL/failure tiers. The native renderer Kotlin source is unchanged.
+
+The goal transaction sheet's horizontal defect came from the SDK 57 community
+sheet dynamic-size host measuring Heibi's unconstrained RN content at intrinsic
+width. The shared host/surface now establishes `width: 100%`; native Compose
+dialog, Android back, scrim, swipe, scrolling, and IME ownership stay intact.
+Liquid sheets remain neutral tonal surfaces because cross-window optical
+capture is still not claimed.
+
+Savings now derives an accessible chronological running-balance line from real
+transactions (deposit positive, withdrawal negative) with deterministic
+same-time ordering and persisted current balance as the final authority. Goal
+detail uses a compact progress/chart card that opens nested
+`goal/[id]/progress`; the route is not a tab. History transactions open an
+existing related goal and safely remain non-navigable after deletion. The old
+looping decorative bottle is replaced by a static abstract reserve vessel.
+Onboarding retains its four-step language, persistence, permission, and
+reduced-motion flow but gains a clearer Heibi story composition and hierarchy.
+
+Local validation passes Expo Doctor 21/21, TypeScript, warning-free ESLint,
+23 Jest suites / 169 tests, Android export, and clean Android prebuild. Expo
+autolinking resolves both local modules and `@expo/ui`; New Architecture stays
+enabled; all 26 generated/module XML files parse; no package/config/iOS change
+exists. The final patch also applies cleanly to a disk-backed checkout at the
+exact CP9 base; a cold `npm ci` followed by Expo Doctor 21/21, TypeScript,
+warning-free ESLint, and 23 Jest suites / 169 tests passes there. EAS
+compilation and physical device/launcher QA remain pending. Release APK
+size, formal performance/battery/thermal instrumentation, and physical Liquid
+API 24–30/API 31–32 evidence remain unavailable. Checkpoint 10 has not started.
+
+The follow-up EAS Android build succeeds and the user completes broad physical-
+device QA. Saving and Chart widgets pass rendering, resize, update, and deep-link
+checks; Simple Tracker passes its metric, initial rendering, resize, and tap;
+savings cards/charts, deposit/withdraw actions, the nested progress screen,
+History-to-goal routing, onboarding, TalkBack, large text, and reduced motion
+pass. Dark Liquid navigation is accepted with the green Material-You cast
+removed; contextual blur, settled capture, idle behavior, rapid tabs, artifact
+behavior, and perceived performance also pass. No crash, noticeable lag, or
+noticeable heat/battery issue is observed. This remains qualitative evidence,
+not instrumented frame, CPU/GPU, memory, thermal, or battery data.
+
+The user accepts Checkpoint 9 for merge while explicitly deferring five physical-
+device defects to the final stabilization checkpoint: Heatmap labels a 14-day
+view but visibly shows only about five cells per habit; an installed Simple
+Tracker stays stale until removed and re-added; light Liquid navigation remains
+too faint over the cream page; the Liquid transaction sheet's inner material
+remains narrow and left-aligned although Material width is correct; and Material
+navigation ripple blooms well outside the intended pill. These do not reopen the
+accepted widget data architecture, savings/onboarding work, dark Liquid material,
+or renderer lifecycle. Release APK size and physical Liquid API 24–30/API 31–32
+evidence remain unavailable.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

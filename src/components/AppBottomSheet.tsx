@@ -9,7 +9,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTranslation } from "../hooks/useTranslation";
-import { spacing } from "../theme/colors";
+import { liquidChromeColors, spacing } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
 import { LiquidMaterialSurface } from "./liquid/LiquidMaterialSurface";
 import { usePressFeedback } from "./pressFeedback";
@@ -47,7 +47,7 @@ export function AppBottomSheet({
   snapPoints,
   testID,
 }: AppBottomSheetProps) {
-  const { colors, shapes, states, typography, visualTheme } = useTheme();
+  const { colors, isDark, shapes, states, typography, visualTheme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const material = resolveAppBottomSheetMaterial(visualTheme);
@@ -56,6 +56,7 @@ export function AppBottomSheet({
     () =>
       StyleSheet.create({
         surface: {
+          width: "100%",
           backgroundColor: colors.surface,
           borderTopLeftRadius: shapes.sheet,
           borderTopRightRadius: shapes.sheet,
@@ -63,9 +64,12 @@ export function AppBottomSheet({
           paddingBottom: spacing.lg + insets.bottom,
         },
         liquidSurface: {
-          backgroundColor: colors.surfaceInteractive,
+          backgroundColor: (isDark ? liquidChromeColors.dark : liquidChromeColors.light).sheetSurface,
           borderBottomLeftRadius: 0,
           borderBottomRightRadius: 0,
+        },
+        sheetHost: {
+          width: "100%",
         },
         fill: {
           flex: 1,
@@ -91,7 +95,7 @@ export function AppBottomSheet({
           overflow: "hidden",
         },
       }),
-    [colors, insets.bottom, shapes, states.minTouchTarget, typography],
+    [colors, insets.bottom, isDark, shapes, states.minTouchTarget, typography],
   );
 
   const content = (
@@ -126,15 +130,19 @@ export function AppBottomSheet({
       enablePanDownToClose
       onClose={onDismiss}
       backgroundStyle={{
-        backgroundColor: material === "liquid-tonal" ? colors.surfaceInteractive : colors.surface,
+        backgroundColor:
+          material === "liquid-tonal"
+            ? (isDark ? liquidChromeColors.dark : liquidChromeColors.light).sheetSurface
+            : colors.surface,
       }}
     >
-      <BottomSheetView style={snapPoints ? styles.fill : undefined}>
+      <BottomSheetView style={[styles.sheetHost, snapPoints ? styles.fill : undefined]}>
         {material === "liquid-tonal" ? (
           <LiquidMaterialSurface
             accessibilityViewIsModal={visible}
             accessibilityElementsHidden={!visible}
             importantForAccessibility={visible ? "yes" : "no-hide-descendants"}
+            materialTone="sheet"
             style={[styles.surface, snapPoints ? styles.fill : null, styles.liquidSurface]}
             testID={testID}
           >

@@ -32,7 +32,15 @@ describe("production transient-surface source contract", () => {
 
   it("uses tonal Liquid material rather than unsupported cross-window optical capture", () => {
     expect(componentSource).toContain("LiquidMaterialSurface");
+    expect(componentSource).toContain('materialTone="sheet"');
+    expect(componentSource).toContain("liquidChromeColors");
     expect(componentSource).not.toContain("OriginalLiquidGlassSurface");
+  });
+
+  it("pins the native dynamic-size host to the full dialog width", () => {
+    expect(componentSource).toContain('width: "100%"');
+    expect(componentSource).toContain("styles.sheetHost");
+    expect(componentSource).not.toMatch(/translateX|left:\s*-|marginLeft:\s*-/);
   });
 
   it("migrates both incumbent production sheets without a JS gesture loop", () => {

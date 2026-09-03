@@ -17,8 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
- * Dibuka OTOMATIS sama Android pas Widget 2 di-drop ke home screen (lewat
- * `android:configure` di goal_balance_widget_info.xml). Tugasnya cuma satu:
+ * Dibuka otomatis saat saving atau chart widget di-drop ke home screen (lewat
+ * `android:configure` di metadata provider). Tugasnya satu:
  * user pilih goal, kita simpen pilihannya per-appWidgetId, trigger update,
  * lalu WAJIB balikin RESULT_OK -- kalau enggak, Android batalin pemasangan
  * widget-nya (lihat dokumentasi resmi "Enable users to configure app
@@ -116,7 +116,13 @@ class GoalBalanceConfigActivity : Activity() {
 
       // Sistem GAK ngirim broadcast update pas configuration activity
       // dibuka -- ini tanggung jawab activity buat trigger update pertama.
-      GoalBalanceWidget().update(this@GoalBalanceConfigActivity, glanceId)
+      val providerClass = AppWidgetManager.getInstance(this@GoalBalanceConfigActivity)
+        .getAppWidgetInfo(appWidgetId)?.provider?.className
+      if (providerClass == ChartWidgetProvider::class.java.name) {
+        ChartWidget().update(this@GoalBalanceConfigActivity, glanceId)
+      } else {
+        GoalBalanceWidget().update(this@GoalBalanceConfigActivity, glanceId)
+      }
 
       val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
       setResult(RESULT_OK, resultValue)

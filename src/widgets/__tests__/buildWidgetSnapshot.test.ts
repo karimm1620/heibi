@@ -38,6 +38,7 @@ describe("buildWidgetSnapshot", () => {
       [],
       [habit("a", 0)],
       [log("a", "2026-09-01"), log("a", "2026-09-14")],
+      [],
       reference,
     );
 
@@ -47,6 +48,7 @@ describe("buildWidgetSnapshot", () => {
     expect(row.days.at(-1)).toEqual({ dateKey: "2026-09-14", done: true });
     expect(row.days[1]).toEqual({ dateKey: "2026-09-02", done: false });
     expect(row.currentStreak).toBe(1);
+    expect(row.dueToday).toBe(true);
     expect(row.colorHex).toBe("#6FAEDE");
   });
 
@@ -58,10 +60,29 @@ describe("buildWidgetSnapshot", () => {
       ),
     ];
 
-    const rows = buildWidgetSnapshot([], habits, [], new Date(2026, 8, 14)).habits;
+    const rows = buildWidgetSnapshot([], habits, [], [], new Date(2026, 8, 14)).habits;
 
     expect(rows).toHaveLength(WIDGET_MAX_HABIT_ROWS);
     expect(rows.map((row) => row.id)).toEqual(["9", "8", "7", "6", "5", "4", "3", "2"]);
     expect(rows.some((row) => row.id === "archived")).toBe(false);
+  });
+
+  it("extends the versioned snapshot with bounded newest-first transactions", () => {
+    const snapshot = buildWidgetSnapshot(
+      [],
+      [],
+      [],
+      [
+        { id: "older", goalId: "g", type: "deposit", amount: 100, createdAt: 1 },
+        { id: "newer", goalId: "g", type: "withdrawal", amount: 20, createdAt: 2 },
+      ],
+      new Date(2026, 8, 14),
+    );
+
+    expect(snapshot.version).toBe(2);
+    expect(snapshot.transactions.map((transaction) => transaction.id)).toEqual([
+      "newer",
+      "older",
+    ]);
   });
 });

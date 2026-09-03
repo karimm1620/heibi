@@ -14,14 +14,14 @@ import { AppAlert } from "../../src/components/AppAlert";
 import { AppBottomSheet } from "../../src/components/AppBottomSheet";
 import { EmptyState } from "../../src/components/EmptyState";
 import { GlassCard } from "../../src/components/GlassCard";
-import { JarProgress } from "../../src/components/JarProgress";
+import { SavingsProgressCard } from "../../src/components/SavingsProgressCard";
 import { TransactionRow } from "../../src/components/TransactionRow";
 import { SectionHeading } from "../../src/components/ScreenHeading";
 import { usePressFeedback } from "../../src/components/pressFeedback";
 import { useAppAlert } from "../../src/hooks/useAppAlert";
 import { useTranslation } from "../../src/hooks/useTranslation";
 import { useGoalsStore } from "../../src/store/useGoalsStore";
-import { getAccentColors, spacing } from "../../src/theme/colors";
+import { spacing } from "../../src/theme/colors";
 import { m3Shape } from "../../src/theme/material3/tokens";
 import { useTheme } from "../../src/theme/useTheme";
 import { formatIDR, formatThousands, parseThousands } from "../../src/utils/currency";
@@ -62,8 +62,6 @@ export default function GoalDetailScreen() {
     setAmountDisplay("");
     setNote("");
   };
-
-  const accent = useMemo(() => getAccentColors(goal?.accent ?? "mint"), [goal]);
 
   const styles = useMemo(
     () =>
@@ -247,11 +245,10 @@ export default function GoalDetailScreen() {
       >
         <Text accessibilityRole="header" style={styles.goalName}>{goal.name}</Text>
 
-        <JarProgress
-          currentAmount={goal.currentAmount}
-          targetAmount={goal.targetAmount}
-          accentBase={accent.base}
-          accentDeep={accent.deep}
+        <SavingsProgressCard
+          goal={goal}
+          transactions={transactions}
+          onPress={() => router.push(`/goal/${goal.id}/progress`)}
         />
 
         <View style={styles.actionRow}>

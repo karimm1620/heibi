@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppButton } from "../src/components/AppButton";
+import { AppSurface } from "../src/components/AppSurface";
 import { usePressFeedback } from "../src/components/pressFeedback";
 import { useReducedMotion } from "../src/hooks/useReducedMotion";
 import { useTranslation } from "../src/hooks/useTranslation";
@@ -36,7 +37,7 @@ interface OnboardingStep {
  * `useTranslation()` yang cuma keakses lewat hook, gak bisa di module scope.
  */
 export default function OnboardingScreen() {
-  const { colors, typography, material3 } = useTheme();
+  const { colors, typography, material3, visualTheme } = useTheme();
   const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
@@ -137,13 +138,14 @@ export default function OnboardingScreen() {
   };
 
   const styles = useMemo(
-    () => createStyles(colors, typography, material3, insets),
-    [colors, typography, material3, insets],
+    () => createStyles(colors, typography, material3, insets, visualTheme),
+    [colors, typography, material3, insets, visualTheme],
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
+        <Text style={styles.brand}>HEIBI</Text>
         <LanguageToggle
           language={language}
           onSelect={setLanguage}
@@ -171,9 +173,8 @@ export default function OnboardingScreen() {
 
       <View style={styles.content}>
         <Animated.View style={[styles.stepBody, { opacity, transform: [{ translateY }] }]}>
-          <View style={[styles.iconWrap, { backgroundColor: accent.base }]}>
-            <MaterialCommunityIcons name={current.icon} size={56} color={accent.deep} />
-          </View>
+          <Text style={styles.stepLabel}>{String(step + 1).padStart(2, "0")} / {String(STEPS.length).padStart(2, "0")}</Text>
+          <OnboardingStoryVisual stepId={current.id} icon={current.icon} accent={accent} styles={styles} />
           <Text accessibilityRole="header" style={styles.title}>{current.title}</Text>
           <Text style={styles.description}>{current.description}</Text>
         </Animated.View>
@@ -220,6 +221,42 @@ export default function OnboardingScreen() {
         )}
       </View>
     </View>
+  );
+}
+
+function OnboardingStoryVisual({
+  stepId,
+  icon,
+  accent,
+  styles,
+}: {
+  stepId: string;
+  icon: OnboardingStep["icon"];
+  accent: { base: string; deep: string };
+  styles: ReturnType<typeof createStyles>;
+}) {
+  const barWidths = stepId === "savings" ? ["36%", "58%", "82%"] : stepId === "habits" ? ["82%", "66%", "94%"] : ["54%", "76%", "64%"];
+  return (
+    <AppSurface variant="elevated" elevation="medium" style={styles.storyCard} accessible={false} importantForAccessibility="no-hide-descendants">
+      <View style={styles.storyTopRow}>
+        <View style={[styles.iconWrap, { backgroundColor: accent.base }]}>
+          <MaterialCommunityIcons name={icon} size={38} color={accent.deep} />
+        </View>
+        <View style={styles.storyMetric}>
+          <View style={[styles.storyMetricLine, { backgroundColor: accent.deep }]} />
+          <View style={[styles.storyMetricLine, styles.storyMetricLineShort, { backgroundColor: accent.base }]} />
+        </View>
+      </View>
+      <View style={styles.storyRows}>
+        {barWidths.map((width, index) => (
+          <View key={index} style={styles.storyRow}>
+            <View style={[styles.storyDot, { backgroundColor: index === 0 ? accent.deep : accent.base }]} />
+            <View style={[styles.storyBar, { width: width as `${number}%`, backgroundColor: accent.base }]} />
+            <View style={[styles.storyCheck, { borderColor: accent.deep }]} />
+          </View>
+        ))}
+      </View>
+    </AppSurface>
   );
 }
 
@@ -301,6 +338,7 @@ function createStyles(
   typography: ReturnType<typeof useTheme>["typography"],
   material3: ReturnType<typeof useTheme>["material3"],
   insets: { top: number; bottom: number; left: number; right: number },
+  visualTheme: ReturnType<typeof useTheme>["visualTheme"],
 ) {
   return StyleSheet.create({
     container: {
@@ -320,6 +358,11 @@ function createStyles(
       alignItems: "center",
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.xs,
+    },
+    brand: {
+      ...typography.label,
+      color: colors.textPrimary,
+      letterSpacing: 2.4,
     },
     skipButton: {
       minHeight: 48,
@@ -352,28 +395,85 @@ function createStyles(
     },
     content: {
       flex: 1,
-      alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: spacing.xl,
     },
-    stepBody: { alignItems: "center" },
+    stepBody: { alignItems: "stretch" },
+    stepLabel: {
+      ...typography.label,
+      color: colors.textSecondary,
+      letterSpacing: 1.2,
+      marginBottom: spacing.md,
+    },
+    storyCard: {
+      minHeight: 230,
+      padding: spacing.lg,
+      marginBottom: spacing.xl,
+      borderWidth: visualTheme === "liquid" ? 1 : 0,
+      borderColor: colors.glassBorder,
+    },
+    storyTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
     iconWrap: {
-      width: 120,
-      height: 120,
-      borderRadius: radius.xl,
+      width: 72,
+      height: 72,
+      borderRadius: radius.lg,
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: spacing.xl,
+    },
+    storyMetric: {
+      width: 112,
+      alignItems: "flex-end",
+      gap: spacing.sm,
+    },
+    storyMetricLine: {
+      width: "100%",
+      height: 12,
+      borderRadius: radius.pill,
+    },
+    storyMetricLineShort: {
+      width: "64%",
+      opacity: 0.72,
+    },
+    storyRows: {
+      gap: spacing.md,
+      marginTop: spacing.xl,
+    },
+    storyRow: {
+      minHeight: 32,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    storyDot: {
+      width: 10,
+      height: 10,
+      borderRadius: radius.pill,
+    },
+    storyBar: {
+      height: 12,
+      borderRadius: radius.pill,
+      opacity: 0.56,
+    },
+    storyCheck: {
+      width: 20,
+      height: 20,
+      borderRadius: radius.pill,
+      borderWidth: 2,
+      marginLeft: "auto",
     },
     title: {
       ...typography.display,
-      textAlign: "center",
+      textAlign: "left",
       marginBottom: spacing.sm,
     },
     description: {
       ...typography.body,
       color: colors.textSecondary,
-      textAlign: "center",
+      textAlign: "left",
     },
     footer: { paddingHorizontal: spacing.xl },
     dots: {
