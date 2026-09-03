@@ -1444,7 +1444,7 @@ authorize a new product checkpoint or redesign phase.
 
 ## D-039 — Correct final regressions at their rendering and update owners
 
-**Status:** accepted for final EAS/device validation
+**Status:** accepted and physically validated
 
 ### Finding
 
@@ -1472,10 +1472,18 @@ Material navigation response to one 16dp-radius, 6%-opacity foreground ripple
 while preserving the 64×32 selected pill and Liquid's ripple exclusion.
 
 These changes add no dependency, background worker, frame loop, product feature,
-or widget provider. The native changes require a new EAS compile and all five
-visual/runtime fixes require final physical-device validation. No release APK,
-instrumented performance/thermal/battery result, or physical API 24–30/API 31–32
-Liquid evidence is claimed.
+or widget provider. The final EAS build succeeds and user physical-device QA
+accepts all five fixes, their navigation/sheet/widget regressions, Today gestures,
+savings flows, TalkBack, large text, and reduced motion. No blocking crash or
+noticeable lag/heat issue is reported; this remains qualitative evidence, not
+instrumented frame/CPU/GPU/RAM/thermal/battery data.
+
+The user reports the final APK at approximately 70 MB, approximately +5 MB from
+the historical 65 MB baseline. This passes the 90 MB warning and 100 MB hard
+limit. The artifact is not locally accessible, so exact type, bytes, and MiB are
+not claimed. Physical Liquid API 24–30 and API 31–32 evidence also remains
+unavailable. With those limitations explicit, the planned CP2–CP10 overhaul is
+complete; no Checkpoint 11 is created.
 
 ---
 

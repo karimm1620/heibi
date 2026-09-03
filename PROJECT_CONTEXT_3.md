@@ -674,6 +674,23 @@ final patch also applies cleanly to the exact CP10 base in a disk-backed
 checkout; cold `npm ci`, Expo Doctor 21/21, TypeScript, warning-free ESLint,
 and 23 Jest suites / 171 tests pass after application.
 
+The final EAS build succeeds and the user accepts the physical-device result.
+Heatmap renders all 14 slots; installed Simple Tracker updates live; Saving and
+Chart widgets pass; light and dark Liquid navigation pass together with live,
+settled, idle, and rapid-tab behavior; Material navigation ripple passes; and
+Liquid/Material transaction sheets pass width, IME, Android back, swipe, and
+scrim checks. Savings progress/chart/History deep links, Today swipe/reorder,
+TalkBack, large text, and reduced motion also pass. No blocking crash or
+noticeable lag/heat issue is reported. This is qualitative evidence, not
+instrumented frame/CPU/GPU/RAM/thermal/battery data.
+
+The user reports the final APK at approximately 70 MB, approximately +5 MB
+against the historical 65 MB baseline. This passes the 90 MB warning and 100 MB
+hard limit. The artifact is not locally accessible, so exact artifact type,
+bytes, and MiB are unavailable. Physical Liquid API 24–30 and API 31–32 evidence
+also remains unavailable. The planned CP2–CP10 overhaul is now complete; no
+Checkpoint 11 is created.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

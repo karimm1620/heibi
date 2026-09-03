@@ -570,7 +570,7 @@ API 31–32, and instrumented device performance remain open evidence.
 - [x] Improve Liquid light navbar visibility.
 - [x] Fix Liquid transaction-sheet full-width layout.
 - [x] Reduce and correctly bound Material navbar ripple/pressed feedback.
-- [ ] Run a new EAS/device validation after fixes.
+- [x] Run a new EAS/device validation after fixes.
   - Glance rows support at most ten direct children. The old alternating 14
     cells plus 13 spacers was therefore truncated after five cells. Every
     habit now renders the same 14 chronological slots as a deterministic 7+7
@@ -591,6 +591,13 @@ API 31–32, and instrumented device performance remain open evidence.
     response, but uses a 16dp-radius, 6%-opacity foreground ripple instead of
     the 32dp background ripple whose center was hidden by the pill and read as
     a large surrounding halo. Liquid navigation remains ripple-free.
+  - Final EAS and physical-device QA pass. The user accepts all five fixes:
+    Heatmap shows all 14 slots; installed Simple Tracker refreshes live; light
+    and dark Liquid navigation, contextual live/settled/idle/rapid-tab behavior,
+    Material ripple, Liquid and Material transaction sheets, IME/back/swipe/
+    scrim, savings flows, Today gestures, TalkBack, large text, and reduced
+    motion pass. No blocking crash or noticeable lag/heat issue was reported;
+    this remains qualitative rather than instrumented evidence.
 
 - [x] Complete source-level performance/resource regression audit.
   - Liquid still has one bounded host, contextual/coalesced active capture,
@@ -600,17 +607,17 @@ API 31–32, and instrumented device performance remain open evidence.
   - No dependency, package/config, iOS, or generated-artifact change is part
     of Checkpoint 10.
 
-- [ ] Build release APK.
-- [ ] Record final APK size.
-- [ ] Compare against ~65 MB user baseline.
-- [ ] Confirm below 90 MB soft-warning threshold.
-- [ ] Confirm below 100 MB hard limit.
-- [ ] Test tab switching in release.
-- [ ] Test Liquid material in release.
-- [ ] Test bottom sheets in release.
-- [ ] Test drag reorder in release.
-- [ ] Test scrolling in release.
-- [ ] Test theme switching in release.
+- [x] Build final EAS APK used for device QA.
+- [x] Record final APK size (approximately 70 MB, user reported).
+- [x] Compare against ~65 MB user baseline (approximately +5 MB).
+- [x] Confirm below 90 MB soft-warning threshold.
+- [x] Confirm below 100 MB hard limit.
+- [x] Test tab switching in final EAS/device build.
+- [x] Test Liquid material in final EAS/device build.
+- [x] Test bottom sheets in final EAS/device build.
+- [x] Test drag reorder in final EAS/device build.
+- [x] Test scrolling in final EAS/device build.
+- [x] Test theme switching in final EAS/device build.
 
 ## Final
 
@@ -620,20 +627,22 @@ API 31–32, and instrumented device performance remain open evidence.
 - [x] `npx expo export --platform android`.
 - [x] Native prebuild checks green.
 - [x] Fresh-clone patch checks green.
-- [ ] Core flows smoke tested.
+- [x] Core flows smoke tested on the final EAS/device build.
 - [x] `DECISIONS.md` up to date.
 - [x] Known limitations listed.
-- [ ] APK size listed.
-- [ ] Final completion report.
+- [x] APK size listed as approximate user-reported evidence.
+- [x] Final completion report.
   - `npx expo install --check` reports dependencies current and Expo Doctor
     passes 21/21. Clean Android prebuild resolves both local Expo modules and
     `@expo/ui`; Gesture Handler, Reanimated, and Worklets resolve; New
     Architecture remains enabled; 26/26 generated/module XML files parse; no
     iOS tree is generated. Local Kotlin/Gradle compilation is unavailable and
     not claimed.
-  - No APK/AAB artifact is accessible locally. The 5.2MB Expo/Hermes export is
-    not an APK; exact bytes/MiB and comparison with the ~65MB baseline, 90MB
-    warning, and 100MB limit remain a final EAS artifact gate.
+  - No APK/AAB artifact is accessible locally. The user reports the final APK
+    at approximately 70 MB, approximately +5 MB from the historical 65 MB
+    baseline and below both the 90 MB warning and 100 MB hard limit. Exact
+    artifact type, bytes, and MiB remain unavailable; the 5.2 MB Expo/Hermes
+    export is not substituted for APK evidence.
   - The final patch applies to the exact CP10 base in a disk-backed checkout.
     A cold `npm ci`, Expo Doctor 21/21, TypeScript, warning-free ESLint, and all
     23 Jest suites / 171 tests pass after application.
