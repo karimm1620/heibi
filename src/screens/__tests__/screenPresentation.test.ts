@@ -113,4 +113,34 @@ describe("screen presentation contracts", () => {
     expect(celebration).toContain('accessibilityRole="alert"');
     expect(snackbar).toContain('accessibilityLiveRegion="polite"');
   });
+
+  it("adds savings analytics as a nested route rather than a fifth tab", () => {
+    const rootLayout = read("app/_layout.tsx");
+    const tabs = read("app/(tabs)/_layout.tsx");
+    const goalDetail = read("app/goal/[id].tsx");
+    const progress = read("app/goal/[id]/progress.tsx");
+    const history = read("app/(tabs)/history.tsx");
+
+    expect(rootLayout).toContain('name="goal/[id]/progress"');
+    expect(tabs).not.toContain("goal/[id]/progress");
+    expect(goalDetail).toContain("<SavingsProgressCard");
+    expect(progress).toContain("<SavingsLineChart");
+    expect(progress).toContain("buildSavingsTrend");
+    expect(history).toContain("router.push(`/goal/${item.goalId}`)");
+    expect(history).toContain("goalExists");
+  });
+
+  it("replaces the looping jar with a static accessible savings vessel", () => {
+    const vessel = read("src/components/JarProgress.tsx");
+    expect(vessel).toContain('accessibilityRole="progressbar"');
+    expect(vessel).not.toMatch(/Animated\.loop|setInterval|requestAnimationFrame/);
+  });
+
+  it("gives onboarding a Heibi story composition without changing completion ownership", () => {
+    const onboarding = read("app/onboarding.tsx");
+    expect(onboarding).toContain("OnboardingStoryVisual");
+    expect(onboarding).toContain("completeOnboarding");
+    expect(onboarding).toContain("reducedMotion");
+    expect(onboarding).toContain("accessibilityRole=\"header\"");
+  });
 });

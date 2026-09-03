@@ -7,9 +7,9 @@ import { createWidgetSnapshotSyncCoordinator } from "./widgetSnapshotSyncCoordin
 const widgetSnapshotSync = createWidgetSnapshotSyncCoordinator({
   delayMs: 300,
   buildSnapshot: () => {
-    const { goals } = useGoalsStore.getState();
+    const { goals, transactions } = useGoalsStore.getState();
     const { habits, habitLogs } = useHabitsStore.getState();
-    return JSON.stringify(buildWidgetSnapshot(goals, habits, habitLogs));
+    return JSON.stringify(buildWidgetSnapshot(goals, habits, habitLogs, transactions));
   },
   writeSnapshot: (snapshotJson) => HomeWidgetsModule.updateWidgets(snapshotJson),
   onError: (error) => {
@@ -43,7 +43,12 @@ export function registerWidgetSync() {
   registered = true;
 
   useGoalsStore.subscribe((state, prevState) => {
-    if (state.goals !== prevState.goals) syncWidgetSnapshot();
+    if (
+      state.goals !== prevState.goals ||
+      state.transactions !== prevState.transactions
+    ) {
+      syncWidgetSnapshot();
+    }
   });
   useHabitsStore.subscribe((state, prevState) => {
     if (state.habits !== prevState.habits || state.habitLogs !== prevState.habitLogs) {

@@ -1311,6 +1311,103 @@ physical API 24–30/API 31–32 Liquid evidence is added by this decision.
 
 ---
 
+## D-035 — Isolate Liquid chrome from Material dynamic-container color
+
+**Status:** accepted for Checkpoint 9 EAS/device validation
+
+### Finding
+
+The live renderer and zero-idle capture lifecycle were functioning, but color
+ownership was wrong. Navigation optical/fallback tint and cross-window Liquid
+sheet tone still inherited `surfaceInteractive`, which Liquid derives from the
+wallpaper-sensitive Material `primaryContainer`. This made dark navigation read
+green and left the light bar too faint after CP8's opacity correction. The
+native transaction sheet also allowed its dynamic-size React host to use
+intrinsic width, producing the reported horizontally narrow/shifted form.
+
+### Decision
+
+Give Liquid chrome a small neutral light/dark palette independent of Material
+dynamic containers. Navigation uses neutral fallback, optical tint, and edge
+roles; selected accent remains semantic and dynamic. Light receives a stronger
+milky optical presence, while dark remains neutral charcoal rather than green.
+The native renderer, one bounded host, contextual capture/coalescing, trailing
+settled capture, zero idle loop, API tiers, selected spring, routing, haptics,
+and ripple exclusion are unchanged. No Kotlin renderer source changes.
+
+Liquid native-dialog sheets remain tonal because the window boundary still
+precludes same-window backdrop capture. They use a neutral Liquid surface and
+subtle border while preserving `@expo/ui` Material 3 dialog ownership. The
+shared RN sheet host and surface now explicitly occupy 100% width, fixing the
+intrinsic-width root cause without translations, negative margins, timers, or
+changes to back/scrim/swipe/scroll/IME behavior. Device validation remains
+required.
+
+---
+
+## D-036 — Deliver exactly four Glance widgets from one versioned snapshot
+
+**Status:** accepted for Checkpoint 9 EAS/launcher validation
+
+### Finding
+
+CP8's write serialization and parser were sound, but its heatmap composition
+was rejected and the existing snapshot lacked transaction history needed for
+savings analytics. Reading SQLite independently from widgets would duplicate
+business/data ownership and create new stale-state races.
+
+### Decision
+
+Keep the JS snapshot to native-file to Glance architecture and deliver exactly
+four providers: redesigned 14-day heatmap, today's completion tracker, selected
+goal saving progress, and selected goal balance chart. Snapshot v2 adds
+`dueToday`, goal creation timestamps, and at most 120 newest transactions.
+Writes remain 300ms-debounced, serialized, coalesced, startup-synchronized, and
+subscription-driven; latest state wins and widgets never poll SQLite.
+
+The heatmap retains 14 chronological calendar days oldest to newest but uses
+dense bounded cells and removes repeated flames. Tracker emphasizes today's
+completion percentage. Saving emphasizes current/target progress. Chart
+reconstructs the same chronological running-balance semantics as the app and
+draws a bounded bitmap using Android Canvas for Glance—no chart dependency.
+Stable `values`/`values-night` resources provide launcher light/dark behavior;
+wallpaper color is intentionally not serialized. One Kotlin route object owns
+all widget intents: habit widgets open Today, saving opens its goal, and chart
+opens the nested goal progress screen. EAS native compilation and real launcher
+resize/tap/data-refresh QA remain mandatory.
+
+---
+
+## D-037 — Model savings analytics as running balance on a nested goal route
+
+**Status:** accepted
+
+### Finding
+
+The old goal detail used a large looping decorative bottle and did not expose
+transaction direction as a trend. The transaction store already contains the
+necessary deposit/withdrawal history; no schema or business-rule migration is
+needed.
+
+### Decision
+
+Derive a chronological running balance from real goal transactions: deposits
+increase, withdrawals decrease, same-time records use stable ID ordering, and
+the persisted current amount pins the final value for imported/legacy safety.
+The compact goal card and nested `goal/[id]/progress` route reuse this pure
+model. The route is deliberately absent from bottom navigation and exposes
+current/target/percentage, an accessible line, directional totals, and recent
+transactions. History rows deep-link only when the related goal still exists.
+
+Replace the bottle with a static abstract reserve vessel—no permanent glow,
+sparkle loop, or graphics dependency. Redesign onboarding within the existing
+four-step persistence/notification flow using stronger Heibi hierarchy and
+semantic theme surfaces; completion ownership and reduced-motion behavior stay
+unchanged. Physical form, chart, navigation, and accessibility QA remains a
+pre-merge EAS/device gate.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.

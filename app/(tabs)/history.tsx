@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Pressable, SectionList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,6 +20,7 @@ import type { Transaction } from "../../src/types";
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { colors, typography, isDark } = useTheme();
   const { t, language } = useTranslation();
   const transactions = useGoalsStore((state) => state.transactions);
@@ -98,14 +100,28 @@ export default function HistoryScreen() {
             </View>
           ) : null
         }
-        renderItem={({ item }) => (
-          <GlassCard tintColor={colors.surface} style={styles.rowCard}>
-            <TransactionRow
-              transaction={item}
-              goalName={goalNameById[item.goalId] ?? t.history.deletedGoalFallback}
-            />
-          </GlassCard>
-        )}
+        renderItem={({ item }) => {
+          const goalExists = Boolean(goalNameById[item.goalId]);
+          const content = (
+            <GlassCard tintColor={colors.surface} style={styles.rowCard}>
+              <TransactionRow
+                transaction={item}
+                goalName={goalNameById[item.goalId] ?? t.history.deletedGoalFallback}
+              />
+            </GlassCard>
+          );
+          return goalExists ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t.history.openGoalAccessibilityLabel}
+              onPress={() => router.push(`/goal/${item.goalId}`)}
+              android_ripple={datePressFeedback.androidRipple}
+              style={({ pressed }) => ({ opacity: datePressFeedback.opacity(pressed) })}
+            >
+              {content}
+            </Pressable>
+          ) : content;
+        }}
         renderSectionHeader={({ section }) => (
           <Pressable
             accessibilityRole="button"

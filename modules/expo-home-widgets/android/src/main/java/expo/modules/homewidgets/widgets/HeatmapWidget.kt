@@ -8,8 +8,10 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalSize
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
@@ -29,183 +31,85 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import expo.modules.homewidgets.R
 
-// Warna tetap (background/teks) lewat resource @color + values-night.
-private val ColorBackground = ColorProvider(R.color.widget_background)
-private val ColorTextPrimary = ColorProvider(R.color.widget_text_primary)
-private val ColorTextSecondary = ColorProvider(R.color.widget_text_secondary)
-private val ColorCellEmpty = ColorProvider(R.color.widget_heatmap_cell_empty)
-
-private val CONTAINER_PADDING = 10.dp
-private val TITLE_RESERVED_HEIGHT = 22.dp
-private val DOT_SIZE = 8.dp
-private val STREAK_WIDTH = 32.dp
+private val HeatmapBackground = ColorProvider(R.color.widget_background)
+private val HeatmapText = ColorProvider(R.color.widget_text_primary)
+private val HeatmapMuted = ColorProvider(R.color.widget_text_secondary)
+private val HeatmapEmpty = ColorProvider(R.color.widget_heatmap_cell_empty)
+private val HeatmapPadding = 14.dp
 
 private data class HeatmapLayout(
-  val cellGap: Dp,
   val cellSize: Dp,
-  val dotGap: Dp,
-  val maxRows: Int,
-  val nameGap: Dp,
+  val cellGap: Dp,
   val nameWidth: Dp,
   val rowHeight: Dp,
+  val maxRows: Int,
   val showStreak: Boolean,
-  val streakGap: Dp,
 )
 
 private fun resolveHeatmapLayout(width: Dp, height: Dp): HeatmapLayout {
-  val compact = width < 240.dp
-  val wide = width >= 360.dp
-  val rowHeight = if (compact) 24.dp else 26.dp
-  val availableHeight = (height - CONTAINER_PADDING * 2 - TITLE_RESERVED_HEIGHT)
-    .coerceAtLeast(0.dp)
-  val maxRows = (availableHeight / rowHeight).toInt().coerceIn(1, 8)
-
+  val rowHeight = if (width < 240.dp) 24.dp else 28.dp
+  val maxRows = ((height - 54.dp) / rowHeight).toInt().coerceIn(1, 8)
   return when {
-    compact -> HeatmapLayout(
-      cellGap = 1.dp,
-      cellSize = 5.dp,
-      dotGap = 4.dp,
-      maxRows = maxRows,
-      nameGap = 4.dp,
-      nameWidth = 40.dp,
-      rowHeight = rowHeight,
-      showStreak = false,
-      streakGap = 0.dp,
-    )
-    wide -> HeatmapLayout(
-      cellGap = 2.dp,
-      cellSize = 10.dp,
-      dotGap = 6.dp,
-      maxRows = maxRows,
-      nameGap = 8.dp,
-      nameWidth = 72.dp,
-      rowHeight = rowHeight,
-      showStreak = true,
-      streakGap = 8.dp,
-    )
-    else -> HeatmapLayout(
-      cellGap = 2.dp,
-      cellSize = 6.dp,
-      dotGap = 6.dp,
-      maxRows = maxRows,
-      nameGap = 6.dp,
-      nameWidth = 52.dp,
-      rowHeight = rowHeight,
-      showStreak = true,
-      streakGap = 6.dp,
-    )
+    width < 240.dp -> HeatmapLayout(5.dp, 1.dp, 46.dp, rowHeight, maxRows, false)
+    width < 360.dp -> HeatmapLayout(7.dp, 2.dp, 62.dp, rowHeight, maxRows, false)
+    else -> HeatmapLayout(9.dp, 2.dp, 82.dp, rowHeight, maxRows, true)
   }
 }
 
-/**
- * Widget 1 -- konsistensi habit, satu baris per habit (dot warna khas
- * habit itu, nama, strip 14 hari terakhir, current streak).
- *
- * Fourteen means chronological calendar-day slots, oldest to newest. Exact
- * width classes keep those cells bounded: compact hides the streak, medium
- * fits the full row, and wide grows cells only to 10dp instead of stretching
- * them into bars.
- */
+/** Redesigned habit heatmap: dense calendar rhythm, no repeated flames or stretched bars. */
 class HeatmapWidget : GlanceAppWidget() {
   override val sizeMode = SizeMode.Exact
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
     val snapshot = WidgetSnapshotReader.read(context)
-
-    provideContent {
-      HeatmapContent(snapshot)
-    }
+    provideContent { HeatmapContent(context, snapshot) }
   }
 }
 
 @Composable
-private fun HeatmapContent(snapshot: WidgetSnapshot) {
+private fun HeatmapContent(context: Context, snapshot: WidgetSnapshot) {
   val size = LocalSize.current
   val layout = resolveHeatmapLayout(size.width, size.height)
-  // Keep days and currentStreak on the same JS snapshot timestamp. Advancing
-  // only the cells during an hourly Glance redraw can display a missed day
-  // beside a stale non-zero streak. The next app/store synchronization moves
-  // every date-derived value forward together.
   val rows = snapshot.habits.take(layout.maxRows)
 
   Column(
-    modifier = GlanceModifier
-      .fillMaxSize()
-      .background(ColorBackground)
-      .cornerRadius(16.dp) // catatan: cuma jalan di Android 12+ (API 31+)
-      .padding(CONTAINER_PADDING),
-    verticalAlignment = Alignment.Top,
+    modifier = GlanceModifier.fillMaxSize()
+      .background(HeatmapBackground)
+      .cornerRadius(22.dp)
+      .clickable(actionStartActivity(WidgetDeepLinks.today(context)))
+      .padding(HeatmapPadding),
   ) {
-    Text(
-      text = "Konsistensi Habit",
-      style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ColorTextSecondary),
-      modifier = GlanceModifier.padding(bottom = 6.dp),
-    )
+    Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+      Text("14 hari", style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = HeatmapText))
+      Spacer(GlanceModifier.defaultWeight())
+      Text("KONSISTENSI", style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium, color = HeatmapMuted))
+    }
+    Spacer(GlanceModifier.height(8.dp))
 
     if (rows.isEmpty()) {
-      Text(
-        text = "Belum ada habit aktif",
-        style = TextStyle(fontSize = 11.sp, color = ColorTextSecondary),
-      )
+      Text("Tambahkan habit untuk mulai melihat ritmemu.", style = TextStyle(fontSize = 12.sp, color = HeatmapMuted))
       return@Column
     }
 
-    for (habit in rows) {
-      HabitRow(habit, layout)
-    }
+    rows.forEach { habit -> HeatmapHabitRow(habit, layout) }
   }
 }
 
 @Composable
-private fun HabitRow(habit: WidgetHabitRow, layout: HeatmapLayout) {
-  val habitColor = ColorProvider(parseHexColor(habit.colorHex))
-
-  Row(
-    modifier = GlanceModifier.fillMaxWidth().height(layout.rowHeight),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Box(
-      modifier = GlanceModifier
-        .width(DOT_SIZE)
-        .height(DOT_SIZE)
-        .cornerRadius(4.dp)
-        .background(habitColor),
-    ) {}
-
-    Spacer(modifier = GlanceModifier.width(layout.dotGap))
-
-    Text(
-      text = habit.name,
-      maxLines = 1,
-      style = TextStyle(fontSize = 11.sp, color = ColorTextPrimary),
-      modifier = GlanceModifier.width(layout.nameWidth),
-    )
-
-    Spacer(modifier = GlanceModifier.width(layout.nameGap))
-
+private fun HeatmapHabitRow(habit: WidgetHabitRow, layout: HeatmapLayout) {
+  val accent = ColorProvider(parseHexColor(habit.colorHex))
+  Row(modifier = GlanceModifier.fillMaxWidth().height(layout.rowHeight), verticalAlignment = Alignment.CenterVertically) {
+    Text(habit.name, maxLines = 1, style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium, color = HeatmapText), modifier = GlanceModifier.width(layout.nameWidth))
+    Spacer(GlanceModifier.width(6.dp))
     Row(verticalAlignment = Alignment.CenterVertically) {
-      for ((index, day) in habit.days.withIndex()) {
-        Box(
-          modifier = GlanceModifier
-            .width(layout.cellSize)
-            .height(layout.cellSize)
-            .cornerRadius(2.dp)
-            .background(if (day.done) habitColor else ColorCellEmpty),
-        ) {}
-        if (index != habit.days.lastIndex) {
-          Spacer(modifier = GlanceModifier.width(layout.cellGap))
-        }
+      habit.days.takeLast(14).forEachIndexed { index, day ->
+        Box(GlanceModifier.width(layout.cellSize).height(layout.cellSize).cornerRadius(3.dp).background(if (day.done) accent else HeatmapEmpty)) {}
+        if (index != habit.days.takeLast(14).lastIndex) Spacer(GlanceModifier.width(layout.cellGap))
       }
     }
-
     if (layout.showStreak) {
-      Spacer(modifier = GlanceModifier.defaultWeight())
-      Spacer(modifier = GlanceModifier.width(layout.streakGap))
-      Text(
-        text = "🔥${habit.currentStreak}",
-        style = TextStyle(fontSize = 10.sp, color = ColorTextSecondary),
-        modifier = GlanceModifier.width(STREAK_WIDTH),
-      )
+      Spacer(GlanceModifier.defaultWeight())
+      Text("${habit.currentStreak} hari", style = TextStyle(fontSize = 10.sp, color = HeatmapMuted))
     }
   }
 }

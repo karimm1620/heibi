@@ -7,4 +7,10 @@
     <color name="widget_heatmap_cell_low">#4A3A66</color>
     <color name="widget_heatmap_cell_mid">#7057A0</color>
     <color name="widget_heatmap_cell_full">#A985E0</color>
+    <color name="widget_accent">#CDB6F2</color>
+    <color name="widget_on_accent">#241C2D</color>
+    <color name="widget_deposit">#7FD1B8</color>
+    <color name="widget_withdraw">#F294B0</color>
+    <color name="widget_chart_line">#CDB6F2</color>
+    <color name="widget_chart_grid">#454149</color>
 </resources>

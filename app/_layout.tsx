@@ -152,6 +152,17 @@ function RootLayoutContent() {
             }}
           />
           <Stack.Screen
+            name="goal/[id]/progress"
+            options={{
+              headerShown: true,
+              title: t.goalProgress.screenTitle,
+              headerStyle: { backgroundColor: colors.surface },
+              headerTintColor: colors.textPrimary,
+              headerLeft: () => <HeaderBackButton />,
+              animation: reducedMotion ? "none" : "slide_from_right",
+            }}
+          />
+          <Stack.Screen
             name="habit/[id]"
             options={{
               headerShown: true,

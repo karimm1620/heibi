@@ -445,9 +445,9 @@ API 31–32, and instrumented device performance remain open evidence.
     an in-flight native update schedules one latest-state follow-up instead of
     allowing an older asynchronous write to finish last. Startup hydration and
     goals/habits/log subscriptions remain the central ownership points.
-  - Native redraw aligns the persisted days to the current local 14-day window,
-    so an hourly widget refresh advances across midnight even if the app stays
-    closed. The parser keys and renderer day consumption are contract-tested.
+  - Native redraw consumes the persisted 14-day window without advancing only
+    its cells. The next centralized app/store sync advances cells and streak
+    together, preserving one timestamp for all date-derived values.
   - The 14 units are chronological calendar days, not habits, weeks, or
     width-dependent cells. Compact, medium, and wide layouts use bounded square
     cells instead of stretching every cell with weight; height still determines
@@ -477,59 +477,78 @@ API 31–32, and instrumented device performance remain open evidence.
 
 ### Widget suite
 
-- [ ] Replace current heatmap visual direction with redesigned heatmap widget.
-- [ ] Simple tracker widget design.
-- [ ] Simple tracker widget implementation.
-- [ ] Simple tracker resize states.
-- [ ] Saving widget redesign.
-- [ ] Saving widget implementation.
-- [ ] Saving widget resize states.
-- [ ] Chart widget design.
-- [ ] Chart widget implementation.
-- [ ] Chart widget resize states.
-- [ ] Widget light/dark behavior.
-- [ ] Widget dynamic-color strategy where appropriate.
-- [ ] Widget deep-link/action behavior.
-- [ ] Validate shared snapshot/sync integrity.
+- [x] Replace current heatmap visual direction with redesigned heatmap widget.
+- [x] Simple tracker widget design.
+- [x] Simple tracker widget implementation.
+- [x] Simple tracker resize states.
+- [x] Saving widget redesign.
+- [x] Saving widget implementation.
+- [x] Saving widget resize states.
+- [x] Chart widget design.
+- [x] Chart widget implementation.
+- [x] Chart widget resize states.
+- [x] Widget light/dark behavior.
+- [x] Widget dynamic-color strategy where appropriate.
+  - Widgets use stable Heibi light/night resources; wallpaper dynamic color is
+    intentionally not serialized into launcher state.
+- [x] Widget deep-link/action behavior.
+- [x] Validate shared snapshot/sync integrity.
+  - Snapshot v2 retains deterministic habit/goal data and adds `dueToday` plus
+    a newest-first bounded transaction stream. The existing 300ms debounce,
+    serialized native writes, in-flight coalescing, startup hydration sync, and
+    store subscriptions remain the only update ownership.
 
 ### Liquid refinement
 
-- [ ] Improve Liquid navbar light-mode visibility.
-- [ ] Remove dark-mode green Material-You cast.
-- [ ] Preserve accepted Liquid blur/capture architecture.
-- [ ] Refine Liquid bottom-sheet styling.
-- [ ] Validate Liquid navbar light/dark.
-- [ ] Validate Liquid bottom sheets.
+- [x] Improve Liquid navbar light-mode visibility.
+- [x] Remove dark-mode green Material-You cast.
+- [x] Preserve accepted Liquid blur/capture architecture.
+- [x] Refine Liquid bottom-sheet styling.
+- [x] Validate Liquid navbar light/dark with static material contracts.
+- [x] Validate Liquid bottom sheets with shared behavior/source contracts.
+  - Final EAS/device light/dark visual validation remains a pre-merge gate.
 
 ### Savings experience
 
-- [ ] Fix deposit/withdraw horizontal screen shift.
-- [ ] Redesign top saving progress card.
-- [ ] Add saving flow line chart.
-- [ ] Add full saving progress screen.
-- [ ] Keep progress screen out of bottom navigation.
-- [ ] Navigate saving History rows to related goal.
-- [ ] Redesign saving jar/progress visual.
-- [ ] Validate deposit/withdraw flows.
+- [x] Fix deposit/withdraw horizontal screen shift.
+- [x] Redesign top saving progress card.
+- [x] Add saving flow line chart.
+- [x] Add full saving progress screen.
+- [x] Keep progress screen out of bottom navigation.
+- [x] Navigate saving History rows to related goal.
+- [x] Redesign saving jar/progress visual.
+- [x] Validate deposit/withdraw source/behavior contracts.
+  - Physical Material/Liquid/IME sheet validation remains required on EAS.
 
 ### Onboarding
 
-- [ ] Redesign onboarding visual hierarchy.
-- [ ] Validate Material onboarding.
-- [ ] Validate Liquid onboarding.
-- [ ] Validate accessibility and reduced motion.
+- [x] Redesign onboarding visual hierarchy.
+- [x] Validate Material onboarding contracts.
+- [x] Validate Liquid onboarding contracts.
+- [x] Validate accessibility and reduced motion contracts.
 
 ### Validation
 
-- [ ] Expo Doctor.
-- [ ] TypeScript.
-- [ ] ESLint.
-- [ ] Jest.
-- [ ] Android export.
-- [ ] Clean Android prebuild.
-- [ ] XML/resources.
-- [ ] Fresh-base patch verification.
-- [ ] Prepare EAS/device QA gate.
+- [x] Expo Doctor (21/21).
+- [x] TypeScript.
+- [x] ESLint (warning-free).
+- [x] Jest (23 suites / 169 tests before final delivery verification).
+- [x] Android export.
+- [x] Clean Android prebuild.
+- [x] XML/resources.
+  - Expo autolinking resolves `expo-home-widgets`, `expo-liquid-glass`, and
+    `@expo/ui`; New Architecture remains enabled. All 26 generated/module XML
+    files parse, exactly four widget providers are declared, no iOS tree is
+    generated, and package/config files remain unchanged.
+- [x] Fresh-base patch verification.
+  - The final patch applies cleanly to the exact CP9 base in a disk-backed
+    checkout. Cold `npm ci`, Expo Doctor 21/21, TypeScript, warning-free
+    ESLint, and 23 Jest suites / 169 tests pass after application.
+- [x] Prepare EAS/device QA gate.
+  - Local Kotlin/Gradle compilation is unavailable and not claimed. EAS must
+    compile the new Glance providers and device QA must cover launcher resize,
+    widget taps/refresh, Liquid light/dark/sheets, transaction sheet/IME,
+    charts, History deep links, onboarding, TalkBack, and reduced motion.
 
 ## Checkpoint 10 — Size/performance
 

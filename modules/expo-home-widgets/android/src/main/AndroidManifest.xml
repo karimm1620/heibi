@@ -24,6 +24,30 @@
                 android:resource="@xml/goal_balance_widget_info" />
         </receiver>
 
+        <receiver
+            android:name=".widgets.SimpleTrackerWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_simple_tracker_description">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/simple_tracker_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widgets.ChartWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_chart_description">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/chart_widget_info" />
+        </receiver>
+
         <!--
           Fully qualified (bukan relatif ".widgets.XXX") karena launcher
           app (proses LAIN) yang manggil activity ini buat konfigurasi

@@ -112,3 +112,25 @@ export function withOpacity(hexColor: string, alpha: number): string {
 }
 
 export const glassShineTint = 'rgba(255,255,255,0.25)';
+
+/**
+ * Optical chrome stays deliberately neutral instead of inheriting Material
+ * You's wallpaper-derived primary container. Accent still belongs to selected
+ * controls; these tones only establish the glass body and cross-window sheet.
+ */
+export const liquidChromeColors = {
+  light: {
+    navigationFallback: '#F2F4F1',
+    navigationTint: '#F8FAF7',
+    navigationEdge: 'rgba(255,255,255,0.88)',
+    sheetSurface: '#F5F6F3',
+    sheetBorder: 'rgba(76,82,79,0.20)',
+  },
+  dark: {
+    navigationFallback: '#202225',
+    navigationTint: '#25282B',
+    navigationEdge: 'rgba(255,255,255,0.34)',
+    sheetSurface: '#202225',
+    sheetBorder: 'rgba(255,255,255,0.16)',
+  },
+} as const;

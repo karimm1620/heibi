@@ -5,4 +5,10 @@
 
     <string name="widget_goal_balance_placeholder_text">Saldo goal segera hadir</string>
     <string name="widget_goal_balance_description">Pantau progres tabungan goal pilihanmu</string>
+
+    <string name="widget_simple_tracker_placeholder_text">Memuat ringkasan habit…</string>
+    <string name="widget_simple_tracker_description">Lihat penyelesaian habit hari ini</string>
+
+    <string name="widget_chart_placeholder_text">Memuat aliran tabungan…</string>
+    <string name="widget_chart_description">Lihat grafik saldo goal pilihanmu</string>
 </resources>

@@ -2,12 +2,13 @@ import React, { useMemo } from "react";
 import { Platform, StyleSheet, View, type ViewProps } from "react-native";
 import Animated from "react-native-reanimated";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { liquidChromeColors } from "../../theme/colors";
 import { useTheme } from "../../theme/useTheme";
 import { resolveAndroidSurfaceDepth } from "../appSurfaceDepth";
 
 export interface LiquidMaterialSurfaceProps extends ViewProps {
   active?: boolean;
-  materialTone?: "default" | "navigation";
+  materialTone?: "default" | "navigation" | "sheet";
 }
 
 /**
@@ -44,10 +45,15 @@ export function LiquidMaterialSurface({
         styles.surface,
         {
           backgroundColor:
-            materialTone === "navigation" && !isDark
-              ? colors.glassTintLight
-              : colors.surfaceInteractive,
-          borderColor: colors.glassBorder,
+            materialTone === "sheet"
+              ? (isDark ? liquidChromeColors.dark : liquidChromeColors.light).sheetSurface
+              : materialTone === "navigation"
+                ? (isDark ? liquidChromeColors.dark : liquidChromeColors.light).navigationFallback
+                : colors.surfaceInteractive,
+          borderColor:
+            materialTone === "sheet"
+              ? (isDark ? liquidChromeColors.dark : liquidChromeColors.light).sheetBorder
+              : colors.glassBorder,
           borderRadius: shapes.floating,
           transform: [{ scale: reducedMotion || !active ? 1 : states.pressedScale }],
           transitionProperty: "transform",

@@ -8,20 +8,30 @@ const colors = {
 describe("Liquid optical material colors", () => {
   it("uses a neutral, translucent light navigation material", () => {
     expect(resolveLiquidGlassMaterialColors(colors, false, "navigation")).toEqual({
-      fallbackColor: "#F5F2FA",
-      tintColor: "#F5F2FA3D",
-      edgeColor: "rgba(255,255,255,0.78)",
+      fallbackColor: "#F2F4F1",
+      tintColor: "#F8FAF75C",
+      edgeColor: "rgba(255,255,255,0.88)",
       lightMaterial: true,
     });
   });
 
-  it("preserves the accepted dark navigation material", () => {
+  it("uses neutral dark glass without a dynamic primary-container cast", () => {
     expect(resolveLiquidGlassMaterialColors(colors, true, "navigation")).toEqual({
-      fallbackColor: "#DDE1FFD6",
-      tintColor: "#DDE1FFA8",
-      edgeColor: "rgba(255,255,255,0.44)",
+      fallbackColor: "#202225",
+      tintColor: "#25282B66",
+      edgeColor: "rgba(255,255,255,0.34)",
       lightMaterial: false,
     });
+  });
+
+  it("isolates navigation tint from wallpaper-derived Material colors", () => {
+    const greenDynamicColors = {
+      glassTintLight: "#E2F0DB",
+      surfaceInteractive: "#244A2ED6",
+    };
+    expect(
+      resolveLiquidGlassMaterialColors(greenDynamicColors, true, "navigation"),
+    ).toEqual(resolveLiquidGlassMaterialColors(colors, true, "navigation"));
   });
 
   it("does not silently change the default optical material", () => {

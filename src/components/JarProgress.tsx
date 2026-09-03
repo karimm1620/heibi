@@ -1,292 +1,48 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, Text, View } from "react-native";
-import { glassShineTint, radius } from '../theme/colors';
+import React, { useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
+
+import { radius, spacing, withOpacity } from "../theme/colors";
 import { useTheme } from "../theme/useTheme";
-import { formatIDR } from "../utils/currency";
-import { GlassCard } from "./GlassCard";
+import { clampPercent, formatIDR } from "../utils/currency";
 
 interface JarProgressProps {
   currentAmount: number;
   targetAmount: number;
   accentBase: string;
   accentDeep: string;
+  compact?: boolean;
 }
 
-const JAR_HEIGHT = 220;
-type SparkleIconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
-const SPARKLE_ICONS: SparkleIconName[] = [
-  "star-four-points",
-  "party-popper",
-  "star",
-  "star-four-points-outline",
-  "star-four-points",
-  "party-popper",
-];
-
-/**
- * Signature visual aplikasi: "jar tabungan" — metafora nabung dalam toples kaca.
- * Cairan pastel mengisi toples sesuai progress. Begitu goal tercapai (100%),
- * jar melakukan "bounce" sekali + semburan sparkle + glow lembut yang terus
- * berkedip selama goal itu masih tercapai.
- */
-export function JarProgress({
-  currentAmount,
-  targetAmount,
-  accentBase,
-  accentDeep,
-}: JarProgressProps) {
+/** A quiet savings vessel that keeps progress informative without a toy-like jar. */
+export function JarProgress({ currentAmount, targetAmount, accentBase, accentDeep, compact = false }: JarProgressProps) {
   const { colors, typography } = useTheme();
-  const percent =
-    targetAmount > 0 ? Math.min(1, currentAmount / targetAmount) : 0;
-  const isComplete = percent >= 1;
-
-  // Checkpoint 6/7: useState(() => ...) gantiin useRef(...).current buat
-  // semua Animated.Value -- lihat catatan sama di MaterialNavigationBar.tsx
-  // (hindari warning react-hooks/refs). wasCompleteRef & glowLoopRef TETAP
-  // useRef biasa -- keduanya cuma dibaca/ditulis di dalam useEffect, gak
-  // pernah diakses langsung pas render, jadi aman & memang pola yang tepat.
-  const [fillAnim] = useState(() => new Animated.Value(0));
-  const [bounceAnim] = useState(() => new Animated.Value(1));
-  const [glowAnim] = useState(() => new Animated.Value(0));
-  const [sparkleAnims] = useState(() => SPARKLE_ICONS.map(() => new Animated.Value(0)));
-  const wasCompleteRef = useRef(false);
-  const glowLoopRef = useRef<Animated.CompositeAnimation | null>(null);
-
-  // Isi cairan mengikuti progress
-  useEffect(() => {
-    Animated.timing(fillAnim, {
-      toValue: percent,
-      duration: 700,
-      useNativeDriver: false,
-    }).start();
-  }, [percent, fillAnim]);
-
-  // Trigger celebration SEKALI setiap kali goal baru transisi jadi 100%
-  useEffect(() => {
-    if (isComplete && !wasCompleteRef.current) {
-      Animated.sequence([
-        Animated.timing(bounceAnim, {
-          toValue: 1.08,
-          duration: 220,
-          easing: Easing.out(Easing.back(1.6)),
-          useNativeDriver: true,
-        }),
-        Animated.timing(bounceAnim, {
-          toValue: 1,
-          duration: 260,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      sparkleAnims.forEach((a) => a.setValue(0));
-      Animated.stagger(
-        70,
-        sparkleAnims.map((a) =>
-          Animated.timing(a, {
-            toValue: 1,
-            duration: 900,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
-          }),
-        ),
-      ).start();
-    }
-    wasCompleteRef.current = isComplete;
-  }, [isComplete, bounceAnim, sparkleAnims]);
-
-  // Glow lembut berulang selama goal masih dalam status tercapai
-  useEffect(() => {
-    if (isComplete) {
-      glowLoopRef.current = Animated.loop(
-        Animated.sequence([
-          Animated.timing(glowAnim, {
-            toValue: 1,
-            duration: 1300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(glowAnim, {
-            toValue: 0,
-            duration: 1300,
-            useNativeDriver: true,
-          }),
-        ]),
-      );
-      glowLoopRef.current.start();
-    } else {
-      glowLoopRef.current?.stop();
-      glowAnim.setValue(0);
-    }
-    return () => glowLoopRef.current?.stop();
-  }, [isComplete, glowAnim]);
-
-  const fillHeight = fillAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, JAR_HEIGHT - 8],
-  });
-
-  const glowOpacity = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.12, 0.4],
-  });
-  const glowScale = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 1.05],
-  });
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        wrapper: {
-          alignItems: "center",
-          justifyContent: "center",
-          paddingVertical: 8,
-        },
-        glowRing: {
-          position: "absolute",
-          width: 200,
-          height: JAR_HEIGHT,
-          borderRadius: radius.xl,
-        },
-        jarBody: {
-          width: 200,
-          height: JAR_HEIGHT,
-          borderRadius: radius.xl,
-          backgroundColor: colors.surface,
-          borderWidth: 2,
-          borderColor: colors.glassBorder,
-          overflow: "hidden",
-          justifyContent: "flex-end",
-        },
-        liquid: {
-          width: "100%",
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-        },
-        liquidTopShine: {
-          height: 6,
-          width: "100%",
-          opacity: 0.6,
-        },
-        rimGlass: {
-          position: "absolute",
-          top: 14,
-          left: 14,
-          right: 14,
-          height: 36,
-        },
-        centerInfo: {
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          alignItems: "center",
-          justifyContent: "center",
-        },
-        percentText: {
-          ...typography.title,
-          fontSize: 30,
-        },
-        amountText: {
-          ...typography.subtitle,
-          marginTop: 4,
-        },
-        targetText: {
-          ...typography.caption,
-          marginTop: 2,
-        },
-        sparkle: {
-          position: "absolute",
-        },
-      }),
-    [colors, typography],
-  );
+  const percent = clampPercent(currentAmount, targetAmount);
+  const styles = useMemo(() => createStyles(colors, typography, compact), [colors, compact, typography]);
 
   return (
-    <View style={styles.wrapper}>
-      {isComplete && (
-        <Animated.View
-          style={[
-            styles.glowRing,
-            {
-              backgroundColor: accentDeep,
-              opacity: glowOpacity,
-              transform: [{ scale: glowScale }],
-            },
-          ]}
-        />
-      )}
-
-      <Animated.View style={{ transform: [{ scale: bounceAnim }] }}>
-        <View style={styles.jarBody}>
-          {/* Cairan tabungan */}
-          <Animated.View
-            style={[
-              styles.liquid,
-              {
-                height: fillHeight,
-                backgroundColor: accentBase,
-              },
-            ]}
-          >
-            <View
-              style={[styles.liquidTopShine, { backgroundColor: accentDeep }]}
-            />
-          </Animated.View>
-
-          {/* Pantulan kaca di atas toples */}
-          <GlassCard
-            style={styles.rimGlass}
-            radiusSize={radius.lg}
-            tintColor={glassShineTint}
-          />
-
-          {/* Info di tengah toples */}
-          <View style={styles.centerInfo} pointerEvents="none">
-            <Text style={styles.percentText}>{Math.round(percent * 100)}%</Text>
-            <Text style={styles.amountText}>{formatIDR(currentAmount)}</Text>
-            <Text style={styles.targetText}>
-              {isComplete
-                ? "Goal tercapai!"
-                : `dari ${formatIDR(targetAmount)}`}
-            </Text>
-          </View>
+    <View accessible accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(percent * 100) }} accessibilityLabel={`${formatIDR(currentAmount)} dari ${formatIDR(targetAmount)}`} style={styles.wrapper}>
+      <View style={styles.vessel}>
+        <View style={[styles.fill, { height: `${Math.max(5, percent * 100)}%`, backgroundColor: accentBase, borderTopColor: accentDeep }]} />
+        <View style={styles.vesselHighlight} />
+        <View style={styles.iconWrap}>
+          <MaterialCommunityIcons name={percent >= 1 ? "check-bold" : "safe-square-outline"} size={compact ? 20 : 24} color={accentDeep} />
         </View>
-      </Animated.View>
-
-      {/* Semburan sparkle saat baru mencapai 100% */}
-      {SPARKLE_ICONS.map((iconName, index) => {
-        const offsetX = (index - (SPARKLE_ICONS.length - 1) / 2) * 26;
-        const anim = sparkleAnims[index];
-        const translateY = anim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, -70],
-        });
-        const opacity = anim.interpolate({
-          inputRange: [0, 0.15, 1],
-          outputRange: [0, 1, 0],
-        });
-        return (
-          <Animated.View
-            key={index}
-            style={[
-              styles.sparkle,
-              {
-                top: JAR_HEIGHT / 2,
-                left: "50%",
-                marginLeft: offsetX - 10,
-                opacity,
-                transform: [{ translateY }],
-              },
-            ]}
-            pointerEvents="none"
-          >
-            <MaterialCommunityIcons name={iconName} size={20} color={accentDeep} />
-          </Animated.View>
-        );
-      })}
+      </View>
+      <Text style={styles.percent}>{Math.round(percent * 100)}%</Text>
     </View>
   );
+}
+
+function createStyles(colors: ReturnType<typeof useTheme>["colors"], typography: ReturnType<typeof useTheme>["typography"], compact: boolean) {
+  const vesselHeight = compact ? 76 : 112;
+  const vesselWidth = compact ? 52 : 72;
+  return StyleSheet.create({
+    wrapper: { alignItems: "center", gap: spacing.xs },
+    vessel: { width: vesselWidth, height: vesselHeight, borderRadius: radius.lg, backgroundColor: colors.surfaceMuted, borderWidth: 1.5, borderColor: colors.outline, overflow: "hidden", justifyContent: "flex-end", alignItems: "center" },
+    fill: { position: "absolute", left: 0, right: 0, bottom: 0, borderTopWidth: 2 },
+    vesselHighlight: { position: "absolute", top: 8, bottom: 8, left: 8, width: 4, borderRadius: radius.pill, backgroundColor: withOpacity("#FFFFFF", 0.5) },
+    iconWrap: { width: compact ? 34 : 40, height: compact ? 34 : 40, marginBottom: compact ? 10 : 16, borderRadius: radius.pill, backgroundColor: withOpacity(colors.surface, 0.78), alignItems: "center", justifyContent: "center" },
+    percent: { ...typography.label, color: colors.textSecondary, textTransform: "none" },
+  });
 }
