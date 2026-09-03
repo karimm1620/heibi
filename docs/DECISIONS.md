@@ -1442,6 +1442,43 @@ authorize a new product checkpoint or redesign phase.
 
 ---
 
+## D-039 — Correct final regressions at their rendering and update owners
+
+**Status:** accepted for final EAS/device validation
+
+### Finding
+
+The five CP9 device findings have distinct owners. Glance truncates a Row after
+ten direct children, so the Heatmap's alternating cell/spacer sequence displayed
+five of 14 cells. Widget JSON was read before `provideContent`, so an active
+Glance session could retain a stale snapshot because an update does not restart
+`provideGlance`. SDK 57's dynamic native sheet measures a match-content RN host,
+where percentage width lacked a numeric basis. Light optical navigation had no
+neutral full-perimeter separation from Heibi's cream page. Material navigation's
+full-destination background ripple was occluded by its selected pill and read as
+an oversized halo.
+
+### Decision
+
+Render Heatmap as two seven-cell rows while preserving the exact 14 chronological
+snapshot slots. Publish every completed snapshot into observable per-installed-
+widget Glance state before updating the exact Glance ID; retain the file as cold
+start/configuration fallback, isolate provider failures, and introduce no polling.
+Give the dynamic RN sheet root the current window width so Material and Liquid
+surfaces resolve `100%` against an actual measurement constraint. Add a neutral,
+light-only native Liquid perimeter and raise the light optical tint from 36% to
+46%; leave accepted dark material and all capture behavior unchanged. Bound the
+Material navigation response to one 16dp-radius, 6%-opacity foreground ripple
+while preserving the 64×32 selected pill and Liquid's ripple exclusion.
+
+These changes add no dependency, background worker, frame loop, product feature,
+or widget provider. The native changes require a new EAS compile and all five
+visual/runtime fixes require final physical-device validation. No release APK,
+instrumented performance/thermal/battery result, or physical API 24–30/API 31–32
+Liquid evidence is claimed.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.

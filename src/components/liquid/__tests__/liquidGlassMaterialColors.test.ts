@@ -9,8 +9,9 @@ describe("Liquid optical material colors", () => {
   it("uses a neutral, translucent light navigation material", () => {
     expect(resolveLiquidGlassMaterialColors(colors, false, "navigation")).toEqual({
       fallbackColor: "#F2F4F1",
-      tintColor: "#F8FAF75C",
+      tintColor: "#F8FAF775",
       edgeColor: "rgba(255,255,255,0.88)",
+      boundaryColor: "rgba(70,76,73,0.20)",
       lightMaterial: true,
     });
   });
@@ -20,6 +21,7 @@ describe("Liquid optical material colors", () => {
       fallbackColor: "#202225",
       tintColor: "#25282B66",
       edgeColor: "rgba(255,255,255,0.34)",
+      boundaryColor: "rgba(255,255,255,0)",
       lightMaterial: false,
     });
   });
@@ -38,6 +40,7 @@ describe("Liquid optical material colors", () => {
     expect(resolveLiquidGlassMaterialColors(colors, false, "default")).toMatchObject({
       fallbackColor: "#DDE1FFD6",
       tintColor: "#DDE1FF94",
+      boundaryColor: "rgba(255,255,255,0)",
       lightMaterial: false,
     });
   });

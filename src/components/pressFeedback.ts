@@ -10,7 +10,9 @@ interface PressFeedbackOptions {
   states: ThemeStateTokens;
   color: string;
   disabled?: boolean;
+  foreground?: boolean;
   radius?: number;
+  rippleOpacity?: number;
 }
 
 export interface PressFeedbackContract {
@@ -28,16 +30,18 @@ export function resolvePressFeedback({
   states,
   color,
   disabled = false,
+  foreground = false,
   radius,
+  rippleOpacity,
 }: PressFeedbackOptions): PressFeedbackContract {
   const materialRipple = visualTheme === "material3" && !disabled;
 
   return {
     androidRipple: materialRipple
       ? {
-          color: withOpacity(color, states.rippleOpacity),
+          color: withOpacity(color, rippleOpacity ?? states.rippleOpacity),
           borderless: false,
-          foreground: false,
+          foreground,
           ...(radius === undefined ? {} : { radius }),
         }
       : undefined,
@@ -51,13 +55,25 @@ export function resolvePressFeedback({
 
 export function usePressFeedback(
   color: string,
-  options: Pick<PressFeedbackOptions, "disabled" | "radius"> = {},
+  options: Pick<
+    PressFeedbackOptions,
+    "disabled" | "foreground" | "radius" | "rippleOpacity"
+  > = {},
 ): PressFeedbackContract {
   const { visualTheme, states } = useTheme();
-  const { disabled, radius } = options;
+  const { disabled, foreground, radius, rippleOpacity } = options;
 
   return useMemo(
-    () => resolvePressFeedback({ visualTheme, states, color, disabled, radius }),
-    [color, disabled, radius, states, visualTheme],
+    () =>
+      resolvePressFeedback({
+        visualTheme,
+        states,
+        color,
+        disabled,
+        foreground,
+        radius,
+        rippleOpacity,
+      }),
+    [color, disabled, foreground, radius, rippleOpacity, states, visualTheme],
   );
 }

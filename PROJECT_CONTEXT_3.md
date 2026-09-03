@@ -611,6 +611,69 @@ accepted widget data architecture, savings/onboarding work, dark Liquid material
 or renderer lifecycle. Release APK size and physical Liquid API 24–30/API 31–32
 evidence remain unavailable.
 
+### Checkpoint 10 final stabilization (2026-09-03)
+
+PR #17 was finalized after successful EAS and broad qualitative physical-device
+QA, then squash-merged as `5ee8a378a1c3504c4a421eb386893d5e3c944e80`.
+Checkpoint 10 starts from that exact `origin/main` commit on
+`fix/checkpoint-10-final-validation` in
+`/home/immz/heibi-checkpoint-10-final-validation`. Its scope is limited to the
+five accepted CP9 follow-up defects plus final testing, resource review, release
+evidence, and polish; no new product checkpoint exists.
+
+The physical Heatmap failure was deterministic Glance truncation, not missing
+snapshot/parser data. The old row emitted 27 direct children—14 cells alternating
+with 13 spacer nodes—while Glance AppWidget rows retain at most ten, yielding
+exactly five visible cells. Heatmap now normalizes the same 14 chronological
+slots and renders a nested 7+7 grid whose calendar rows each have seven direct
+children across compact, medium, and wide sizing.
+
+The installed Simple Tracker's stale state came from reading the JSON file once
+before `provideContent`. Glance update requests do not restart an already-active
+`provideGlance` session, so that composition retained its captured snapshot.
+The central native updater now enumerates each installed provider ID, writes the
+latest serialized snapshot into per-instance observable Glance preferences,
+then updates that exact Glance ID. All four widgets consume the same state, use
+the file for initial/configuration fallback, and update independently so one
+provider failure cannot starve the others. Store subscriptions, 300ms debounce,
+serialized latest-state writes, and the absence of polling remain unchanged.
+
+Light Liquid navigation's capture lifecycle was already correct. Its 36% neutral
+tint plus a bright diagonal-only edge could disappear against the cream page.
+The final light material uses a 46% neutral tint and a separate 20%-alpha neutral
+perimeter beneath the existing bright edge. The new native color prop only draws
+that boundary; it does not invalidate or recapture. Dark navigation receives a
+transparent boundary and otherwise retains the physically accepted CP9 tone,
+one host, contextual/coalesced refresh, settled capture, and zero idle loop.
+
+The remaining Liquid transaction width defect was at the SDK 57 dynamic sheet's
+match-content RN measurement boundary. `width: 100%` had no resolved numeric
+parent width there, so the narrow form still established the hosted surface
+width even though the native dialog itself filled the phone. The shared
+`BottomSheetView` now receives the current window width from
+`useWindowDimensions`; the theme wrapper and Liquid surface continue to fill
+that root. There is no translation, magic margin, fixed screen constant, or
+change to native back, scrim, swipe, scroll, or IME ownership.
+
+Material navigation's old 32dp-radius background ripple belonged to the whole
+48dp+ destination. The opaque 64×32 selected pill hid the ripple center, leaving
+an oversized surrounding halo. Navigation now opts into one 16dp-radius,
+6%-opacity foreground semantic ripple. The selected pill, routing, haptics,
+four-tab geometry, and Liquid navigation's no-ripple contract are unchanged.
+
+Authoritative local validation passes dependency compatibility, Expo Doctor
+21/21, TypeScript, warning-free ESLint, 23 Jest suites / 171 tests, Android
+export, clean Android prebuild, module/native autolinking, New Architecture,
+and 26/26 generated/module Android XML parses. Source audit confirms one bounded
+Liquid host with no idle/JS frame loop, bounded/coalesced capture, bounded chart
+bitmap and transaction snapshot, serialized widget updates, no polling, and no
+dependency/config/iOS drift. Local Kotlin/Gradle compilation remains unavailable.
+No local APK/AAB artifact exists; exact release size and the final EAS/device
+regression pass remain required before release readiness can be claimed. The
+final patch also applies cleanly to the exact CP10 base in a disk-backed
+checkout; cold `npm ci`, Expo Doctor 21/21, TypeScript, warning-free ESLint,
+and 23 Jest suites / 171 tests pass after application.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

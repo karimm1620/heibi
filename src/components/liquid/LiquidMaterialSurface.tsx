@@ -53,6 +53,8 @@ export function LiquidMaterialSurface({
           borderColor:
             materialTone === "sheet"
               ? (isDark ? liquidChromeColors.dark : liquidChromeColors.light).sheetBorder
+              : materialTone === "navigation" && !isDark
+                ? liquidChromeColors.light.navigationBoundary
               : colors.glassBorder,
           borderRadius: shapes.floating,
           transform: [{ scale: reducedMotion || !active ? 1 : states.pressedScale }],

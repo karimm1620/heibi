@@ -19,7 +19,7 @@ class HomeWidgetsModule : Module() {
         ?: throw IllegalStateException("React context belum siap")
 
       File(context.filesDir, WidgetUpdater.SNAPSHOT_FILE_NAME).writeText(snapshotJson)
-      WidgetUpdater.updateAll(context)
+      WidgetUpdater.updateAll(context, snapshotJson)
     }
   }
 }

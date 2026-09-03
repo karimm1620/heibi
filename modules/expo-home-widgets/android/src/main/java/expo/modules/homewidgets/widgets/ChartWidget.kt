@@ -47,9 +47,12 @@ class ChartWidget : GlanceAppWidget() {
   override val sizeMode = SizeMode.Exact
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
-    val snapshot = WidgetSnapshotReader.read(context)
     provideContent {
-      val goalId = currentState<Preferences>()[SelectedGoalIdKey]
+      val preferences = currentState<Preferences>()
+      val snapshot = WidgetSnapshotReader.parse(
+        preferences[WidgetSnapshotJsonKey] ?: WidgetSnapshotReader.readJson(context),
+      )
+      val goalId = preferences[SelectedGoalIdKey]
       val goal = snapshot.goals.firstOrNull { it.id == goalId }
       ChartWidgetContent(context, goal, snapshot.transactions)
     }

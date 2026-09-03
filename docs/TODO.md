@@ -565,12 +565,40 @@ API 31–32, and instrumented device performance remain open evidence.
 
 ### Checkpoint 9 physical-QA follow-ups
 
-- [ ] Fix Heatmap 14-day cell presentation.
-- [ ] Fix Simple Tracker live refresh.
-- [ ] Improve Liquid light navbar visibility.
-- [ ] Fix Liquid transaction-sheet full-width layout.
-- [ ] Reduce and correctly bound Material navbar ripple/pressed feedback.
+- [x] Fix Heatmap 14-day cell presentation.
+- [x] Fix Simple Tracker live refresh.
+- [x] Improve Liquid light navbar visibility.
+- [x] Fix Liquid transaction-sheet full-width layout.
+- [x] Reduce and correctly bound Material navbar ripple/pressed feedback.
 - [ ] Run a new EAS/device validation after fixes.
+  - Glance rows support at most ten direct children. The old alternating 14
+    cells plus 13 spacers was therefore truncated after five cells. Every
+    habit now renders the same 14 chronological slots as a deterministic 7+7
+    grid with no more than seven direct children per calendar row.
+  - Widget snapshot data is now copied into observable per-instance Glance
+    state before explicit installed-ID updates. This fixes active widget
+    compositions that retained the snapshot captured by `provideGlance`;
+    the persisted file remains the initial/configuration fallback. Updates
+    remain subscription-driven, serialized, and polling-free.
+  - Light Liquid navigation keeps the accepted capture pipeline but increases
+    its neutral optical tint and gains a separate light-only neutral boundary.
+    Accepted dark tones and zero-idle capture behavior are unchanged.
+  - SDK 57 dynamic sheet sizing uses a match-content RN host. Percentage width
+    had no numeric parent width at that measurement boundary; the shared root
+    now receives the current window width from `useWindowDimensions`, while
+    its Material/Liquid surfaces continue to fill that root.
+  - Material navigation keeps its 64×32 selected pill and one native semantic
+    response, but uses a 16dp-radius, 6%-opacity foreground ripple instead of
+    the 32dp background ripple whose center was hidden by the pill and read as
+    a large surrounding halo. Liquid navigation remains ripple-free.
+
+- [x] Complete source-level performance/resource regression audit.
+  - Liquid still has one bounded host, contextual/coalesced active capture,
+    one cancellable settled capture, and no recurring idle/JavaScript frame
+    loop. Widget writes remain bounded/serialized with no polling; the chart
+    bitmap remains capped at 720×160px and transaction snapshots at 120 rows.
+  - No dependency, package/config, iOS, or generated-artifact change is part
+    of Checkpoint 10.
 
 - [ ] Build release APK.
 - [ ] Record final APK size.
@@ -586,14 +614,26 @@ API 31–32, and instrumented device performance remain open evidence.
 
 ## Final
 
-- [ ] `npx tsc --noEmit`.
-- [ ] `npx eslint .`.
-- [ ] `npx jest`.
-- [ ] `npx expo export --platform android`.
-- [ ] Native prebuild checks green.
-- [ ] Fresh-clone patch checks green.
+- [x] `npx tsc --noEmit`.
+- [x] `npx eslint .`.
+- [x] `npx jest --runInBand` (23 suites / 171 tests).
+- [x] `npx expo export --platform android`.
+- [x] Native prebuild checks green.
+- [x] Fresh-clone patch checks green.
 - [ ] Core flows smoke tested.
-- [ ] `DECISIONS.md` up to date.
-- [ ] Known limitations listed.
+- [x] `DECISIONS.md` up to date.
+- [x] Known limitations listed.
 - [ ] APK size listed.
 - [ ] Final completion report.
+  - `npx expo install --check` reports dependencies current and Expo Doctor
+    passes 21/21. Clean Android prebuild resolves both local Expo modules and
+    `@expo/ui`; Gesture Handler, Reanimated, and Worklets resolve; New
+    Architecture remains enabled; 26/26 generated/module XML files parse; no
+    iOS tree is generated. Local Kotlin/Gradle compilation is unavailable and
+    not claimed.
+  - No APK/AAB artifact is accessible locally. The 5.2MB Expo/Hermes export is
+    not an APK; exact bytes/MiB and comparison with the ~65MB baseline, 90MB
+    warning, and 100MB limit remain a final EAS artifact gate.
+  - The final patch applies to the exact CP10 base in a disk-backed checkout.
+    A cold `npm ci`, Expo Doctor 21/21, TypeScript, warning-free ESLint, and all
+    23 Jest suites / 171 tests pass after application.

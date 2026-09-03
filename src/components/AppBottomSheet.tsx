@@ -5,7 +5,7 @@ import {
 } from "@expo/ui/community/bottom-sheet";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { type ReactNode, useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTranslation } from "../hooks/useTranslation";
@@ -50,6 +50,7 @@ export function AppBottomSheet({
   const { colors, isDark, shapes, states, typography, visualTheme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width: sheetWidth } = useWindowDimensions();
   const material = resolveAppBottomSheetMaterial(visualTheme);
   const closePressFeedback = usePressFeedback(colors.primary, { radius: shapes.full });
   const styles = useMemo(
@@ -136,7 +137,13 @@ export function AppBottomSheet({
             : colors.surface,
       }}
     >
-      <BottomSheetView style={[styles.sheetHost, snapPoints ? styles.fill : undefined]}>
+      <BottomSheetView
+        style={[
+          styles.sheetHost,
+          { width: sheetWidth },
+          snapPoints ? styles.fill : undefined,
+        ]}
+      >
         {material === "liquid-tonal" ? (
           <LiquidMaterialSurface
             accessibilityViewIsModal={visible}

@@ -33,6 +33,9 @@ describe("production bottom navigation source contract", () => {
     );
 
     expect(materialNavigation).toContain("borderRadius: shapes.full");
+    expect(materialNavigation).toContain("MATERIAL_NAV_RIPPLE_RADIUS = 16");
+    expect(materialNavigation).toContain("MATERIAL_NAV_RIPPLE_OPACITY = 0.06");
+    expect(materialNavigation).toContain("foreground: true");
     expect(materialNavigation).not.toContain("...shapes.selected");
   });
 

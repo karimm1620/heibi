@@ -56,11 +56,18 @@ object WidgetSnapshotReader {
   private val EMPTY = WidgetSnapshot(version = 2, generatedAt = 0L, goals = emptyList(), habits = emptyList(), transactions = emptyList())
 
   fun read(context: Context): WidgetSnapshot {
-    val file = File(context.filesDir, WidgetUpdater.SNAPSHOT_FILE_NAME)
-    if (!file.exists()) return EMPTY
+    return parse(readJson(context))
+  }
 
+  fun readJson(context: Context): String? {
+    val file = File(context.filesDir, WidgetUpdater.SNAPSHOT_FILE_NAME)
+    return file.takeIf { it.exists() }?.readText()
+  }
+
+  fun parse(snapshotJson: String?): WidgetSnapshot {
+    if (snapshotJson.isNullOrBlank()) return EMPTY
     return try {
-      val json = JSONObject(file.readText())
+      val json = JSONObject(snapshotJson)
       WidgetSnapshot(
         version = json.optInt("version", 1),
         generatedAt = json.optLong("generatedAt", 0L),

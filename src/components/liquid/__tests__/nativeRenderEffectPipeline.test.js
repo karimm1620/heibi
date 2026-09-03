@@ -37,9 +37,17 @@ describe("native Liquid RenderEffect pipeline", () => {
 
   it("uses an explicit light adaptive-contrast path without changing tiers", () => {
     expect(moduleSource).toContain('Prop("lightMaterial")');
+    expect(moduleSource).toContain('Prop("boundaryColor")');
     expect(rendererSource).toContain("if (lightMaterial)");
     expect(rendererSource).toContain("Color.argb(24, 255, 255, 255)");
     expect(rendererSource).toContain("Color.argb(18, 0, 0, 0)");
+  });
+
+  it("draws a separate material boundary without changing backdrop capture", () => {
+    expect(rendererSource).toContain("private val boundaryPaint = Paint");
+    expect(rendererSource).toContain("fun setBoundaryColor(color: Int)");
+    expect(rendererSource).toContain("boundaryPaint.color = boundaryColor");
+    expect(rendererSource).toContain("drawEdgeLight(canvas)");
   });
 
   it("refreshes on bounded native scroll/layout dirtiness without an idle frame loop", () => {
