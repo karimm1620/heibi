@@ -589,6 +589,28 @@ compilation and physical device/launcher QA remain pending. Release APK
 size, formal performance/battery/thermal instrumentation, and physical Liquid
 API 24–30/API 31–32 evidence remain unavailable. Checkpoint 10 has not started.
 
+The follow-up EAS Android build succeeds and the user completes broad physical-
+device QA. Saving and Chart widgets pass rendering, resize, update, and deep-link
+checks; Simple Tracker passes its metric, initial rendering, resize, and tap;
+savings cards/charts, deposit/withdraw actions, the nested progress screen,
+History-to-goal routing, onboarding, TalkBack, large text, and reduced motion
+pass. Dark Liquid navigation is accepted with the green Material-You cast
+removed; contextual blur, settled capture, idle behavior, rapid tabs, artifact
+behavior, and perceived performance also pass. No crash, noticeable lag, or
+noticeable heat/battery issue is observed. This remains qualitative evidence,
+not instrumented frame, CPU/GPU, memory, thermal, or battery data.
+
+The user accepts Checkpoint 9 for merge while explicitly deferring five physical-
+device defects to the final stabilization checkpoint: Heatmap labels a 14-day
+view but visibly shows only about five cells per habit; an installed Simple
+Tracker stays stale until removed and re-added; light Liquid navigation remains
+too faint over the cream page; the Liquid transaction sheet's inner material
+remains narrow and left-aligned although Material width is correct; and Material
+navigation ripple blooms well outside the intended pill. These do not reopen the
+accepted widget data architecture, savings/onboarding work, dark Liquid material,
+or renderer lifecycle. Release APK size and physical Liquid API 24–30/API 31–32
+evidence remain unavailable.
+
 ## Repository
 
 - Repo: `karimm1620/heibi`

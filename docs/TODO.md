@@ -549,8 +549,28 @@ API 31–32, and instrumented device performance remain open evidence.
     compile the new Glance providers and device QA must cover launcher resize,
     widget taps/refresh, Liquid light/dark/sheets, transaction sheet/IME,
     charts, History deep links, onboarding, TalkBack, and reduced motion.
+- [x] Complete Checkpoint 9 EAS and physical-device QA.
+  - EAS succeeds. Saving and Chart widgets pass rendering, resize, updates, and
+    deep links. Simple Tracker passes its metric, initial render, resize, and
+    tap. Savings, History-to-goal routing, onboarding, TalkBack, large text,
+    reduced motion, dark Liquid navigation, and Liquid live/settled/idle
+    behavior pass. No crash, noticeable lag, or noticeable heat/battery issue
+    is observed; this is qualitative rather than instrumented evidence.
+  - The user accepts CP9 and moves five defects to CP10: truncated Heatmap day
+    presentation, stale installed Simple Tracker refresh, faint light Liquid
+    navigation, a narrow left-aligned inner Liquid transaction surface, and an
+    oversized Material navigation ripple.
 
 ## Checkpoint 10 — Size/performance
+
+### Checkpoint 9 physical-QA follow-ups
+
+- [ ] Fix Heatmap 14-day cell presentation.
+- [ ] Fix Simple Tracker live refresh.
+- [ ] Improve Liquid light navbar visibility.
+- [ ] Fix Liquid transaction-sheet full-width layout.
+- [ ] Reduce and correctly bound Material navbar ripple/pressed feedback.
+- [ ] Run a new EAS/device validation after fixes.
 
 - [ ] Build release APK.
 - [ ] Record final APK size.

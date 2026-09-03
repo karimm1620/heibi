@@ -1408,6 +1408,40 @@ pre-merge EAS/device gate.
 
 ---
 
+## D-038 — Accept Checkpoint 9 and defer five physical defects to final stabilization
+
+**Status:** accepted; Checkpoint 10 fixes authorized
+
+### Finding
+
+The Checkpoint 9 EAS Android build succeeds and broad physical-device QA accepts
+the savings and chart widgets, savings flows and progress route, History deep
+links, onboarding, dark Liquid navigation, live/settled/idle Liquid capture,
+TalkBack, large text, and reduced motion. No crash, noticeable lag, or noticeable
+heat/battery issue is observed; this is qualitative evidence only.
+
+Five concrete defects remain: Heatmap visibly represents only about five of its
+14 labelled day slots; an already-installed Simple Tracker is not invalidated
+after habit mutations; light Liquid navigation lacks sufficient separation from
+the cream page; the Liquid transaction sheet's inner material is narrow and left
+aligned although the Material sheet is full width; and Material navigation's
+ripple blooms beyond the selected pill.
+
+### Decision
+
+Accept Checkpoint 9 for squash merge and fix those five defects in Checkpoint 10,
+the final stabilization phase. Preserve the accepted four-widget data/snapshot
+architecture, savings and onboarding work, neutral dark Liquid material, one-host
+contextual capture lifecycle, zero recurring idle work, native sheet behavior,
+and 64×32 Material selected pill. Checkpoint 10 must find the actual remaining
+layout/update/feedback ownership defects rather than repeat prior assumptions.
+
+This acceptance adds no release APK measurement, formal frame/CPU/GPU/memory/
+thermal/battery data, or physical Liquid API 24–30/API 31–32 evidence. It does not
+authorize a new product checkpoint or redesign phase.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.
