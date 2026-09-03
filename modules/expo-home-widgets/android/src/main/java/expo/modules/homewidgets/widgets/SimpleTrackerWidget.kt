@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalSize
@@ -14,6 +15,7 @@ import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -23,6 +25,8 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
+import androidx.glance.state.GlanceStateDefinition
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -30,11 +34,17 @@ import androidx.glance.unit.ColorProvider
 import expo.modules.homewidgets.R
 
 class SimpleTrackerWidget : GlanceAppWidget() {
+  override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
   override val sizeMode = SizeMode.Exact
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
-    val snapshot = WidgetSnapshotReader.read(context)
-    provideContent { SimpleTrackerContent(context, snapshot) }
+    provideContent {
+      val snapshotJson = currentState<Preferences>()[WidgetSnapshotJsonKey]
+      SimpleTrackerContent(
+        context,
+        WidgetSnapshotReader.parse(snapshotJson ?: WidgetSnapshotReader.readJson(context)),
+      )
+    }
   }
 }
 

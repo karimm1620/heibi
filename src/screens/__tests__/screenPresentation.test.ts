@@ -76,6 +76,8 @@ describe("screen presentation contracts", () => {
 
     expect(material).toContain("android_ripple={pressFeedback.androidRipple}");
     expect(material).toMatch(/iconContainer:\s*\{[\s\S]*width: 64,[\s\S]*height: 32,/);
+    expect(material).toContain("MATERIAL_NAV_RIPPLE_RADIUS = 16");
+    expect(material).toContain("foreground: true");
     expect(liquid).not.toContain("android_ripple");
     expect(liquid).toContain("interactionEnabled={false}");
   });

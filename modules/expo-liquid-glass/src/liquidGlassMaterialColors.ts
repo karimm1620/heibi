@@ -4,6 +4,7 @@ import { liquidChromeColors, withOpacity } from "../../../src/theme/colors";
 export type LiquidGlassMaterialTone = "default" | "navigation";
 
 export interface LiquidGlassMaterialColors {
+  boundaryColor: string;
   edgeColor: string;
   fallbackColor: string;
   lightMaterial: boolean;
@@ -29,8 +30,9 @@ export function resolveLiquidGlassMaterialColors(
     const chrome = isDark ? liquidChromeColors.dark : liquidChromeColors.light;
     return {
       fallbackColor: chrome.navigationFallback,
-      tintColor: withOpacity(chrome.navigationTint, isDark ? 0.4 : 0.36),
+      tintColor: withOpacity(chrome.navigationTint, isDark ? 0.4 : 0.46),
       edgeColor: chrome.navigationEdge,
+      boundaryColor: chrome.navigationBoundary,
       lightMaterial: !isDark,
     };
   }
@@ -41,6 +43,7 @@ export function resolveLiquidGlassMaterialColors(
     edgeColor: isDark
       ? "rgba(255,255,255,0.44)"
       : "rgba(255,255,255,0.68)",
+    boundaryColor: "rgba(255,255,255,0)",
     lightMaterial: false,
   };
 }

@@ -12,6 +12,8 @@ import { BOTTOM_NAVIGATION_CONTENT_HEIGHT } from "./navigation/bottom-navigation
 import { resolvePressFeedback } from "./pressFeedback";
 
 export const MATERIAL_NAV_BAR_HEIGHT = BOTTOM_NAVIGATION_CONTENT_HEIGHT;
+const MATERIAL_NAV_RIPPLE_RADIUS = 16;
+const MATERIAL_NAV_RIPPLE_OPACITY = 0.06;
 
 export function MaterialNavigationBar({
   bottomInset,
@@ -23,7 +25,9 @@ export function MaterialNavigationBar({
     visualTheme,
     states,
     color: material3.onSurfaceVariant,
-    radius: 32,
+    foreground: true,
+    radius: MATERIAL_NAV_RIPPLE_RADIUS,
+    rippleOpacity: MATERIAL_NAV_RIPPLE_OPACITY,
   });
   const typeScale = useMemo(
     () => buildM3FullTypeScale(colors.textPrimary, colors.textSecondary),

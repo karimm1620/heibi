@@ -13,6 +13,9 @@ class ExpoLiquidGlassModule : Module() {
       Prop("fallbackColor") { view: OriginalLiquidGlassView, color: Int? ->
         color?.let(view::setFallbackColor)
       }
+      Prop("boundaryColor") { view: OriginalLiquidGlassView, color: Int? ->
+        color?.let(view::setBoundaryColor)
+      }
       Prop("tintColor") { view: OriginalLiquidGlassView, color: Int? ->
         color?.let(view::setTintColor)
       }

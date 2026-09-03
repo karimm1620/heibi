@@ -35,7 +35,11 @@ describe("home widget native contract", () => {
   it("renders the fourteen snapshot-date slots without desynchronizing the streak", () => {
     expect(renderer).toContain("snapshot.habits.take(layout.maxRows)");
     expect(renderer).not.toContain("alignWidgetDays");
-    expect(renderer).toContain("habit.days.takeLast(14)");
+    expect(renderer).toContain("HEATMAP_DAY_COUNT = 14");
+    expect(renderer).toContain("HEATMAP_WEEK_COLUMNS = 7");
+    expect(renderer).toContain("habit.days.takeLast(HEATMAP_DAY_COUNT)");
+    expect(renderer).toContain("days.chunked(HEATMAP_WEEK_COLUMNS)");
+    expect(renderer).not.toMatch(/take(?:Last)?\([1-9]\)/);
     expect(renderer).not.toContain("🔥");
   });
 
@@ -84,8 +88,15 @@ describe("home widget native contract", () => {
     const updater = read("modules/expo-home-widgets/android/src/main/java/expo/modules/homewidgets/widgets/WidgetUpdater.kt");
     expect(links).toContain('private const val SCHEME = "heibi"');
     expect(links).toContain("goalProgress");
-    expect(updater).toContain("SimpleTrackerWidget().updateAll(context)");
-    expect(updater).toContain("ChartWidget().updateAll(context)");
+    expect(updater).toContain("SimpleTrackerWidgetProvider::class.java");
+    expect(updater).toContain("ChartWidgetProvider::class.java");
+    expect(updater).toContain("getAppWidgetIds");
+    expect(updater).toContain("getGlanceIdBy(appWidgetId)");
+    expect(updater).toContain("WidgetSnapshotJsonKey");
+    expect(updater).toContain("updateAppWidgetState");
+    expect(tracker).toContain("currentState<Preferences>()");
+    expect(tracker).toContain("WidgetSnapshotReader.parse");
+    expect(updater).not.toMatch(/scheduleAtFixedRate|WorkManager|setInterval/);
     expect([renderer, tracker, saving, chart].join("\n")).not.toMatch(/SQLite|setInterval|scheduleAtFixedRate/);
   });
 });

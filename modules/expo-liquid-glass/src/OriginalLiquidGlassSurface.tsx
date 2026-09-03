@@ -42,6 +42,7 @@ export interface LiquidGlassRendererState {
 
 type NativeProps = ViewProps & {
   fallbackColor: number;
+  boundaryColor: number;
   interactionEnabled: boolean;
   lightMaterial: boolean;
   tintColor: number;
@@ -159,6 +160,7 @@ export function OriginalLiquidGlassSurface({
     const resolved = resolveLiquidGlassMaterialColors(colors, isDark, materialTone);
     return {
       fallbackColor: processColor(resolved.fallbackColor) as number,
+      boundaryColor: processColor(resolved.boundaryColor) as number,
       tintColor: processColor(resolved.tintColor) as number,
       edgeColor: processColor(resolved.edgeColor) as number,
       lightMaterial: resolved.lightMaterial,

@@ -1442,6 +1442,51 @@ authorize a new product checkpoint or redesign phase.
 
 ---
 
+## D-039 — Correct final regressions at their rendering and update owners
+
+**Status:** accepted and physically validated
+
+### Finding
+
+The five CP9 device findings have distinct owners. Glance truncates a Row after
+ten direct children, so the Heatmap's alternating cell/spacer sequence displayed
+five of 14 cells. Widget JSON was read before `provideContent`, so an active
+Glance session could retain a stale snapshot because an update does not restart
+`provideGlance`. SDK 57's dynamic native sheet measures a match-content RN host,
+where percentage width lacked a numeric basis. Light optical navigation had no
+neutral full-perimeter separation from Heibi's cream page. Material navigation's
+full-destination background ripple was occluded by its selected pill and read as
+an oversized halo.
+
+### Decision
+
+Render Heatmap as two seven-cell rows while preserving the exact 14 chronological
+snapshot slots. Publish every completed snapshot into observable per-installed-
+widget Glance state before updating the exact Glance ID; retain the file as cold
+start/configuration fallback, isolate provider failures, and introduce no polling.
+Give the dynamic RN sheet root the current window width so Material and Liquid
+surfaces resolve `100%` against an actual measurement constraint. Add a neutral,
+light-only native Liquid perimeter and raise the light optical tint from 36% to
+46%; leave accepted dark material and all capture behavior unchanged. Bound the
+Material navigation response to one 16dp-radius, 6%-opacity foreground ripple
+while preserving the 64×32 selected pill and Liquid's ripple exclusion.
+
+These changes add no dependency, background worker, frame loop, product feature,
+or widget provider. The final EAS build succeeds and user physical-device QA
+accepts all five fixes, their navigation/sheet/widget regressions, Today gestures,
+savings flows, TalkBack, large text, and reduced motion. No blocking crash or
+noticeable lag/heat issue is reported; this remains qualitative evidence, not
+instrumented frame/CPU/GPU/RAM/thermal/battery data.
+
+The user reports the final APK at approximately 70 MB, approximately +5 MB from
+the historical 65 MB baseline. This passes the 90 MB warning and 100 MB hard
+limit. The artifact is not locally accessible, so exact type, bytes, and MiB are
+not claimed. Physical Liquid API 24–30 and API 31–32 evidence also remains
+unavailable. With those limitations explicit, the planned CP2–CP10 overhaul is
+complete; no Checkpoint 11 is created.
+
+---
+
 # New decision template
 
 Copy this section for future decisions.

@@ -41,6 +41,25 @@ describe("Android press feedback", () => {
     expect(feedback.opacity(true)).toBe(states.pressedOpacity);
   });
 
+  it("supports one restrained foreground ripple for bounded navigation feedback", () => {
+    const feedback = resolvePressFeedback({
+      visualTheme: "material3",
+      states,
+      color: "#123456",
+      foreground: true,
+      radius: 16,
+      rippleOpacity: 0.06,
+    });
+
+    expect(feedback.androidRipple).toEqual({
+      color: "#1234560F",
+      borderless: false,
+      foreground: true,
+      radius: 16,
+    });
+    expect(feedback.opacity(true)).toBe(1);
+  });
+
   it("suppresses feedback and exposes disabled opacity when blocked", () => {
     const feedback = resolvePressFeedback({
       visualTheme: "material3",

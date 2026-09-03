@@ -69,6 +69,7 @@ class OriginalLiquidGlassView(
   private val lowRamDevice = activityManager?.isLowRamDevice == true
   private val materialPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
   private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+  private val boundaryPaint = Paint(Paint.ANTI_ALIAS_FLAG)
   private val edgePaint = Paint(Paint.ANTI_ALIAS_FLAG)
   private val materialRect = RectF()
   private val clippingPath = Path()
@@ -76,6 +77,7 @@ class OriginalLiquidGlassView(
   private val sourceLocation = IntArray(2)
 
   private var fallbackColor = Color.argb(255, 48, 46, 56)
+  private var boundaryColor = Color.TRANSPARENT
   private var tintColor = Color.argb(156, 48, 46, 56)
   private var edgeColor = Color.argb(140, 255, 255, 255)
   private var cornerRadiusPx = 28f * density
@@ -145,6 +147,11 @@ class OriginalLiquidGlassView(
 
   fun setFallbackColor(color: Int) {
     fallbackColor = color
+    invalidate()
+  }
+
+  fun setBoundaryColor(color: Int) {
+    boundaryColor = color
     invalidate()
   }
 
@@ -566,6 +573,19 @@ class OriginalLiquidGlassView(
 
   private fun drawEdgeLight(canvas: Canvas) {
     val inset = max(0.5f, density * 0.5f)
+    boundaryPaint.shader = null
+    boundaryPaint.style = Paint.Style.STROKE
+    boundaryPaint.strokeWidth = max(1f, density)
+    boundaryPaint.color = boundaryColor
+    canvas.drawRoundRect(
+      inset,
+      inset,
+      width - inset,
+      height - inset,
+      max(0f, cornerRadiusPx - inset),
+      max(0f, cornerRadiusPx - inset),
+      boundaryPaint,
+    )
     edgePaint.style = Paint.Style.STROKE
     edgePaint.strokeWidth = max(1f, density)
     canvas.drawRoundRect(

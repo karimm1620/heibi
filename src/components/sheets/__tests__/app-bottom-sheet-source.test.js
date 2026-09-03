@@ -39,6 +39,8 @@ describe("production transient-surface source contract", () => {
 
   it("pins the native dynamic-size host to the full dialog width", () => {
     expect(componentSource).toContain('width: "100%"');
+    expect(componentSource).toContain("useWindowDimensions");
+    expect(componentSource).toContain("{ width: sheetWidth }");
     expect(componentSource).toContain("styles.sheetHost");
     expect(componentSource).not.toMatch(/translateX|left:\s*-|marginLeft:\s*-/);
   });
