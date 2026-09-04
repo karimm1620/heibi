@@ -47,8 +47,7 @@ app-example/
 /ios/
 /android/
 
-# Local agent artifacts
-# Do NOT ignore .agents/ because project skills are committed.
+# Local agent tooling (backed up separately)
 .agents/
 
 # Local setup / temporary development files
