@@ -228,7 +228,7 @@ function createStyles(
       flexDirection: "row",
       alignItems: "center",
       flexWrap: "wrap",
-      gap: spacing.sm,
+      gap: spacing.xs,
       marginBottom: spacing.md,
     },
     androidChipDivider: {

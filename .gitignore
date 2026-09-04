@@ -1,6 +1,7 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Learn more
+# https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+# Dependencies
 node_modules/
 
 # Expo
@@ -21,7 +22,7 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
-# debug
+# Debug
 npm-debug.*
 yarn-debug.*
 yarn-error.*
@@ -30,20 +31,29 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# Local environment files
 .env*.local
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 
-app-example
+# Codex
+.codex
 
-# generated native folders
-/ios
-/android
+# Example / generated project
+app-example/
 
-# Setup for continue project dev
+# Generated native folders
+/ios/
+/android/
+
+# Local agent artifacts
+# Do NOT ignore .agents/ because project skills are committed.
+.agents/
+
+# Local setup / temporary development files
 SETUP.md
 checkpoint*
 ui-registry*
 PROJECT_CONTEXT*
+AGENTS.md

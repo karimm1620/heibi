@@ -1,13 +1,60 @@
-import { Material3Scheme, useMaterial3Theme } from "@pchmn/expo-material3-theme";
+import {
+  createMaterial3Theme,
+  type Material3Scheme,
+  type Material3Theme,
+} from "@pchmn/expo-material3-theme";
+import { useEffect, useState } from "react";
+import { AppState } from "react-native";
+import {
+  getSystemMaterial3Theme,
+  type SystemMaterial3Theme,
+} from "../../../modules/expo-dynamic-material3";
 import { ThemeColors, withOpacity } from "../colors";
 
 /**
  * Seed warna fallback kalau dynamic color gak tersedia (Android <12, atau
- * device yang API-nya gagal). SENGAJA dipilih dari `accentByKey.lavender.deep`
- * yang sudah dipakai di app ini — supaya brand identity tetap kerasa "Tabungan-ku"
- * walau device-nya gak support Material You, bukan ungu default Google (#6750A4).
+ * native dynamic-color bridge gagal). Ini hanya fallback; Android 12+ harus
+ * lebih dulu mencoba palette wallpaper melalui local Expo module Heibi.
  */
 export const MATERIAL3_FALLBACK_SEED = "#A985E0";
+
+export type Material3PaletteSource = "system-dynamic" | "fallback";
+
+export interface ResolvedMaterial3Palette {
+  theme: Material3Theme;
+  source: Material3PaletteSource;
+}
+
+/**
+ * Gabungkan role inti dynamic color Android dengan role M3 lengkap hasil
+ * generator JS. Dengan begitu Heibi tidak lagi bergantung pada native bridge
+ * milik @pchmn/expo-material3-theme yang bisa gagal secara silent, tetapi tetap
+ * mempertahankan role tambahan seperti surfaceContainer*, error, scrim, dll.
+ */
+export function resolveMaterial3Palette(
+  systemTheme: SystemMaterial3Theme | null,
+): ResolvedMaterial3Palette {
+  const fallbackTheme = createMaterial3Theme(MATERIAL3_FALLBACK_SEED);
+
+  if (!systemTheme) {
+    return { theme: fallbackTheme, source: "fallback" };
+  }
+
+  return {
+    source: "system-dynamic",
+    theme: {
+      light: {
+        ...fallbackTheme.light,
+        ...systemTheme.light,
+      } as Material3Scheme,
+      dark: { ...fallbackTheme.dark, ...systemTheme.dark } as Material3Scheme,
+    },
+  };
+}
+
+function readMaterial3Palette(): ResolvedMaterial3Palette {
+  return resolveMaterial3Palette(getSystemMaterial3Theme());
+}
 
 /**
  * Field ThemeColors yang SENGAJA TIDAK di-drive oleh dynamic color.
@@ -64,11 +111,20 @@ export function mapMaterial3ToThemeColors(
   };
 }
 
-/** Hook utama buat ambil M3 dynamic color — app ini Android-only, jadi selalu dipakai. */
+/** Hook utama Material 3: system palette di API 31+, fallback di bawahnya. */
 export function useMaterial3Palette(isDark: boolean) {
-  const { theme } = useMaterial3Theme({
-    fallbackSourceColor: MATERIAL3_FALLBACK_SEED,
-  });
-  const scheme = isDark ? theme.dark : theme.light;
-  return { scheme, theme };
+  const [resolved, setResolved] = useState(() => readMaterial3Palette());
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        setResolved(readMaterial3Palette());
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  const scheme = isDark ? resolved.theme.dark : resolved.theme.light;
+  return { scheme, theme: resolved.theme, source: resolved.source };
 }

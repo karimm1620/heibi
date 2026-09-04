@@ -3,12 +3,16 @@ import { useMemo } from 'react';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { buildSemanticTheme } from './adapters';
 import type { SemanticThemeContract } from './contracts';
-import { useMaterial3Palette } from './material3/colors';
+import {
+  useMaterial3Palette,
+  type Material3PaletteSource,
+} from './material3/colors';
 import type { Material3Scheme } from '@pchmn/expo-material3-theme';
 
 export interface AppTheme extends SemanticThemeContract {
   isDark: boolean;
   material3: Material3Scheme;
+  material3Source: Material3PaletteSource;
 }
 
 /**
@@ -22,11 +26,19 @@ export function useTheme(): AppTheme {
   const isDark = scheme === 'dark';
   const visualTheme = useSettingsStore((state) => state.visualTheme);
 
-  const { scheme: material3Scheme } = useMaterial3Palette(isDark);
+  const {
+    scheme: material3Scheme,
+    source: material3Source,
+  } = useMaterial3Palette(isDark);
   const semanticTheme = useMemo(
     () => buildSemanticTheme(visualTheme, material3Scheme, isDark),
     [visualTheme, material3Scheme, isDark],
   );
 
-  return { ...semanticTheme, isDark, material3: material3Scheme };
+  return {
+    ...semanticTheme,
+    isDark,
+    material3: material3Scheme,
+    material3Source,
+  };
 }
