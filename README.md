@@ -94,10 +94,10 @@ Heibi tidak membutuhkan akun untuk penggunaan utamanya, tidak bergantung pada ko
 
 - Bahasa Indonesia dan English.
 - Light/dark mengikuti system color scheme Android.
-- Material You dynamic color pada perangkat yang mendukung, dengan fallback palette Heibi.
+- Material You dynamic color pada Android 12+ melalui local Expo module, dengan fallback palette Heibi.
 - Pilihan visual theme Material 3 atau Liquid.
 - Adaptive icon dan monochrome icon Android.
-- Notification color handling melalui config plugin Android.
+- Notification icon, color, dan default channel dikonfigurasi melalui `expo-notifications`.
 
 ## Screenshot showcase
 
@@ -148,6 +148,7 @@ flowchart TD
     Store[Zustand reactive stores]
     DB[(SQLite\nsource of truth)]
     Native[Local Expo modules]
+    Dynamic[Android Material You palette bridge]
     Widgets[Jetpack Glance / Android widgets]
     Liquid[Android Liquid renderer]
     System[Android notifications / system UI]
@@ -157,6 +158,7 @@ flowchart TD
     UI --> Store
     Store --> DB
     UI --> Native
+    Native --> Dynamic
     Native --> Widgets
     Native --> Liquid
     UI --> System
@@ -195,7 +197,8 @@ Reactive UI refresh
 | react-native-gesture-handler | Swipe dan gesture interactions |
 | react-native-reanimated | Motion dan interaction animation |
 | react-native-svg | Custom expressive shapes |
-| @pchmn/expo-material3-theme | Material You dynamic colors |
+| @pchmn/expo-material3-theme | Fallback Material 3 scheme generation dan role completion |
+| expo-dynamic-material3 | Local Expo module untuk Android Material You system palette |
 | expo-notifications | Local reminders dan notification handling |
 | @expo/ui | Native Android UI ketika dibutuhkan |
 | Jetpack Glance | Android home screen widgets melalui local Expo module |
@@ -233,12 +236,12 @@ src/
 └── widgets/         # JS-side widget data bridge
 
 modules/
-├── expo-home-widgets/   # Local Expo module + Android widgets / Jetpack Glance
-└── expo-liquid-glass/   # Original bounded Android Liquid renderer
+├── expo-dynamic-material3/ # Android Material You system palette bridge
+├── expo-home-widgets/      # Local Expo module + Android widgets / Jetpack Glance
+└── expo-liquid-glass/      # Original bounded Android Liquid renderer
 
 plugins/
-├── withAndroidApkSize.js
-└── withDynamicNotificationColor.js
+└── withAndroidApkSize.js
 
 .github/workflows/
 └── ci.yml
